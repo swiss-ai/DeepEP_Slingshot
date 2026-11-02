@@ -406,4 +406,79 @@ and the dbuf128 stress gate.
 
 ### 4.4 Results
 
-(pending)
+**Debug job 3835147 (nid007645/nid007666, 15:57–16:20 CET), `source-1102-lean-dbg-v1`.** All leanb
+correctness gates PASS (irregular stress 32/257 × 5 routings × 3 seeds; 4K FP8+BF16 × 5 routings;
+dropped tokens; sustained 16K FP8+BF16). The candidate reference in the same allocation reproduces
+the release numbers exactly (4K 0.948 / 1.813 ms, 16K 3.435 / 6.944 ms).
+
+| V4 Flash FP8, mixed | cand (9504) | leanb (9505) | leanb rank-median | leanb best iteration |
+|---|---:|---:|---:|---:|
+| 4K dispatch | 0.948 ms | 0.941 ms (−0.8 %) | 0.929 (cand 0.940) | 0.900 (cand 0.919) |
+| 4K combine | 1.813 ms | 1.822 ms (+0.5 %) | 1.756 (cand 1.801) | 1.667 (cand 1.769) |
+| 16K dispatch | 3.435 ms | 3.423 ms (−0.4 %) | 3.410 (cand 3.419) | 3.258 (cand 3.268) |
+| 16K combine | 6.944 ms | 7.176 ms (+3.4 %) | 6.887 (cand 6.927) | 6.531 (cand 6.753) |
+
+Reading (per-rank, per-iteration CUDA-event times, `pipeline_1102/rank_hist.py`): the lean arm makes
+the *typical* iteration faster in both kernels (combine rank median −2.5 % at 4K, best iterations −6 %
+at 4K and −3 % at 16K), but combine acquires a rank-to-rank spread that the headline metric (median
+over iterations of the per-iteration maximum across the eight ranks) turns into a loss. At 16K the
+per-rank values are trimodal: 6.55, 6.89 and 7.22 ms (steps of ~330 µs); the candidate is unimodal at
+6.93 ms. The slow ranks change from iteration to iteration and are not rail-paired, so the lateness
+is on the *sender* side (a peer's end signal for some channel leaves late). Dispatch shows no such
+spread. The small-batch gate (32/257 tokens) shows combine −18 to −25 % at 32 tokens, dispatch −1 to
+−4 %: the barrier and signal command savings are worth only ~10 µs per call, far less than the
+command-count estimate in §2.2–2.3; the entry barrier is dominated by inter-rank skew, not by
+command issue.
+
+**128 SMs / 257 contexts (leanb128, gate 9507) is a loss at 4K:** dispatch 1.082 ms (+14 %), combine
+1.960 ms (+8 %); at 16K it equals leanb (3.421 / 7.150 ms). With 512 channels a 4K dispatch has 8
+tokens per channel (PUTs of 4 + 4 rows, twice as many PUTs and signals), and the combine's forward
+warps have 8 rows per channel. Plan item 2.4's "more SMs" lever is closed for 4K; the scale-up stage
+has to be shortened inside the warp (double-buffered staging, round 2).
+
+**The spread comes from the kernel-side change, not the transport (gate 9512, pushed into the same
+allocation's last minutes):** the kern arm (marker-zero transport + `CXI_EP_SKIP_COMBINE_FLUSH` +
+`CXI_EP_LOCAL_SELF_SIGNAL`) shows the same picture as leanb at 4K: dispatch 0.936 ms (−1.2 %),
+combine rank median 1.763 ms (−2.1 %) and best 1.677 ms, but the per-rank distribution is bimodal
+(1.68–1.75 and 1.80–1.85 ms) so the headline is 1.831 ms (+1.0 %). In the candidate the rare slow
+iterations hit rail pairs together (patterns `S...S...`); with the flush removed each rank is slow
+independently with probability ≈0.25 per iteration (slow count 22–28 of 100 on every rank, no
+pairing), so with eight ranks almost every iteration has one slow rank. The slow rank's excess is
+≈80 µs at 4K and ≈330 µs at 16K, proportional to the token count. The lean transport on top of kern
+changes neither the typical time nor the spread (leanb ≈ kern), and buys dispatch about 1 %.
+
+**What the spread is (resolved from the records, no new gate needed).** `measure()` records a
+CUDA event pair around each call without a per-iteration synchronisation, so a rank's windows are
+contiguous and `window_i = T_i − T_{i−1}` with `T_i` the absolute end of iteration *i* on that rank. The
+headline metric takes the maximum of `window_i` across ranks, which equals the common duration plus
+`max_rank(δ_i − δ_{i−1})` when the ranks' kernel ends carry an independent skew `δ`. With the flush,
+each combine ended on both rail peers only after both had drained everything, so the ends were tightly
+aligned (the rare slow iterations hit rail pairs together). Without the flush each rank ends when its
+peer's last signal arrives, the two directions are independent, and the ends carry a per-rank skew of
+≈80 µs (4K) / ≈330 µs (16K). The skew is absorbed by the next kernel's entry barrier and costs no
+throughput: the slowest rank's host wall time per iteration over the timed loop (`host_us_per_iteration`
+= total GPU time / iterations) improves on every arm.
+
+| V4 Flash FP8 mixed, same allocation, wall per iteration (slowest rank) | cand | kern | leanb | dbuf |
+|---|---:|---:|---:|---:|
+| 4K dispatch | 0.944 ms (18.7 GB/s) | 0.935 (18.9) | 0.934 (18.9) | 0.932 (19.0) |
+| 4K combine | 1.804 ms (18.7) | 1.767 (19.1) | 1.759 (19.2) | 1.757 (19.2) |
+| 4K dispatch + combine cycle | 2.747 ms | 2.702 (−1.6 %) | 2.699 (−1.7 %) | 2.688 (−2.1 %) |
+| 16K dispatch | 3.418 ms (20.7) | — | 3.412 (20.7) | 3.414 (20.7) |
+| 16K combine | 6.915 ms (19.6) | — | 6.878 (19.7) | 6.898 (19.6) |
+
+(`pipeline_1102/effective_rate.py ... --wall`; dbuf and its leanb reference are from job 3835199 on the
+same node pair, cand/kern/leanb from job 3835147.) Conclusions: (1) dropping the combine flush and the
+NIC self-signal is worth 2.1 % of combine and 1 % of dispatch time at 4K; (2) the lean transport
+(lean-a/lean-b) adds at most 0.3 % on top; (3) the double-buffered staging adds nothing measurable at
+4K or 16K, so the scale-up stage is not on the combine's critical path (or the pipeline drains every
+three tokens at `update_tails` anyway); (4) the headline metric must be read together with the wall
+time whenever a change alters how the ranks' ends align. Position against the user's target: 19.0 GB/s
+dispatch and 19.2 GB/s combine effective at 4K, versus 20 GB/s wanted (0.884 / 1.691 ms); the
+remaining gap is 48 µs on dispatch and 66 µs on combine per call.
+
+The isolation job (`source-1102-iso-dbg-v1`, job 3835540: cand / kern / leana / leanb sustained-16K and
+4K/16K repeats, plus pushed one-context-per-channel variants `CXI_EP_CONTEXTS=257` of kern and leanb and
+the single-knob arms flush-skip-only / self-signal-only) now serves to confirm the wall-time gains per
+arm and to test whether one context per channel changes anything once sibling-channel interactions
+(lock, fence, marker fold) are gone.

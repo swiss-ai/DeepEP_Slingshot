@@ -1,0 +1,11 @@
+{
+  "job": 3835540,
+  "utc": "2026-11-02T15:19:21.828776+00:00",
+  "campaign": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030",
+  "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1102-iso-dbg-v1",
+  "local_snapshot": "/home/yu/CSCS/Load_Balance_Cross_Node/results/deepep_pipeline_20261101/source-1102-iso-dbg-v1",
+  "state": "SUBMITTED",
+  "time": "00:25:00",
+  "partition": "debug",
+  "monitor_pid": 2158501
+}
