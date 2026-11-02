@@ -1,0 +1,28 @@
+# host=nid007657 role=client dev=cxi0 svc=default LD_LIBRARY_PATH=/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102/cudart: opts=-s 132096 -D 5 -b
+# cmd: cxi_write_bw nid007653 -d cxi0 -p 49530 -s 132096 -D 5 -b
+---------------------------------------------------
+    CXI RDMA Write Bandwidth Test
+Device           : cxi0
+Service ID       : 1
+Client TX Mem    : System
+Client RX Mem    : System
+Server TX Mem    : System
+Server RX Mem    : System
+Test Type        : Duration
+Duration         : 5 seconds
+Write Size       : 132096
+List Size        : 256
+HRP              : Enabled
+IDC              : Enabled
+Restricted       : Enabled
+Bidirectional    : Enabled
+Max RDMA Buf     : 4294967296 (33816576 used)
+RDMA Buf Align   : 64
+Hugepages        : Disabled
+Local (client)   : NIC 0x12d41 PID 0 VNI 1
+Remote (server)  : NIC 0x12d60 PID 0
+---------------------------------------------------
+RDMA Size[B]      Writes  BW[MB/s]  PktRate[Mpkt/s]
+      132096      832512  44892.89        22.090279
+---------------------------------------------------
+# attempts=1 rc=0

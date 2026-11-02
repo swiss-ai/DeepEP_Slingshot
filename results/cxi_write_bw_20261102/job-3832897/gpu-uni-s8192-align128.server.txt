@@ -1,0 +1,28 @@
+# host=nid007470 role=server dev=cxi0 svc=default devices= svc_ids= opts=-r 0 -g NVIDIA
+# cmd: cxi_write_bw -d cxi0 -p 49205 -r 0 -g NVIDIA
+Unable to open libcudart.so
+Listening on port 49205 for client to connect...
+---------------------------------------------------
+    CXI RDMA Write Bandwidth Test
+Device           : cxi0
+Service ID       : 1
+Client TX Mem    : GPU 0
+Client GPU Type  : NVIDIA
+Server RX Mem    : GPU 0
+Server GPU Type  : NVIDIA
+Test Type        : Duration
+Duration         : 4 seconds
+Write Size       : 8192
+List Size        : 256
+HRP              : Enabled
+IDC              : Disabled
+Restricted       : Enabled
+Bidirectional    : Disabled
+Max RDMA Buf     : 4294967296 (2097152 used)
+RDMA Buf Align   : 128
+Hugepages        : Disabled
+Local (server)   : NIC 0x120e0 PID 0 VNI 1
+Remote (client)  : NIC 0x12d53 PID 0
+# rc=1
+srun: error: nid007470: task 0: Exited with exit code 1
+srun: Terminating StepId=3832897.66

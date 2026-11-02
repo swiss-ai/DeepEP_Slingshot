@@ -1,0 +1,10 @@
+ldd: warning: you do not have execution permission for `/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102/cudart/libcudart.so'
+ldd done
+GPU 0: NVIDIA GH200 120GB (UUID: GPU-076243b9-07d1-1656-cf97-6d15e13e3dff)
+GPU 1: NVIDIA GH200 120GB (UUID: GPU-3316702c-f199-ee9a-2eff-57eb39ad4504)
+GPU 2: NVIDIA GH200 120GB (UUID: GPU-98024fbb-fbfb-e695-e7b4-2aa32d49955f)
+GPU 3: NVIDIA GH200 120GB (UUID: GPU-96b39599-5bb0-b8cc-eafc-d8d209831889)
+gpu0 numa=0
+gpu1 numa=1
+gpu2 numa=2
+gpu3 numa=3

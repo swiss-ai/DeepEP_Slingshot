@@ -1,0 +1,6 @@
+srun: Step created for StepId=3833183.55
+# host=nid006052 role=server dev=cxi3 svc=default LD_LIBRARY_PATH=/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102/cudart: opts=-t 3 -r 3 -g NVIDIA
+# cmd: cxi_write_bw -d cxi3 -p 49313 -t 3 -r 3 -g NVIDIA
+# attempts=1 rc=124
+srun: error: nid006052: task 0: Exited with exit code 124
+srun: Terminating StepId=3833183.55

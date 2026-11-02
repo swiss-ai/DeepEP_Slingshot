@@ -1,0 +1,7 @@
+# host=nid006088 role=client dev=cxi2 svc=default LD_LIBRARY_PATH=/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102/cudart: opts=-s 1048576 -D 5
+# cmd: cxi_write_bw nid006052 -d cxi2 -p 49322 -s 1048576 -D 5
+Failed to connect to nid006052: Connection refused
+Failed to init control messaging: Connection refused
+# attempts=20 rc=1
+srun: error: nid006088: task 0: Exited with exit code 1
+srun: Terminating StepId=3833183.59

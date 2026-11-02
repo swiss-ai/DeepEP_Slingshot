@@ -1,0 +1,6 @@
+srun: Step created for StepId=3832897.94
+# host=nid007470 role=server dev=cxi0 svc=default devices= svc_ids= opts=-t 0 -r 0 -g NVIDIA
+# cmd: cxi_write_bw -d cxi0 -p 49300 -t 0 -r 0 -g NVIDIA
+# rc=124
+srun: error: nid007470: task 0: Exited with exit code 124
+srun: Terminating StepId=3832897.94

@@ -1,0 +1,30 @@
+# host=nid007653 role=server dev=cxi3 svc=default LD_LIBRARY_PATH=/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102/cudart: opts=-r 3 -g NVIDIA
+# cmd: cxi_write_bw -d cxi3 -p 49543 -r 3 -g NVIDIA
+Listening on port 49543 for client to connect...
+---------------------------------------------------
+    CXI RDMA Write Bandwidth Test
+Device           : cxi3
+Service ID       : 1
+Client TX Mem    : GPU 3
+Client GPU Type  : NVIDIA
+Server RX Mem    : GPU 3
+Server GPU Type  : NVIDIA
+Test Type        : Duration
+Duration         : 5 seconds
+Write Size       : 132096
+List Size        : 256
+HRP              : Enabled
+IDC              : Disabled
+Restricted       : Enabled
+Bidirectional    : Disabled
+Max RDMA Buf     : 4294967296 (33816576 used)
+RDMA Buf Align   : 64
+Hugepages        : Disabled
+Local (server)   : NIC 0x12d61 PID 0 VNI 1
+Remote (client)  : NIC 0x12d40 PID 0
+Found 4 GPU(s)
+---------------------------------------------------
+RDMA Size[B]      Writes  BW[MB/s]  PktRate[Mpkt/s]
+      132096           -  23945.85        11.782949
+---------------------------------------------------
+# attempts=1 rc=0

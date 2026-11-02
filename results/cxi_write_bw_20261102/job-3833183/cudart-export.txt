@@ -1,0 +1,6 @@
+container libcudart: /usr/local/cuda-13.0/targets/sbsa-linux/lib/libcudart.so.13.0.88
+total 9
+drwxr-x---+ 2 zyu sm94   4096 Nov  2 11:15 .
+drwxr-x---+ 5 zyu sm94   4096 Nov  2 11:15 ..
+lrwxrwxrwx  1 zyu sm94     20 Nov  2 11:15 libcudart.so -> libcudart.so.13.0.88
+-rw-r-----+ 1 zyu sm94 707752 Nov  2 11:15 libcudart.so.13.0.88

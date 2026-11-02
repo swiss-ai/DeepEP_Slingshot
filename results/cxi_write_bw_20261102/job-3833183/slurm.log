@@ -1,0 +1,39 @@
+server=nid006052 client=nid006088 start=2026-11-02T10:15:15Z
+container libcudart: /usr/local/cuda-13.0/targets/sbsa-linux/lib/libcudart.so.13.0.88
+total 9
+drwxr-x---+ 2 zyu sm94   4096 Nov  2 11:15 .
+drwxr-x---+ 5 zyu sm94   4096 Nov  2 11:15 ..
+lrwxrwxrwx  1 zyu sm94     20 Nov  2 11:15 libcudart.so -> libcudart.so.13.0.88
+-rw-r-----+ 1 zyu sm94 707752 Nov  2 11:15 libcudart.so.13.0.88
+ldd: warning: you do not have execution permission for `/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102/cudart/libcudart.so'
+ldd done
+GPU 0: NVIDIA GH200 120GB (UUID: GPU-076243b9-07d1-1656-cf97-6d15e13e3dff)
+GPU 1: NVIDIA GH200 120GB (UUID: GPU-3316702c-f199-ee9a-2eff-57eb39ad4504)
+GPU 2: NVIDIA GH200 120GB (UUID: GPU-98024fbb-fbfb-e695-e7b4-2aa32d49955f)
+GPU 3: NVIDIA GH200 120GB (UUID: GPU-96b39599-5bb0-b8cc-eafc-d8d209831889)
+gpu0 numa=0
+gpu1 numa=1
+gpu2 numa=2
+gpu3 numa=3
+10:15:43 host-uni-s132096 rc=0 
+10:15:50 host-bi-s132096 rc=0 
+10:15:59 gpu-uni-s16384 rc=0 
+10:16:09 gpu-uni-s65536 rc=0 
+10:16:18 gpu-uni-s69120 rc=0 
+10:16:27 gpu-uni-s132096 rc=0 
+10:16:36 gpu-uni-s262144 rc=0 
+10:16:46 gpu-uni-s1048576 rc=0 
+10:16:55 gpu-bi-s65536 rc=0 
+10:17:04 gpu-bi-s132096 rc=0 
+10:17:13 gpu-bi-s1048576 rc=0 
+10:17:22 gpu-uni-s8192-align64 rc=0 
+10:17:32 gpu-uni-s8256-align64 rc=0 
+10:17:41 gpu-uni-s8320-align64 rc=0 
+10:17:50 gpu-uni-s8192-align128 rc=0 
+10:17:59 gpu-uni-s8256-align128 rc=0 
+10:18:09 gpu-uni-s8320-align128 rc=0 
+10:18:18 gpu-uni-s132096-l1 rc=0 
+10:18:28 gpu-uni-s132096-l16 rc=0 
+10:27:28 rails4-gpu-bi-s132096 done:  attempts=20 rc=1 | attempts=20 rc=1 | attempts=20 rc=1 | attempts=1 rc=0 |
+10:33:29 rails4-gpu-bi-s1048576 done:  attempts=2 rc=0 | attempts=20 rc=1 | attempts=1 rc=0 | attempts=20 rc=1 |
+[2026-11-02T11:35:35.012] error: *** JOB 3833183 ON nid006052 CANCELLED AT 2026-11-02T11:35:35 DUE TO TIME LIMIT ***

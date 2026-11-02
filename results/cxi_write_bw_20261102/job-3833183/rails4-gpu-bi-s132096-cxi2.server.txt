@@ -1,0 +1,9 @@
+srun: Job 3833183 step creation still disabled, retrying (Requested nodes are busy)
+srun: Job 3833183 step creation still disabled, retrying (Requested nodes are busy)
+srun: Job 3833183 step creation still disabled, retrying (Requested nodes are busy)
+srun: Step created for StepId=3833183.49
+# host=nid006052 role=server dev=cxi2 svc=default LD_LIBRARY_PATH=/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102/cudart: opts=-t 2 -r 2 -g NVIDIA
+# cmd: cxi_write_bw -d cxi2 -p 49302 -t 2 -r 2 -g NVIDIA
+# attempts=1 rc=124
+srun: error: nid006052: task 0: Exited with exit code 124
+srun: Terminating StepId=3833183.49

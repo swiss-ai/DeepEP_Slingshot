@@ -1,0 +1,29 @@
+JobId=3833183 JobName=cxi-write-bw-gpu
+   UserId=zyu(30628) GroupId=sm94(33189) MCS_label=N/A
+   Priority=532231 Nice=0 Account=infra01 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:07 TimeLimit=00:20:00 TimeMin=N/A
+   SubmitTime=11:15:07 EligibleTime=11:15:07
+   AccrueTime=11:15:07
+   StartTime=11:15:08 EndTime=11:35:08 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=11:15:08 Scheduler=Main
+   Partition=debug AllocNode:Sid=172.28.38.18:30807
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=nid[006052,006088]
+   BatchHost=nid006052
+   NumNodes=2 NumCPUs=576 NumTasks=2 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=2,mem=900G,node=2,billing=2,gres/gpu=8
+   AllocTRES=cpu=576,mem=900G,node=2,billing=2,gres/gpu=8
+   Socks/Node=* NtasksPerN:B:S:C=1:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=450G MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) LicensesAlloc=(null) Network=(null)
+   Command=/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102/run_gpu.sbatch
+   WorkDir=/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102
+   StdErr=/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102/job-3833183.log
+   StdIn=/dev/null
+   StdOut=/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102/job-3833183.log
+   TresPerNode=gres/gpu:4
+   
+

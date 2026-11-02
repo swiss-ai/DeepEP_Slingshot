@@ -1,0 +1,4 @@
+# host=nid006052 role=server dev=cxi1 svc=default LD_LIBRARY_PATH=/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102/cudart: opts=
+# cmd: cxi_write_bw -d cxi1 -p 49321
+[2026-11-02T11:35:35.011] error: *** STEP 3833183.58 ON nid006052 CANCELLED AT 2026-11-02T11:35:35 DUE TO TIME LIMIT ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.

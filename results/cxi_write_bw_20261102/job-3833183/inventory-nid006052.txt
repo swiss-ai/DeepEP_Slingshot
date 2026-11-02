@@ -1,0 +1,26 @@
+host=nid006052 date=2026-11-02T10:15:16Z kernel=6.4.0-150600.23.125-64kb
+cxi_write_bw: cxi_write_bw version: 2.4.0 pkg: cray-libcxi-utils-1.0.2-SHS13.1.0_20260127170946_9d460216fdc4.aarch64
+libcxi: cray-libcxi-1.0.2-SHS13.1.0_20260127170946_9d460216fdc4.aarch64 cray-libcxi-utils-1.0.2-SHS13.1.0_20260127170946_9d460216fdc4.aarch64 cray-libcxi-retry-handler-1.0.2-SHS13.1.0_20260127170946_9d460216fdc4.aarch64 cray-libcxi-devel-1.0.2-SHS13.1.0_20260127170946_9d460216fdc4.aarch64 cray-libcxi-dracut-1.0.2-SHS13.1.0_20260127170946_9d460216fdc4.aarch64 
+cxi driver:  ss: 
+cxi0 numa=0 fw= link=1 speed=200000 nid=0xbbe2
+cxi1 numa=1 fw= link=1 speed=200000 nid=0xbb22
+cxi2 numa=2 fw= link=1 speed=200000 nid=0xbb23
+cxi3 numa=3 fw= link=1 speed=200000 nid=0xbbe3
+SLINGSHOT_DEVICES= SLINGSHOT_SVC_IDS= SLINGSHOT_VNIS=
+index, name, pci.bus_id
+0, NVIDIA GH200 120GB, 00000009:01:00.0
+1, NVIDIA GH200 120GB, 00000019:01:00.0
+2, NVIDIA GH200 120GB, 00000029:01:00.0
+3, NVIDIA GH200 120GB, 00000039:01:00.0
+	[4mGPU0	GPU1	GPU2	GPU3	CPU Affinity	NUMA Affinity	GPU NUMA ID[0m
+GPU0	 X 	NV6	NV6	NV6	0-71	0		4
+GPU1	NV6	 X 	NV6	NV6	72-143	1		12
+GPU2	NV6	NV6	 X 	NV6	144-215	2		20
+GPU3	NV6	NV6	NV6	 X 	216-287	3		28
+
+Legend:
+
+  X    = Self
+  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes (e.g., QPI/UPI)
+  NODE = Connection traversing PCIe as well as the interconnect between PCIe Host Bridges within a NUMA node
+  PHB  = Connection traversing PCIe as well as a PCIe Host Bridge (typically the CPU)

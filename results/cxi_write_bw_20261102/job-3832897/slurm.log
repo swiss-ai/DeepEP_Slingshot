@@ -1,0 +1,43 @@
+server=nid007470 client=nid007659 start=2026-11-02T09:48:35Z
+09:48:44 probe-svc rc=0 
+09:48:53 host-uni-s4096 rc=0 
+09:49:03 host-uni-s8192 rc=0 
+09:49:12 host-uni-s16384 rc=0 
+09:49:21 host-uni-s32768 rc=0 
+09:49:29 host-uni-s65536 rc=0 
+09:49:40 host-uni-s69120 rc=0 
+09:49:49 host-uni-s132096 rc=0 
+09:49:57 host-uni-s262144 rc=0 
+09:50:06 host-uni-s1048576 rc=0 
+09:50:16 host-bi-s65536 rc=0 
+09:50:25 host-bi-s132096 rc=0 
+09:50:34 host-bi-s1048576 rc=0 
+09:50:38 gpu-uni-s4096 rc=1 Unable to open libcudart.so
+09:50:41 gpu-uni-s8192 rc=1 Unable to open libcudart.so
+09:50:45 gpu-uni-s16384 rc=1 Unable to open libcudart.so
+09:50:51 gpu-uni-s32768 rc=1 Unable to open libcudart.so
+09:50:57 gpu-uni-s65536 rc=1 Unable to open libcudart.so
+09:51:01 gpu-uni-s69120 rc=1 Unable to open libcudart.so
+09:51:04 gpu-uni-s132096 rc=1 Unable to open libcudart.so
+09:51:08 gpu-uni-s262144 rc=1 Unable to open libcudart.so
+09:51:12 gpu-uni-s1048576 rc=1 Unable to open libcudart.so
+09:51:16 gpu-bi-s65536 rc=1 Unable to open libcudart.so
+09:51:19 gpu-bi-s132096 rc=1 Unable to open libcudart.so
+09:51:23 gpu-bi-s1048576 rc=1 Unable to open libcudart.so
+09:51:31 host-uni-s8192-align64 rc=0 
+09:51:36 gpu-uni-s8192-align64 rc=1 Unable to open libcudart.so
+09:51:44 host-uni-s8256-align64 rc=0 
+09:51:48 gpu-uni-s8256-align64 rc=1 Unable to open libcudart.so
+09:51:56 host-uni-s8320-align64 rc=0 
+09:52:00 gpu-uni-s8320-align64 rc=1 Unable to open libcudart.so
+09:52:08 host-uni-s8192-align128 rc=0 
+09:52:15 gpu-uni-s8192-align128 rc=1 Unable to open libcudart.so
+09:52:22 host-uni-s8256-align128 rc=0 
+09:52:26 gpu-uni-s8256-align128 rc=1 Unable to open libcudart.so
+09:52:34 host-uni-s8320-align128 rc=0 
+09:52:37 gpu-uni-s8320-align128 rc=1 Unable to open libcudart.so
+09:52:42 gpu-uni-s132096-l1 rc=1 Unable to open libcudart.so
+09:52:50 gpu-uni-s132096-l16 rc=1 Unable to open libcudart.so
+09:57:57 rails4-gpu-bi-s132096 done
+10:03:05 rails4-gpu-bi-s1048576 done
+10:10:49 rails4-host-uni done
