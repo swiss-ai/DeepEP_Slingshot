@@ -1,0 +1,8 @@
+srun: Step created for StepId=3832897.93
+# host=nid007659 role=client dev=cxi2 svc=default devices= svc_ids= opts=-t 2 -r 2 -g NVIDIA -s 1048576 -D 6 -b
+# cmd: cxi_write_bw nid007470 -d cxi2 -p 49302 -t 2 -r 2 -g NVIDIA -s 1048576 -D 6 -b
+Failed to connect to nid007470: Connection refused
+Failed to init control messaging: Connection refused
+# rc=1
+srun: error: nid007659: task 0: Exited with exit code 1
+srun: Terminating StepId=3832897.93

@@ -1,0 +1,7 @@
+# host=nid006088 role=client dev=cxi3 svc=default LD_LIBRARY_PATH=/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102/cudart: opts=-t 3 -r 3 -g NVIDIA -s 1048576 -D 5 -b
+# cmd: cxi_write_bw nid006052 -d cxi3 -p 49313 -t 3 -r 3 -g NVIDIA -s 1048576 -D 5 -b
+Failed to connect to nid006052: Connection refused
+Failed to init control messaging: Connection refused
+# attempts=20 rc=1
+srun: error: nid006088: task 0: Exited with exit code 1
+srun: Terminating StepId=3833183.51

@@ -1,0 +1,29 @@
+# host=nid007657 role=client dev=cxi0 svc=default LD_LIBRARY_PATH=/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102/cudart: opts=-t 0 -g NVIDIA -s 107328 -D 4 --buf-align=128
+# cmd: cxi_write_bw nid007653 -d cxi0 -p 49401 -t 0 -g NVIDIA -s 107328 -D 4 --buf-align=128
+---------------------------------------------------
+    CXI RDMA Write Bandwidth Test
+Device           : cxi0
+Service ID       : 1
+Client TX Mem    : GPU 0
+Client GPU Type  : NVIDIA
+Server RX Mem    : GPU 0
+Server GPU Type  : NVIDIA
+Test Type        : Duration
+Duration         : 4 seconds
+Write Size       : 107328
+List Size        : 256
+HRP              : Enabled
+IDC              : Disabled
+Restricted       : Enabled
+Bidirectional    : Disabled
+Max RDMA Buf     : 4294967296 (27525120 used)
+RDMA Buf Align   : 128
+Hugepages        : Disabled
+Local (client)   : NIC 0x12d41 PID 0 VNI 1
+Remote (server)  : NIC 0x12d60 PID 0
+Found 4 GPU(s)
+---------------------------------------------------
+RDMA Size[B]      Writes  BW[MB/s]  PktRate[Mpkt/s]
+      107328      890368  23884.32        11.794398
+---------------------------------------------------
+# attempts=1 rc=0

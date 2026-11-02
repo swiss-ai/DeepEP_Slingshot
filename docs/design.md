@@ -65,11 +65,12 @@ Two measured properties of the Cassini path drove the design:
 1. A single GPU thread needs 4 to 10 µs per 64-byte command (CQ status read over the chip link
    plus system fences). Per-token PUTs therefore cannot reach link rate; 16-row PUTs from 256
    channels on 129 queues can.
-2. Transfer rate depends on the PUT address modulo 128 bytes: 64 bytes off a line runs at about
-   5 GB/s, 32 or 96 bytes off at about 11 GB/s, aligned at link rate. DeepEP's rows are
-   32·odd bytes (FP8 4320, BF16 8288, combine 8256), so PUT boundaries must fall on multiples of
-   four rows. The qualified knobs satisfy this; padding the row stride to a 128-byte multiple would
-   remove the constraint.
+2. With our GPU-issued primitives the transfer rate depends on the PUT address modulo 128 bytes:
+   64 bytes off a line runs at about 5 GB/s, 32 or 96 bytes off at about 11 GB/s, aligned at link
+   rate. DeepEP's rows are 32·odd bytes (FP8 4320, BF16 8288, combine 8256), so PUT boundaries
+   must fall on multiples of four rows. The qualified knobs satisfy this. HPE's `cxi_write_bw`
+   does not show the effect with CPU-issued commands from GPU memory, so the cause is in our
+   transport path and is under investigation (see [results.md](results.md)).
 
 See [results.md](results.md) for the measurements and [limitations.md](limitations.md) for what
 follows from these choices.

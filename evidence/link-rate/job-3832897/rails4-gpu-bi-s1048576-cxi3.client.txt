@@ -1,0 +1,30 @@
+srun: Step created for StepId=3832897.92
+# host=nid007659 role=client dev=cxi3 svc=default devices= svc_ids= opts=-t 3 -r 3 -g NVIDIA -s 1048576 -D 6 -b
+# cmd: cxi_write_bw nid007470 -d cxi3 -p 49303 -t 3 -r 3 -g NVIDIA -s 1048576 -D 6 -b
+Unable to open libcudart.so
+---------------------------------------------------
+    CXI RDMA Write Bandwidth Test
+Device           : cxi3
+Service ID       : 1
+Client TX Mem    : GPU 3
+Client RX Mem    : GPU 3
+Client GPU Type  : NVIDIA
+Server TX Mem    : GPU 3
+Server RX Mem    : GPU 3
+Server GPU Type  : NVIDIA
+Test Type        : Duration
+Duration         : 6 seconds
+Write Size       : 1048576
+List Size        : 256
+HRP              : Enabled
+IDC              : Disabled
+Restricted       : Enabled
+Bidirectional    : Enabled
+Max RDMA Buf     : 4294967296 (268435456 used)
+RDMA Buf Align   : 64
+Hugepages        : Disabled
+Local (client)   : NIC 0x12d52 PID 0 VNI 1
+Remote (server)  : NIC 0x120e1 PID 0
+# rc=1
+srun: error: nid007659: task 0: Exited with exit code 1
+srun: Terminating StepId=3832897.92

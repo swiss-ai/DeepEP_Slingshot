@@ -1,0 +1,312 @@
+# DeepEP v2 direct GIN over Slingshot — 2026-11-02
+
+Continuation of `11_01_DeepEP_v2_Slingshot.md`. Two items: an improvement plan for the dispatch
+and combine data paths derived from the code and the 4K traces of the final candidate, and the
+`cxi_write_bw` link-rate measurement (job 3832897, results appended below when available).
+
+Reference state: `source-1101-first-batch-v1` (marker-zero transport, packed rows, interval 16,
+first interval 4, forward chunk 3, merged final tail, packed combine batch 16 / first batch 4,
+64 SMs, 129 contexts). V4 Flash FP8/BF16, 4K tokens/rank: dispatch 0.949 ms (bound 0.823 at
+21.5 GB/s), combine 1.814 ms (bound 1.573); 16K: 3.439 (3.292), 6.946 (6.291). Size-sweep fits:
+dispatch 0.147 ms + MB/21.5 GB/s, combine 0.121 ms + MB/19.8 GB/s.
+
+## 1. Where the time goes (4K, traced build of the candidate, medians over 24 captures)
+
+Dispatch, kernel-relative milliseconds:
+
+| Phase | Time | Mechanism (code) |
+|---|---:|---|
+| Entry barrier | 0 → 0.116 | `comm::gpu_barrier`: SM1 issues two GIN signals on context 0 (to the peer **and to itself through the NIC**), serialized by the context lock; each signal is 4 NIC commands (marker, CQ fence, CSTATE, AMO) at 5–10 µs per command (trace events 209–213 sum to ~35 µs); then `waitSignal` and a grid sync. Inter-rank skew is absorbed here too. |
+| First PUT | 0.131 | first interval 4 rows |
+| Last PUT submitted | 0.385 (senders idle 0.424) | 512 PUTs/rank on 129 queues; the NIC is the bottleneck from here |
+| Last tail observed by receivers | 1.131 | wire-limited phase; slope 21.5 GB/s in the untraced sweep |
+| Exit barrier | → 1.150 | NVLink scale-up barrier + grid sync |
+| Copy epilogue (PDL) | → 1.245 | events 120/121: 43 + 27 µs plus handoff |
+
+Combine:
+
+| Phase | Time | Mechanism |
+|---|---:|---|
+| Entry barrier | 0 → 0.106 | as above |
+| Scale-up (NVLink) stage | 0.106 → 0.366 | scale-up warps move ~32 tokens each (8 KB rows) with **one TMA staging buffer per warp**: load → store → wait, ~8 µs per token, latency-bound; tails published every 3 tokens (`kNumScaleupUpdateInterval`) |
+| First remote PUT | 0.40 | forward warps' first reduce at 0.32; no remote bytes move for the first 22% of the call |
+| Wire phase | 0.40 → 1.93 | 33.8 MB at ~22 GB/s |
+| End signal, peer wait, reduce epilogue | → 2.055 | per-channel `gin.flush` (CT write-back wait, lock held ~0.7 ms, event 207) then signal; epilogue 0.08 ms |
+
+Two transport facts from the same traces: lock waits (event 200) in combine have p90 0.47 ms and
+p99 1.3 ms, and PUT submissions (event 116) p99 0.8–1.1 ms, i.e. sibling channels stall behind a
+channel's flush. Dispatch, which never flushes, has p90 lock waits of 0.1 ms. This matches the
+combine slope of 19.8 GB/s versus dispatch's 21.5 GB/s.
+
+## 2. Improvement plan, ordered by expected gain per unit of risk
+
+### 2.1 Combine: drop the per-channel flush before the end signal (CXI path only)
+
+Code: `hybrid_combine.cuh`, forward-warp epilogue: `gin.flush<ncclCoopWarp>()` followed by
+`red_add_rel` of `expected_signal`. Under the marker-zero transport the signal is already ordered
+after delivery of every prior PUT of the context (zero-byte marker with flush bit, then
+`C_CMD_CQ_FENCE`, then the AMO), and the receiver's epilogue is gated on that signal. Source
+reuse across iterations is protected by the next kernel's entry barrier (the peer enters the next
+kernel only after it observed our signal). The flush is therefore redundant on this backend.
+Guard it with `#if !CXI_EP_SKIP_COMBINE_FLUSH`.
+Expected: 16K combine −0.4 to −0.5 ms (slope back towards 21.5 GB/s), 4K −0.05 to −0.1 ms.
+Risk: ordering argument rests on CQ-fence semantics (CSCS question 1). Validation: exact
+correctness matrix plus a new source-overwrite stress gate (overwrite the send buffer immediately
+after the signal returns; the receiver must hold the original data).
+
+### 2.2 Transport: make a signal one or two NIC commands instead of four
+
+Code: `cxi_primitives.cuh` `add_locked`, `signal_fence_locked`, `state_locked`, `delivery_flush_locked`.
+- Elide the CQ fence when no payload command was emitted on this context since the last fence
+  (track a per-context counter; the entry barrier and most combine end signals hit this case).
+- Emit CSTATE once per (window, peer) per context and cache the key; re-emit only on change.
+  CSTATE is plain command-queue state, not NIC-written state, so this is not the credit-cache
+  situation.
+- When a signal immediately follows the last payload PUT of an epoch, set the flush and `CT_ACK`
+  bits on that PUT instead of appending a zero-byte marker.
+Expected: signal cost ~45 → ~12 µs; entry barrier 0.116 → ~0.05 ms in both kernels (two
+serialized signals today); dispatch tail −20–30 µs; combine end −30 µs per channel.
+Total ≈ −0.08 ms per dispatch and per combine at any size. Risk: medium (state caching).
+
+### 2.3 Barrier: do not signal yourself through the NIC
+
+Code: `comm.cuh` `gin_barrier_wo_local_sync`: `gin.signal(team, i, SignalInc)` for every rail rank
+including the local one. Replace the self-signal with a local release store/atomic on the signal
+word (`ResetSignal` already shows the pointer path). Saves one full signal per barrier (~45 µs
+today, ~12 after 2.2) and removes the lock serialization between the two signals.
+Expected: −0.03 to −0.045 ms per kernel. Risk: low (NCCL signal shadow must still be bumped).
+
+### 2.4 Combine: start the wire earlier
+
+Two independent routes:
+- **More SMs.** The scale-up stage is latency-bound per warp, so it scales with warp count.
+  Run the candidate with `CXI_EP_SMS=128` and `CXI_EP_CONTEXTS=257` (keeps two channels per
+  context; 128 SMs on 128 contexts would put four channels on one lock). The SGLang adapter
+  already accepts the SM count; `CXI_EP_PACK_COMBINE_CHANNELS` follows automatically. Expected:
+  scale-up stage 0.26 → ~0.13 ms, first remote PUT ~0.25 ms, 4K combine −0.1 to −0.15 ms.
+  Zero code change; one gate.
+- **Double-buffered TMA staging in the scale-up warps** (`hybrid_combine.cuh`, scale-up role:
+  one `tma_buffer` per warp today). Two buffers per warp fit in shared memory (8.3 KB each,
+  8 warps per SM). Overlaps the NVLink store of token n with the load of token n+1.
+  Expected similar to the above and additive with it. Kernel change, moderate.
+
+### 2.5 Row stride padded to 128 bytes
+
+Code: `layout.cuh` `TokenLayout::get_num_bytes` (16-byte TMA alignment today). Padding the token
+stride to a 128-byte multiple (FP8 4320 → 4352, BF16 8288 → 8320, combine 8256 → 8320; +0.4–0.7%
+bytes) makes every PUT boundary aligned, so (a) a real router's gaps in the combine runs no
+longer produce 64-byte-offset PUTs at a quarter rate, and (b) the cadence knobs can be revisited
+(regular interval 8 was −1.4% at 16K but unsafe in general). Needs a full re-qualification
+because the layout is shared by all buffers and the epilogues.
+
+### 2.6 Transport micro-costs in `emit`
+
+- The `__threadfence_system()` after writing a command is redundant when the command is
+  aggregated and not published; `publish_locked` fences before the doorbell. Saves ~1–2 µs per
+  command.
+- Credit caching (skip the CQ status read while the cached read pointer leaves enough room) was
+  built as `source-credit-cache-v2` and quarantined after an undiagnosed stall under sustained
+  16K load (10/30 log, gate 521). Re-attempt only with a reproducer; the per-command cost
+  (4–10 µs) is what caps a single queue at ~12 GB/s and what makes dense cadences lose at 4K.
+
+### 2.7 Items that need DeepEP-level redesign (not transport)
+
+- **Copy epilogue (0.09 ms)**: forwarders could write hidden rows straight into the final
+  receive tensor if the per-rank prefix sums (known after the notify stage at ~0.2 ms) were
+  consumed in-kernel; the epilogue would shrink to scales/metadata. Changes DeepEP's output
+  contract; also affects `do_expand`.
+- **Entry barrier as such**: needed for buffer reuse. Double-buffered receive buffers would let
+  dispatch N+1 start before combine N's readers finish. Larger memory, DeepEP change.
+- **Small batches / decode**: at 32–257 tokens the fixed cost is 0.3–0.4 ms per call and the host
+  spins for counts. A decode-class path needs a single-shot kernel without CPU sync (DeepEP LL
+  analogue). Separate track.
+
+### 2.8 Expected position after 2.1–2.4 (estimates, not measurements)
+
+| 4K V4 Flash | now | after | bound 21.5 | bound 25 |
+|---|---:|---:|---:|---:|
+| dispatch | 0.949 | ~0.85 | 0.823 | 0.708 |
+| combine | 1.814 | ~1.55–1.60 | 1.573 | 1.352 |
+
+16K combine should recover most of its slope deficit (6.95 → ~6.45 ms). Beyond that the only
+lever is the link rate itself, which is what the `cxi_write_bw` measurement below is for.
+
+### 2.9 Validation discipline for every item
+
+One knob per immutable snapshot; exact-correctness gates (payload, scales, routing, weights,
+integer and float combine, cycle) before timing; three counterbalanced repeats; three model
+geometries; the SGLang gates for anything touching layouts; node-local JIT. New gates to add:
+source-overwrite-after-signal stress (for 2.1 and 2.2), and the alignment probe methodology for
+anything that changes PUT boundaries.
+
+## 3. Link-rate measurement with `cxi_write_bw`
+
+Purpose: an independent ceiling for the per-NIC rate, so the DeepEP ratios are judged against
+what the NIC delivers rather than the 25 GB/s port rate or our own transport's 21.5 GB/s.
+Tool: `/usr/bin/cxi_write_bw` 2.4.0 (`cray-libcxi-utils-1.0.2-SHS13.1.0`), HPE's host-side RDMA
+write benchmark on the same libcxi the backend uses. Scripts and collector:
+`tools/cxi_gin/experiments/link_rate_1102/` (`run.sbatch`, `run_gpu.sbatch`, `wrap.sh`,
+`inventory.sh`, `collect_write_bw.py`); raw outputs under `results/cxi_write_bw_20261102/job-<id>/`.
+Setup: 256 writes per doorbell (`-l 256`, the tool's default), 4–6 s per case, client on one
+node writing to a server on the other over one rail (cxi0 ↔ cxi0), default service ID (the Slurm
+switch plugin does not export `SLINGSHOT_*` into these steps; the default service was usable).
+The tool reports the client's own write bandwidth in 10^6 B/s; in bidirectional mode it prints
+the sum of both directions (verified: 107,776 writes × 1 MiB / 5 s = 22.6 GB/s against a printed
+45.1 GB/s), so per-direction values below are half the printed number.
+
+### 3.1 Job 3832897 (09:48–10:10 UTC, nid007470 ↔ nid007659): host memory
+
+| Write size | unidirectional GB/s | packets per write | bidirectional GB/s per direction |
+|---:|---:|---:|---:|
+| 4 KB | 16.7 | 2 | |
+| 8 KB | 19.5 | 4 | |
+| 16 KB | 21.7 | 8 | |
+| 32 KB | 23.0 | 16 | |
+| 64 KB | 23.6 | 32 | 22.3 |
+| 69,120 B (FP8 16 rows) | 23.6 | | |
+| 132,096 B (BF16 16 rows) | 23.9 | | 22.4 |
+| 256 KB | 24.0 | | |
+| 1 MiB | 24.2 | 512 | 22.6 |
+
+- **Unidirectional ceiling 24.2 GB/s** (96.7 % of the 25 GB/s port rate) for writes of 256 KB
+  and above; 23.6–23.9 GB/s at the DeepEP PUT sizes.
+- **Bidirectional costs about 7 %**: 22.3–22.6 GB/s per direction while the peer writes back at
+  the same time. DeepEP's rails are always bidirectional (both nodes dispatch and combine at
+  once), so 22.5 GB/s is the relevant host-memory ceiling for our traffic.
+- **Packet size is 2 KB.** Packet rate ÷ write rate gives 4.0 packets per 8192-byte write,
+  5.0 per 8256-byte write (4 × 2048 + 64), 512 per 1 MiB write. The 3.3 % between 24.2 and
+  25 GB/s is per-packet framing (about 70 bytes per 2 KB packet).
+- **Small writes are command-rate bound**: 8 KB writes run at 2.4 M writes/s on one queue
+  (19.5 GB/s) regardless of alignment.
+- **No 128-byte alignment cliff from host memory**: 8256-byte writes at 64-byte placement
+  (every second write 64 bytes off a 128-byte line) run at 19.55 GB/s against 19.48 GB/s at
+  128-byte placement, and 8192/8320-byte writes are identical. The cliff we measured with
+  GPU-sourced PUTs is therefore not a NIC transmit property; the GPU-memory run below tests
+  the read side.
+- GPU-memory cases failed in this job: the bare node has no `libcudart.so` for the tool to
+  open. Three of four concurrent four-rail clients connected before their servers listened
+  (no retry in the first wrapper). Both fixed in `run_gpu.sbatch` / `wrap.sh` (job 3833183).
+
+### 3.2 Job 3833183 (10:15–10:35 UTC, nid006052 ↔ nid006088): GPU memory, one rail
+
+`libcudart.so.13.0.88` copied out of the harness container image to scratch and put on
+`LD_LIBRARY_PATH`; the tool then allocated its buffers on GPU 0 of each node (`-t 0` client,
+`-r 0` server; both for bidirectional), NIC cxi0 on NUMA node 0, same as GPU 0.
+
+| Write size | GPU→GPU unidirectional GB/s | host control (same nodes) | GPU↔GPU bidirectional GB/s per direction |
+|---:|---:|---:|---:|
+| 16 KB | 22.4 | | |
+| 64 KB | 23.7 | | 22.4 |
+| 69,120 B | 23.7 | | |
+| 132,096 B | 24.0 | 23.9 uni / 22.5 bi | 22.4 |
+| 256 KB | 24.1 | | |
+| 1 MiB | 24.2 | | 22.6 |
+
+- **GPU memory is not the limiter.** NIC reads from HBM and writes into HBM deliver exactly the
+  host-memory rates: 24.2 GB/s unidirectional, 22.4–22.6 GB/s per direction bidirectional.
+- **No alignment cliff from GPU memory with CPU-issued commands either**: 8256-byte writes at
+  64-byte placement 20.61 GB/s, at 128-byte placement 20.63; 8192 and 8320 bytes the same
+  (20.6–20.7). The cliff measured with our GPU-issued primitives (5 GB/s at 64 bytes off a line,
+  allocation I on 11/02) is therefore **not a property of the NIC data path as exercised by
+  HPE's tool**. The remaining candidates are specific to our command construction or issue path
+  (descriptor fields, CT_SEND batched delivery, the exact PUT lengths of 14–16 rows), which is
+  good news: it may be avoidable in the transport instead of by padding the layout. Section 3.3
+  replicates the probe's exact PUT lengths with CPU-issued commands to narrow this down.
+- **Commands per doorbell matter on one queue**: 132,096-byte writes run at 9.9 GB/s with one
+  write per doorbell, 22.0 with 16, 24.0 with 256. This is the same issue-rate ceiling our
+  single-queue probe hit (~12 GB/s for 69 KB PUTs); the kernels' 129 queues hide it.
+- Four-rail concurrent runs: only three clean points (cxi3 at 132 KB: 22.1 GB/s per direction;
+  cxi0 and cxi2 at 1 MiB concurrently: 22.1 each). The other clients could not connect to their
+  servers even with 20 retries; the job then ran out of its 20-minute limit before the host
+  four-rail cases. Diagnosed below; rerun in job 3 together with the alignment replica.
+
+**Consequence for the DeepEP bounds.** The NIC's ceiling for our traffic pattern (GPU memory
+both ends, both directions busy) is **22.5 GB/s per direction**, not 25 and not 21.5. Re-based:
+
+| 4K V4 Flash | measured | bound at 22.5 GB/s | ratio | bound at 25 GB/s | ratio |
+|---|---:|---:|---:|---:|---:|
+| dispatch | 0.949 ms | 0.786 ms | 1.21 | 0.708 ms | 1.34 |
+| combine | 1.814 ms | 1.503 ms | 1.21 | 1.352 ms | 1.34 |
+| 16K dispatch | 3.439 ms | 3.146 ms | 1.09 | 2.832 ms | 1.21 |
+| 16K combine | 6.946 ms | 6.013 ms | 1.16 | 5.411 ms | 1.28 |
+
+The size-sweep slopes (21.5 GB/s dispatch, 19.8 combine) are 4–12 % below this ceiling, so
+part of the gap that section 2 attributed to fixed cost is wire efficiency: the kernels'
+PUT stream does not keep the NIC as busy as the tool's 256-deep single queue does.
+
+### 3.3 Job 3833451 (10:40–10:44 UTC, nid007653 ↔ nid007657): alignment replica, batch 8, four rails
+
+All 39 runs completed. The four-rail failures of jobs 1 and 2 were a harness artefact: each
+concurrent `srun` step requested all four GPUs, so Slurm ran the server steps one at a time; the
+later servers started after their clients had given up and their buffered "Listening" line was
+lost when my timeout killed them. Fixed with `srun --overlap` and line-buffered output.
+
+**(a) The GPU-issued alignment cliff does not exist for CPU-issued commands.** Same PUT lengths
+as the 11/02 offset probe (rows × row bytes), GPU memory on both ends, 256 writes per doorbell,
+writes placed back to back so that their start addresses alternate between 0 and 64 bytes (or 32)
+past a 128-byte line, against 128-byte placement as control:
+
+| PUT bytes | = rows × row | start addresses at 64-B placement | GB/s at 64-B placement | GB/s at 128-B placement | our GPU-issued probe, same shape |
+|---:|---|---|---:|---:|---:|
+| 60,480 | 14 × 4320 | alternating 0 / 64 | 23.68 | 23.69 | 5.03 (64 off) |
+| 64,800 | 15 × 4320 | 0 / 32 (32-B placement) | 23.77 | 23.71 | 10.4 (32/96 off) |
+| 69,120 | 16 × 4320 | always 0 | 23.75 | 23.77 | 12.0 (issue-bound) |
+| 107,328 | 13 × 8256 | alternating 0 / 64 | 23.88 | 23.88 | 4.95 (64 off) |
+| 115,584 | 14 × 8256 | always 0 | 23.95 | 23.98 | 20.1 |
+| 123,840 | 15 × 8256 | alternating 0 / 64 | 23.96 | 23.96 | 4.95 (64 off) |
+| 132,096 | 16 × 8256 | always 0 | 23.96 | 24.01 | 21.4–21.9 |
+
+Host memory at 64-byte placement: 60,480 B 23.72, 123,840 B 23.79. So the NIC moves 64-byte-offset
+PUTs from and into GPU memory at full rate when the commands come from the host. The 4.3× cliff
+is specific to the GPU-issued path of our transport. Candidate differences, in order of
+suspicion: the memory registration (our dmabuf mapping via `cuMemGetHandleForAddressRange` and
+`cxil_map` with `CXI_MAP_DEVICE`, against the tool's own GPU buffer mapping in libcxiutils),
+descriptor bits (batched delivery uses `event_ct_send` without the flush bit, the tool uses
+`CT_ACK`), and the command-queue write path itself. Decisive follow-up, one raw-probe gate
+(`offset_probe.cu`, kind `offset`): (1) the same cases with host-pinned source and destination
+registered as host memory, GPU-issued; (2) the same cases with `CXI_BATCH_DELIVERY=0` (per-PUT
+`CT_ACK` + flush). If (1) is flat the cliff is in the GPU-memory mapping; if (2) is flat it is in
+the delivery descriptor bits; if neither, it is the GPU-written command path. This replaces
+section 2.5's row padding as the first move: a transport fix would remove the constraint without
+touching the layout.
+
+**(b) Doorbell batching with our transport's batch of 8** (`CXI_TX_BATCH_LIMIT=8`), one queue,
+GPU memory: 69,120-byte writes 18.3 GB/s, 132,096-byte writes 20.8 GB/s (batch 1: 9.9; 16: 22.0;
+256: 24.0 at 132 KB). One queue with our batch size cannot saturate the link; the kernels need
+their 129 queues. Where few queues carry traffic (small batches, the tail), a larger batch would
+help, but DeepEP's channels issue one or two PUTs per notification, so the lever is small.
+
+**(c) Four rails concurrently** (GPU i ↔ cxi i, NUMA-matched, both nodes):
+
+| Case | per rail, per direction | single-rail reference |
+|---|---:|---:|
+| GPU bidirectional, 132,096 B | 22.2 GB/s on all four | 22.4 |
+| GPU unidirectional, 132,096 B | 24.0 on all four | 24.0 |
+| host bidirectional, 132,096 B | 22.1 on all four | 22.5 |
+| host unidirectional, 1 MiB | 23.0 on all four | 24.2 |
+| GPU bidirectional, 1 MiB | 15.5–15.6 on all four | 22.6 |
+
+At the DeepEP PUT size there is no node-level sharing: each of the four NICs delivers its
+single-rail rate with all four busy in both directions. The 1 MiB GPU bidirectional case drops to
+15.5 GB/s per direction with four rails active (single data point, 5 s; 256 writes × 1 MiB =
+256 MB of GPU memory per direction per rail, so address-translation pressure is the first
+suspect). It does not affect DeepEP, whose PUTs are at most 132 KB, but it is worth a repeat
+before anyone relies on multi-megabyte GPU PUTs.
+
+### 3.4 Conclusions
+
+1. **Ceiling for DeepEP's traffic pattern: 22.2–22.6 GB/s per NIC per direction** (GPU memory
+   both ends, both directions busy, all four rails active). Unidirectional the NIC reaches
+   24.2 GB/s (96.7 % of 25); the bidirectional penalty is 7 %, 2 KB packets cost 3.3 %. GPU
+   memory costs nothing against host memory. The 21.5 GB/s used as the bound so far was our own
+   transport's plateau, 4–5 % under the NIC's.
+2. **Re-based ratios (bound at 22.5 GB/s):** 4K dispatch 1.21, 4K combine 1.21, 16K dispatch
+   1.09, 16K combine 1.16. The kernels' incremental slopes (21.5 and 19.8 GB/s) are 4–12 % under
+   the ceiling, so wire efficiency, not only fixed cost, is still on the table.
+3. **The 128-byte alignment cliff is ours, not the NIC's.** Highest-value next experiment: the
+   two raw-probe variants in 3.3(a). Until then the candidate's "boundaries on multiples of four
+   rows" rule still protects it.
+4. Methodology notes for anyone repeating this: `cxi_write_bw` needs a CUDA runtime on the bare
+   node for GPU buffers (copy `libcudart.so.13` from the container image; the host driver's
+   `libcuda.so.1` is enough for the rest); concurrent `srun` steps on one node need `--overlap`;
+   the tool prints bidirectional bandwidth as the sum of both directions.

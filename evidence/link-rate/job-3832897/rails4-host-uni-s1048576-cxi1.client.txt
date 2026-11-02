@@ -1,0 +1,7 @@
+# host=nid007659 role=client dev=cxi1 svc=default devices= svc_ids= opts=-s 1048576 -D 6
+# cmd: cxi_write_bw nid007470 -d cxi1 -p 49311 -s 1048576 -D 6
+Failed to connect to nid007470: Connection refused
+Failed to init control messaging: Connection refused
+# rc=1
+srun: error: nid007659: task 0: Exited with exit code 1
+srun: Terminating StepId=3832897.97

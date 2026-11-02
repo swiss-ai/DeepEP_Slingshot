@@ -1,0 +1,20 @@
+{
+  "job": "3832897",
+  "submitted_utc": "2026-11-02T09:42:14Z",
+  "remote_root": "/iopsstor/scratch/cscs/zyu/cxi-write-bw-20261102",
+  "scripts": "tools/cxi_gin/experiments/link_rate_1102",
+  "jobs": [
+    {
+      "job": "3833183",
+      "script": "run_gpu.sbatch",
+      "submitted_utc": "2026-11-02T10:15:07Z",
+      "purpose": "GPU-memory cases, four-rail cases with connect retry, host controls"
+    },
+    {
+      "job": "3833451",
+      "script": "run3.sbatch",
+      "submitted_utc": "2026-11-02T10:40:18Z",
+      "purpose": "alignment replica of the offset probe with CPU-issued commands from GPU memory; doorbell batch 8; four rails with --overlap"
+    }
+  ]
+}

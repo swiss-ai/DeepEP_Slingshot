@@ -11,17 +11,19 @@ developed and qualified on Clariden GH200 nodes (EP8: two nodes, four GPUs each)
 ## Results
 
 V4 Flash geometry (hidden 4096, 256 experts, top-k 6), EP8, FP8 dispatch and BF16 combine, mixed
-routing, medians of three repeats. Bound is payload serialisation at the measured 21.5 GB/s per rail.
+routing, medians of three repeats. Bound is payload serialisation at the NIC's measured
+bidirectional ceiling of 22.5 GB/s per rail (HPE `cxi_write_bw`, GPU memory both ends).
 
 | Operation | time | bound | ratio |
 |---|---:|---:|---:|
-| 4K tokens/rank dispatch | 0.949 ms | 0.823 ms | 1.15 |
-| 4K tokens/rank combine | 1.814 ms | 1.573 ms | 1.15 |
-| 16K tokens/rank dispatch | 3.439 ms | 3.292 ms | 1.04 |
-| 16K tokens/rank combine | 6.946 ms | 6.291 ms | 1.10 |
+| 4K tokens/rank dispatch | 0.949 ms | 0.786 ms | 1.21 |
+| 4K tokens/rank combine | 1.814 ms | 1.503 ms | 1.21 |
+| 16K tokens/rank dispatch | 3.439 ms | 3.146 ms | 1.09 |
+| 16K tokens/rank combine | 6.946 ms | 6.013 ms | 1.16 |
 
-Incremental bytes move at link rate; the rest is a fixed per-call cost of 0.12 to 0.15 ms.
-Full tables, other model geometries, small batches and the NIC alignment probe:
+Incremental bytes move at 21.5 GB/s (dispatch) and 19.8 GB/s (combine), 4 to 12% under the NIC
+ceiling; the rest is a fixed per-call cost of 0.12 to 0.15 ms. Full tables, other model
+geometries, small batches, the NIC ceiling measurement and the alignment probe:
 [docs/results.md](docs/results.md).
 
 ## Repository layout

@@ -11,6 +11,10 @@
   repeat gates), `fit_size_sweep.py` (bound ratios and least-squares fits), `trace_timeline.py`
   (device-trace milestones).
 
+- `link_rate_1102/`: the `cxi_write_bw` link-rate measurement (sbatch drivers for the three
+  jobs, a wrapper with connect retry and service-ID handling, node inventory, and
+  `collect_write_bw.py` which fetches a job's outputs and tabulates them).
+
 These scripts were written for the original working-tree layout (`tools/cxi_gin/experiments/...`
 next to `results/...`) and the campaign root on Clariden scratch. Run them from the `debug` branch,
 which keeps that layout, or adjust the path constants at the top of each script.

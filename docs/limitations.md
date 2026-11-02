@@ -22,10 +22,13 @@
 - **Compile-time knobs outside the JIT cache key.** The `CXI_EP_*` defines are injected by the
   nvcc wrapper from environment variables; DeepEP's kernel cache does not see them. Clear or
   redirect `EP_JIT_CACHE_DIR` when a knob changes.
-- **Alignment sensitivity.** PUT addresses 64 bytes off a 128-byte line run at a quarter of link
-  rate. The qualified knobs avoid this by construction and the synthetic routings produce gapless
-  runs; a real router can break a combine channel's run at an odd row. Padding the row stride to a
-  128-byte multiple would remove the constraint (not implemented).
+- **Alignment sensitivity of our GPU-issued PUTs.** PUT addresses 64 bytes off a 128-byte line
+  run at a quarter of link rate with our primitives, but not with HPE's `cxi_write_bw` from GPU
+  memory at the same lengths, so the cause is in our transport path (registration, delivery
+  descriptor bits or command path), not the NIC. The qualified knobs avoid it by construction and
+  the synthetic routings produce gapless runs; a real router can break a combine channel's run at
+  an odd row. Finding the cause in the transport is the preferred fix; padding the row stride to
+  a 128-byte multiple is the fallback.
 - **Ordering rests on NIC semantics.** Signals are ordered after payload by the flush-bit marker
   plus `C_CMD_CQ_FENCE`, with no GPU-observed completion, and source-buffer reuse across
   iterations relies on the same chain through the peer's barrier. Thousands of exact-checked
@@ -39,8 +42,10 @@
 1. Does `C_CMD_CQ_FENCE` guarantee that all prior commands on the queue have completed
    (acknowledged), not merely been issued, so source buffers may be reused once the peer observes
    the fenced signal?
-2. Is the 128-byte address dependence of PUT transfer rate a known Cassini or GH200 PCIe/C2C read
-   behaviour, and is it firmware or driver dependent?
+2. Our GPU-issued PUTs whose address is 64 bytes off a 128-byte line run at 5 GB/s, while
+   `cxi_write_bw` with CPU-issued commands from GPU memory shows no such effect at the same
+   lengths. What differs for GPU-written commands on dmabuf-registered GPU memory with
+   `CT_SEND`-counted, flush-less payload PUTs?
 3. Is `C_CMD_CT_TRIG_EVENT` with threshold equal to the posted count, one outstanding trigger per
    context, the intended usage of counting-event write-back from a GPU?
 4. Is GPU mapping of command queues and doorbells (`cudaHostRegister` with IO-memory flags) from
