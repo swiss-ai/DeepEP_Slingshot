@@ -37,11 +37,18 @@
   Removing it (`CXI_EP_SKIP_COMBINE_FLUSH`, 2026-11-02) is exact-correct on every gate and gives
   2 % of combine time, but it also decouples the rail peers' kernel ends: read the harness headline
   together with the wall time per iteration (see [results.md](results.md)). Release matrix pending.
+- **Dispatch: first-touch convoy at the start of the wire phase.** Every channel's first PUT spends
+  ~100 µs in the transport because the first access per kernel to each context's host-mapped command
+  ring costs ~80 µs when 128 contexts start together (shown by moving the cost from the NIC status read
+  into the ring store with cached credits, 11/02 log §5.7; a barrier-time prewarm of every ring does
+  not change it, §5.9, so the cost is per access under 128-way concurrency, not per translation).
+  The NIC then drains at the ceiling. Remaining leads are transport-side: the ring's registration path
+  (plain mapped versus the IO-memory fallback) and fewer system-scope transactions per command. No
+  cadence, SM-count (32 or 128) or context-count knob improves 4K.
 - **Fixed per-call costs that remain are DeepEP-level**: the dispatch copy epilogue (0.09 ms) and
-  combine reduce epilogue (0.08 ms) as separate kernels, the entry barrier (0.11 ms, skew-dominated),
-  and the combine's first remote PUT at 0.40 ms, which the double-buffered scale-up staging did not
-  move (the forward warps' reduction rate gates the wire start). No cadence, SM-count or context-count
-  knob improves 4K any further.
+  combine reduce epilogue (0.08 ms) as separate kernels, the entry barrier (0.08–0.11 ms,
+  skew-dominated), and the combine's 0.28 ms before its first remote PUT (barrier, inter-rank skew,
+  scale-up handoff), which the double-buffered scale-up staging did not move.
 
 ## Open questions for NIC and driver experts
 
@@ -61,3 +68,8 @@
    quarantined (10/30 log, gate 521).
 6. Can the kernel-initiated libfabric extension (`rdma/fi_cxi_gpu_ext.h`, used by HPE's CLIC) be
    made available on Clariden? It would give a vendor-backed reference on the same NIC.
+7. A system-scope load or store to a `cudaHostRegister`ed command ring costs ~80 µs when 128 GPU
+   contexts access their rings at the same instant, 1–3 µs otherwise, and a load of the same word
+   moments earlier does not help. Is this a serialisation of system-scope accesses on the C2C path
+   (or an IO-memory fallback registration of the ring)? Can the command rings be mapped so that the
+   GPU's writes are weakly ordered and coalesced, with only the doorbell strongly ordered?

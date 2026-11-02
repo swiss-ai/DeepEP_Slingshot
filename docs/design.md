@@ -59,6 +59,11 @@ Seven files against `bd1e1669`, +208/-26
   (second staging buffer per scale-up warp), and the transport variants `lean-a` / `lean-b`
   (`CXI_LEAN_FENCE`, `CXI_LEAN_CSTATE`, `CXI_LEAN_FOLD_MARKER`; state in `CxiGpuContext::lean_state`,
   ABI size unchanged). All default off; measured in [results.md](results.md).
+- **Evening additions (2026-11-02)**: cached TX-queue credits (`CXI_CREDIT_CACHE`, variants `cache-a`
+  / `lean-c`, ABI 4 with `tx_rp32_cache`; `emit` re-reads the NIC status only when the conservative
+  free count runs short), and `CXI_EP_PREWARM_CONTEXTS` (every grid thread touches one context's ring
+  during the GIN entry barrier). Both default off; both are correct through the ladders and neither is
+  faster ([results.md](results.md)).
 
 The knobs are compile-time defines injected at JIT time by
 [backend/tests/nvcc_wrapper.py](../backend/tests/nvcc_wrapper.py) and are not part of DeepEP's

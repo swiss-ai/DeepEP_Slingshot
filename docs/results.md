@@ -52,6 +52,44 @@ Measured and closed as losses at 4K in the same allocations: 128 SMs / 257 conte
 +8 % combine), one context per channel with 64 SMs (+7.7 % / +2.6 %), dispatch interval 8 (+3.1 %),
 combine batch 8 (+1.5 %); double-buffered TMA staging in the scale-up warps is neutral.
 
+## Where the remaining time goes (2026-11-02 evening, traced builds, debug slices)
+
+A third node pair (job 3837809) reproduces the lean arms: 4K dispatch 0.947 → 0.934 ms, combine
+1.803 → 1.755 ms, cycle −2.1 %, 16K −0.4 to −0.7 % (wall per iteration). The traced builds of the same
+arms, with the trace validator now following the knobs ([patches/1102/trace-validator-knobs-1102.patch](../patches/1102/trace-validator-knobs-1102.patch)),
+decompose a 4K call as follows (medians over 24 captures, kernel-relative ms; details and tools in the
+[11/02 log §5](history/11_02_DeepEP_v2_Slingshot.md)).
+
+| Dispatch, lean-b + kernel knobs | | Combine | |
+|---|---:|---|---:|
+| entry barrier end | 0.09 | entry barrier end | 0.08 |
+| first PUT: attempt → emitted | 0.11 → 0.21 | first local token at a forward warp | 0.20 |
+| last PUT emitted | 0.33 | first / last PUT emitted | 0.28 / 0.46 |
+| receivers' last remote tail observed | 1.06 | last channel's remote rows complete | 1.88 |
+| kernel end / CUDA event (epilogue incl.) | 1.15 / 1.24 | kernel end / CUDA event | 1.88 / 1.96 |
+
+- The dispatch **receivers are idle 86 %** of their role; once fed, the NIC delivers the 17.7 MB in
+  0.79–0.84 ms, at the 22.5 GB/s ceiling. The dispatch loss is that the first emission happens at
+  0.20–0.25 ms instead of ~0.12: **every channel's first PUT spends ~100 µs in the transport** (lock
+  wait ~47 µs behind a sibling whose first ring access takes ~85 µs; later PUTs cost 15–25 µs).
+- With cached queue credits (`CXI_CREDIT_CACHE`, [patches/1102/credit-cache-backend-1102.patch](../patches/1102/credit-cache-backend-1102.patch);
+  correct through the full ladder including sustained 16K, 99.9 % fewer NIC status reads) the same ~80 µs
+  moves from the status read into the first ring store plus system fence, and the timeline does not move.
+  The cost is the **first access per kernel to each context's host-mapped command ring** when 128 contexts
+  start together, not the NIC read and not the fence as such.
+- Combine's wire phase runs at 21.1 GB/s from the first PUT; its loss is the 0.28 ms before it (barrier,
+  inter-rank skew, scale-up handoff), which is DeepEP-level.
+- Closed the same evening: 32 SMs / 128 channels (correct, +2.3 % dispatch, +0.8 % combine at 4K) and the
+  credit cache as a speed lever (kept as variants `cache-a`, `lean-c`).
+- A barrier-time prewarm that touches every context's ring while the barrier waits
+  (`CXI_EP_PREWARM_CONTEXTS`, [patches/1102/prewarm-contexts-1102.patch](../patches/1102/prewarm-contexts-1102.patch))
+  is correct and changes nothing: the traced build still shows the first PUT at ~100 µs although the
+  same word was loaded during the barrier. The cost is paid **per access while 128 contexts access the
+  host-mapped rings at the same instant** (system-scope loads and stores on the `cudaHostRegister`ed
+  ring, 1–3 µs when spread out), not per translation. Open leads, a few lines each: confirm which
+  registration path the ring takes (plain mapped or the IO-memory fallback), and write the 64-byte
+  command with fewer system-scope transactions (11/02 log §5.9).
+
 ## NIC ceiling measured with `cxi_write_bw`
 
 HPE's host-side RDMA write benchmark (`cray-libcxi-utils` 1.0.2), 256 writes per doorbell, one

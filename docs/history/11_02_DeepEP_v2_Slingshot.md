@@ -1,8 +1,10 @@
 # DeepEP v2 direct GIN over Slingshot — 2026-11-02
 
-Continuation of `11_01_DeepEP_v2_Slingshot.md`. Three items: an improvement plan for the dispatch
+Continuation of `11_01_DeepEP_v2_Slingshot.md`. Four items: an improvement plan for the dispatch
 and combine data paths derived from the code and the 4K traces of the final candidate (§2), the
-`cxi_write_bw` link-rate measurement (§3), and the first implementation round of the plan (§4).
+`cxi_write_bw` link-rate measurement (§3), the first implementation round of the plan (§4), and the
+evening's debug-partition slices with the trace decomposition of the lean path, which locate the
+dispatch loss in a first-PUT submission convoy and queue the cached-credit transport (§5).
 
 Reference state: `source-1101-first-batch-v1` (marker-zero transport, packed rows, interval 16,
 first interval 4, forward chunk 3, merged final tail, packed combine batch 16 / first batch 4,
@@ -534,3 +536,237 @@ Results land in `jobs/3835100/results/` on Clariden; `pipeline_1102/effective_ra
 
 Jobs used this afternoon: 3835147 (debug, lean companion), 3835199 (debug, double-buffer companion),
 3835540 (debug, isolation), 3835100 (normal, holder, pending). None of the user's own jobs were touched.
+
+## 5. Evening: debug-partition slices, trace decomposition of the lean path, the first-PUT convoy
+
+Certificate refreshed at 21:00 CET; the normal-partition holder 3835100 had slipped to 07:33 CET 11-03, so
+the pending matrix was cut into 25-minute debug slices (2 nodes each; `pipeline_1102/launch_debug_1102.py`
+installs, preflights and submits with the partition override; `package_trace_dbg*_1102.py`,
+`package_sms32_dbg_1102.py`, `package_credit_dbg_1102.py` size the gates so that `timeout + 180 s` fits
+the remaining allocation at every start).
+
+### 5.1 Slices and jobs
+
+| Job | Snapshot | Pair | Gates | Outcome |
+|---|---|---|---|---|
+| 3837687 | `source-1102-trace-dbg-v1` (= lean-trace code) | nid006286/006298 | 9900 trace cand, 9901 trace kern, then repeats | 9900 PASS; 9901 **FAIL in the trace validator**: it required the combine flush scopes (203/207) that `CXI_EP_SKIP_COMBINE_FLUSH` removes. Controller paused; the poller watched `jobs/<id>/results/PAUSED.json` instead of `jobs/<id>/PAUSED.json` and missed it, 17 minutes idle. Correctness of 9901 itself PASS; its traces are complete and used below. |
+| 3837809 | `source-1102-trace-dbg-v2` (validator follows the knobs: 203/207 not required without the flush, 212 not required with `CXI_LEAN_CSTATE`, 211 not required with `CXI_LEAN_FENCE`; counts reported) | nid006286/006298 | 9901 trace kern, 9902 trace leanb, 9903–9910 cand/kern/leanb repeats | all 10 PASS (18.6 min) |
+| 3837850 | `source-1102-sms32-dbg-v1` (= dbuf code) | — | leanb at 32 SMs ladder + repeats, cand/leanb references | queued, start 22:15 CET |
+| 3837957 | `source-1102-credit-dbg-v1` (cached credits, ABI 4) | — | leanc ladder incl. sustained 16K, cand/leanb/leanc repeats | queued |
+
+The patched validator was checked offline against the 9900 and 9901 traces before the second submission
+(`combine_flush_scopes` 6144 for cand, 0 for kern; CSTATE and fence submissions 18 528 / 18 480).
+
+### 5.2 Third node pair (job 3837809, wall per iteration, slowest rank; cand 3 gates, kern 2, leanb 3)
+
+| | cand | kern | leanb |
+|---|---:|---:|---:|
+| 4K dispatch | 0.947 ms (18.7 GB/s) | 0.934 (−1.3 %) | 0.934 (−1.3 %, 18.9 GB/s) |
+| 4K combine | 1.803 (18.8) | 1.764 (−2.2 %) | 1.755 (−2.7 %, 19.3 GB/s) |
+| 4K cycle | 2.747 | 2.699 (−1.8 %) | 2.690 (−2.1 %) |
+| 16K dispatch | 3.427 (20.7) | 3.414 (−0.4 %) | 3.412 (−0.4 %) |
+| 16K combine | 6.913 (19.6) | 6.879 (−0.5 %) | 6.866 (−0.7 %) |
+
+Same picture as the two pairs of the afternoon (§4.4). The headline metric again shows combine +0.5…+3 %
+for the flush-less arms (end-skew inflation, §4.4); the wall time is the throughput figure.
+
+### 5.3 Where the lean path's time goes (4K, traced builds, medians over 24 captures)
+
+Dispatch (kernel-relative ms; `trace_timeline.py`, `wire_curve.py`, `receiver_duty.py`):
+
+| Milestone | cand (9900) | kern (9901) | leanb (9902) |
+|---|---:|---:|---:|
+| Entry barrier end / roles start | 0.118 | 0.093 | 0.094 |
+| First packed PUT: scope start → **emitted** | 0.133 → 0.248 | 0.108 → 0.217 | 0.110 → 0.21 |
+| 50 % of remote bytes emitted / last PUT emitted | 0.344 / 0.405 | 0.313 / 0.371 | 0.29 / 0.33 |
+| Receivers: first remote tail observed | 0.378 | 0.377 | 0.401 |
+| Receivers: last remote tail observed | 1.036 | 1.043 | 1.060 |
+| Kernel end / CUDA event (incl. copy epilogue) | 1.129 / 1.260 | 1.124 / 1.244 | 1.152 / 1.243 |
+| Doorbells / status reads per rank | 1031 / 2444 | 1029 / 2441 | 516 / 1304 |
+| CSTATE / fence / combine-flush scopes per gate | 18 528 / 18 528 / 6144 | 18 480 / 18 480 / 0 | 0 / 10 500 / 0 |
+
+- The **receivers are idle 86 % of their role** (256 receiver warps per rank; median wait 0.75 ms of a
+  0.87 ms role, processing 0.11 ms): the receive side is not the limit.
+- From the first emission to the last observation the NIC delivers 17.7 MB in 0.79–0.84 ms, i.e.
+  **21–22.5 GB/s, at the ceiling**. Measured from the first PUT *attempt* the same phase reads 19 GB/s. The
+  dispatch wire phase therefore loses nothing to the link; it starts ~0.1 ms late.
+- **First-PUT convoy.** Every channel's first PUT (4 rows, 17 KB) spends 102 µs in the transport on every
+  block (p90 110): the lock wait is 47 µs median / 97 p90, and for the lock holders the credit check
+  (`emit`'s status read of the NIC-written read pointer, event 202) is 86 µs at p90 against 1–3 µs later in
+  the kernel. 128 contexts read the status at the same instant after the barrier. The 12-row PUTs later cost
+  25 µs (kern) and 15 µs (leanb: no marker, no CSTATE, fence halved); the convoy is identical in all arms.
+  Barrier savings (−25 µs) do not reach the end of the kernel because the convoy, not the barrier, sets the
+  first emission.
+
+Combine (`combine_prewire.py`):
+
+| Milestone | cand | kern | leanb |
+|---|---:|---:|---:|
+| Barrier end | 0.108 | 0.086 | 0.076 |
+| First local (scale-up) token at a forward warp | 0.227 | 0.203 | 0.205 |
+| First packed PUT emitted / 50 % / last | 0.304 / 0.371 / **1.787** | 0.284 / 0.355 / 0.484 | 0.282 / 0.348 / 0.464 |
+| First / last channel's remote rows complete (138) | 1.624 / 1.974 | 1.388 / 1.884 | 1.344 / 1.878 |
+| Kernel end / CUDA event | 1.976 / 2.062 | 1.886 / 1.966 | 1.880 / 1.963 |
+
+Without the flush the forward warps submit all 512 PUTs by 0.48 ms (cand: 1.79 ms, lock waits 115 ms
+summed per capture against 8 ms). The wire phase then runs 0.28 → 1.88 ms: 33.8 MB in 1.60 ms =
+**21.1 GB/s**, 0.1 ms over the 1.503 ms bound. What remains is the 0.28 ms before the first PUT: barrier
+(0.08, skew up to 0.1 ms between ranks), the first local token at 0.20 (the forward warp waits for the
+slowest local peer's scale-up warp), the first 4-row batch at 0.28; plus the 0.08 ms reduce epilogue.
+
+### 5.4 Consequences and the two slices queued on them
+
+1. **Dispatch**: remove the convoy and the first emission moves from 0.21–0.25 to ~0.12 ms; with the NIC
+   draining at the ceiling that is −0.1 ms of 0.934 → ≈0.84 ms = 21 GB/s effective, above the target.
+   Two candidates:
+   - *Fewer channels* (`source-1102-sms32-dbg-v1`, job 3837850): the elastic buffer takes 4 channels per
+     SM, so 32 SMs give 128 channels, one per context (no lock sibling), 32 rows per channel (PUTs of 4,
+     16 and 12 rows). Zero code. Risk: fewer scale-up/forward warps for the NVLink part.
+   - *Cached credits* (`prepare_credit_1102.py`, `source-1102-credit-dbg-v1`, job 3837957): `emit` keeps
+     the last NIC read pointer in the context (`tx_rp32_cache`, ABI 4, context 256 bytes) and reads the
+     status only when the cached, conservative free count is below 2 + 2·8 units; a stale pointer
+     under-counts free slots and never over-counts them (CPU ring model in `test_queue_credit.cc`: slow
+     and fast NIC, delayed write-back, wraps, margins 0–16). Host sets `CXI_RP32_UNKNOWN` at open and
+     recycle; the queue inventory prints cumulative status reads. Variants `cache-a` (marker-zero + cache)
+     and `lean-c` (lean-b + cache). The 10/30 cached-credit candidate stalled at 16K on the delivery-v3
+     base without attribution (gate 521), so the ladder includes sustained 16K before any repeat.
+     At kernel start the cache still holds the previous kernel's last read, taken when the ring was nearly
+     drained, so the first PUTs should emit without any status read.
+2. **Combine**: the wire runs at 21 GB/s; the target (1.691 ms) needs −65 µs from the 0.28 ms pre-wire
+   phase, which is skew + barrier + the scale-up handoff, i.e. DeepEP-level (start the scale-up copies
+   before the barrier completes, or overlap the previous kernel's tail). The credit cache also removes the
+   status reads from the forward warps' 512 PUTs (currently 25 µs each under the lock).
+
+### 5.5 32 SMs (job 3837850, nid007481/007666): correct, slower — lever closed
+
+All three ladder gates pass at 32 SMs (irregular stress, 4K FP8/BF16 on five routings, dropped tokens), so
+128 channels on 129 contexts is a legal configuration. Wall per iteration against cand and leanb (64 SMs)
+on the same pair:
+
+| 4K | cand | leanb | leanb32 |
+|---|---:|---:|---:|
+| dispatch | 0.953 ms | 0.944 (−0.9 %) | 0.975 (+2.3 %) |
+| combine | 1.813 | 1.769 (−2.4 %) | 1.828 (+0.8 %) |
+| cycle | 2.763 | 2.707 (−2.0 %) | 2.810 (+1.7 %) |
+| 16K combine | 6.931 | 6.886 (−0.7 %) | 7.132 (+2.9 %) |
+
+Halving the channels does not shorten the convoy enough to pay for the halved scale-up/forward
+parallelism (the NVLink side of both kernels loses more than the NIC side gains). Together with the 128-SM
+and 257-context results of §4.4 this closes the channel-count axis in both directions; the first-PUT cost
+has to come out of the transport (cached credits, job 3837957) rather than out of the kernel geometry.
+
+### 5.6 Cached credits (job 3837957, nid006799/006815): correct, status reads gone, time unchanged
+
+Every lean-c gate passes: irregular stress, 4K FP8/BF16 on five routings, dropped tokens and the sustained
+16K that stalled the 10/30 candidate, then the 4K/16K repeats. The queue inventory confirms the mechanism:
+4 634–4 652 status reads per rank for 4.6 M commands (one per ~1 000 commands, i.e. only when the
+conservative count ran below the margin) where the uncached variants read the status for every command.
+
+| 4K, wall per iteration | cand | leanb | leanc |
+|---|---:|---:|---:|
+| dispatch | 0.947 ms | 0.931 (−1.8 %) | 0.930 (−1.9 %) |
+| combine | 1.800 | 1.755 (−2.5 %) | 1.754 (−2.6 %) |
+| cycle | 2.748 | 2.687 (−2.2 %) | 2.683 (−2.4 %) |
+| 16K dispatch / combine | 3.423 / 6.931 | 3.408 / 6.870 | 3.401 / 6.876 |
+
+So the NIC status read was not what the first PUT waited for: with the read removed the first PUT's
+100 µs (and the end-to-end time) stay the same. Either the convoy is in the remaining GPU→host/NIC path
+of the first emission (ring stores, system fence, doorbell, under 128 simultaneous first emissions) or it is
+off the critical path and the wire itself, or the peer's skew, sets the end. The traced lean-c snapshot
+(`source-1102-credit-trace-v1`: lean-c-trace, cache-a-trace, lean-b-trace on one pair) is queued to settle
+this: if the first emission moves to ~0.12 ms and the receive end does not, the convoy is irrelevant and
+the remaining dispatch loss is the wire rate under this traffic; if the first emission stays at ~0.21 ms,
+the 100 µs is in the ring write, fence or doorbell and the trace's 201/209 scopes will say which.
+
+Cached credits are kept as a qualified-by-ladder transport option (`cache-a`, `lean-c`): no measurable
+gain at 4K/16K, 99.9 % fewer status reads, ABI 4. They do not go into the candidate until a gain is shown.
+
+### 5.7 Traced cached credits (job 3838245, nid007657/007658): the convoy is the first touch of the ring
+
+All four trace gates pass (lean-c, lean-b, cache-a, lean-c repeat; validator counts: lean-c 0 CSTATE /
+10 756 fences, cache-a 18 528 / 18 528). `put_split.py` splits every sender warp's first and last PUT into
+the nested transport scopes (medians over captures of per-capture medians / p90, µs):
+
+| first PUT of a channel | lean-b | lean-c (cached credits) | cache-a |
+|---|---:|---:|---:|
+| total | 101 / 109 | 95 / 102 | 94 / 100 |
+| lock wait (200) | 47 / 96 | 41 / 89 | 43 / 88 |
+| credit check (202) | 3.5 / **85** | 0.5 / 0.8 | 0.5 / 0.8 |
+| emit: ring store + system fence (201) | 3.1 / 3.7 | 4.6 / **81** | 21 / **79** |
+| remainder | 8.7 / 9.5 | 8.8 / 10.1 | 8.9 / 10.3 |
+| last PUT of a channel, total | 15.4 / 17.6 | 12.8 / 15.6 | 21.9 / 35.2 |
+| first PUT emitted (rank) | 0.20 ms | 0.20 ms | 0.22 ms |
+| status reads per capture | 1 302 scopes, 12.4 ms summed | 1 307 scopes, 0.65 ms | 2 444 scopes, 1.2 ms |
+
+With the status read gone, the same ~80 µs appears in the ring store plus `__threadfence_system()` of the
+first emission; the lock holder still takes ~90 µs and its sibling still waits ~90 µs for the lock. The
+first emission stays at 0.20 ms, the receivers' last observation at 1.11–1.12 ms, the CUDA event at
+1.23 ms for all three arms (kern/leanb on this pair: 1.233 / 1.229). Whatever touches a context's ring
+first in a kernel pays ~80 µs when 128 contexts start together; later accesses cost 1–3 µs. The cost is
+therefore the first access to the host-mapped command ring per context per kernel (address translation
+or the GPU→host path warming up under 128 simultaneous first touches), not the NIC status read and not
+the fence as such. The cache does take 2.5 µs off every later PUT (lean-c last PUT 12.8 µs against 15.4),
+which is why its wall time is marginally the best of the evening but within noise.
+
+Consequence: the first touch can be moved off the critical path. `prepare_prewarm_1102.py`
+(`CXI_EP_PREWARM_CONTEXTS`): in the GIN entry barrier, before SM 0 starts signalling, every thread of the
+grid loads one context's ring status word (read-only, no lock; `nccl::gin::cxi::prewarm(ctx)`, the
+context reached through the public handle's `_makeCtx()`), so the 129 first touches overlap the barrier's
+own skew wait. If the translation theory holds, the first PUTs then emit at ~0.12 ms and the dispatch
+loses ~0.08 ms of its 0.93; if the cost is the GPU→host write path itself, a load will not warm it and a
+traced variant will show the 80 µs still in the store. Slice `source-1102-prewarm-dbg-v1` (leanbw =
+lean-b + prewarm against leanb and cand on one pair, stress and 4K ladder first) is queued as the last
+job of the evening.
+
+### 5.8 Context prewarm in the barrier (job 3838468, nid007659/007666): correct, no effect
+
+`CXI_EP_PREWARM_CONTEXTS` passes the irregular stress and the 4K correctness gates and changes nothing
+in the timing (wall per iteration; leanb 3 gates, leanbw 4, cand 1):
+
+| 4K | leanb | leanbw (prewarm) | cand |
+|---|---:|---:|---:|
+| dispatch | 0.934 ms | 0.933 (−0.1 %) | 0.945 |
+| combine | 1.758 | 1.758 (0.0 %) | 1.803 |
+| cycle | 2.692 | 2.692 | 2.749 |
+| 16K dispatch / combine | 3.404 / 6.878 | 3.414 / 6.891 (+0.3 / +0.2 %) | 3.419 / 6.927 |
+
+Two readings remain possible and a traced pair of gates (`source-1102-prewarm-trace-v1`: leanbw and leanb
+on one pair, A000–A002) decides between them: either a load does not warm what the first store plus
+system fence needs (then the first PUT still shows ~100 µs in the trace), or the first emission does move
+to ~0.12 ms and the receive end does not follow, in which case the convoy was never on the critical path
+and the dispatch's remaining 0.15 ms over the bound is the wire under this traffic (bidirectional
+22.5 GB/s ceiling, 17 KB first PUTs, 2 KB packets) plus the peer's skew, not the sender.
+
+### 5.9 Traced prewarm (job 3838613, nid007656/007659): the cost is per access, not per translation
+
+All three gates pass. With the prewarm the first PUT still costs 97–107 µs (`put_split.py`, median / p90):
+lock wait 44–49 / 91–102 µs, credit status load 3.5–3.8 / 80–90 µs, emit 3.1 / 3.7 µs; first emission at
+0.21 ms, receivers' last observation 1.11–1.12 ms, CUDA event 1.23–1.25 ms — identical to lean-b on the
+same pair (A001). The status word of every context had been loaded 20–50 µs earlier during the barrier,
+so a warmed translation does not make the next access cheap: **the ~80 µs is paid per access while 128
+contexts access the host-mapped rings at the same instant**, i.e. a serialisation of system-scope
+accesses to the command rings (`ld.acquire.sys` / `st.release.sys` on memory the host registered with
+`cudaHostRegisterMapped`, falling back to `cudaHostRegisterIoMemory` when the plain registration is
+refused; `cxi_resources.cc` `map()`, the doorbell pages are IO memory by design). Spread over the kernel
+the same accesses cost 1–3 µs, which is why only the first interval shows it.
+
+What this closes and what it leaves:
+- Closed tonight: cached credits (removes the load, the store pays instead), barrier-time prewarm
+  (translation is not the cost), 32 SMs (fewer channels do not shorten the convoy enough), and, from the
+  afternoon, every cadence, SM-count and context-count knob.
+- Open: (a) whether the ring registration takes the plain or the IO-memory path on these nodes (the
+  fallback is silent; a diagnostic line is a one-line change) and whether a plain pinned mapping would
+  make the accesses cacheable/weakly ordered; (b) fewer system-scope transactions per first command
+  (one 64-byte command is written as eight 8-byte stores plus a system fence; vector stores would
+  quarter the transactions); (c) whether the convoy is on the critical path at all — no lever moved the
+  first emission, so the 0.79–0.9 ms from first emission to last observation (this pair 0.9 ms, the
+  nid006286 pair 0.79–0.84 ms) may already be the wire for this traffic. Items (a)/(b) are transport
+  changes of a few lines each and are the first thing to try tomorrow; the NIC/driver question 7 in
+  `docs/limitations.md` records (a).
+
+Position at the end of 2026-11-02: lean-b + kernel knobs, 4K dispatch 0.930–0.934 ms (18.9–19.0 GB/s
+effective), combine 1.754–1.759 ms (19.2–19.3 GB/s), three node pairs, every ladder passed. The 20 GB/s
+target (0.884 / 1.691 ms) is not reached; the remaining 50 µs of dispatch is the start-of-wire convoy or
+the wire itself, the remaining 65 µs of combine is the pre-wire phase (barrier, skew, scale-up handoff).
+Jobs tonight: 3837687, 3837809, 3837850, 3837957, 3838245, 3838468, 3838613 (debug, 25 min each);
+holder 3835100 (normal) still pending, estimate 07:33 CET 11-03. None of the user's own jobs touched.

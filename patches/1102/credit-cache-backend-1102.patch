@@ -1,0 +1,168 @@
+--- a/backend/include/cxi_gin_abi.h	2026-11-02 15:16:09.724934141 +0100
++++ b/backend/include/cxi_gin_abi.h	2026-11-02 22:11:24.290646638 +0100
+@@ -3,7 +3,8 @@
+ #include <stddef.h>
+ 
+ // Private experimental ABI. Not an upstream NCCL backend identifier.
+-#define CXI_GIN_ABI_VERSION 3
++#define CXI_GIN_ABI_VERSION 4
++#define CXI_RP32_UNKNOWN 0xffffffffu
+ #define CXI_GIN_DEVICE_VERSION 1
+ #define CXI_GIN_BACKEND_TYPE 6
+ #define CXI_GIN_MAX_PEERS 64
+@@ -49,12 +50,16 @@
+   CxiWindow* pending_dst;
+   uint64_t pending_local_addr, pending_remote_offset;
+   uint32_t pending_lac, pending_peer;
+-  // pending_* and lean_state live inside the previous trailing padding; sizeof stays 192 bytes.
++  // ABI 4: cached NIC read pointer of the TX ring (32-byte units) and the count of fresh status
++  // reads. The read pointer only advances, so a stale value under-counts free slots and never
++  // over-counts them; CXI_RP32_UNKNOWN forces a fresh read. Host sets it at open and recycle.
++  uint32_t tx_rp32_cache, tx_status_reads;
++  uint64_t reserved_abi4[7];
+ };
+ 
+ static_assert(sizeof(CxiPeerAddress) == 24, "peer ABI");
+ static_assert(offsetof(CxiGpuContext, posted) % 8 == 0, "counter alignment");
+ static_assert(alignof(CxiGpuContext) == 64, "context alignment");
+ 
+-static_assert(sizeof(CxiGpuContext) == 192, "context host/device ABI size");
++static_assert(sizeof(CxiGpuContext) == 256, "context host/device ABI size");
+ static_assert(sizeof(CxiWindow) == 1576, "window host/device ABI size");
+--- a/backend/device/cxi_primitives.cuh	2026-11-02 15:16:09.726701100 +0100
++++ b/backend/device/cxi_primitives.cuh	2026-11-02 22:11:24.291323431 +0100
+@@ -35,6 +35,12 @@
+ #define CXI_LEAN_FOLD_MARKER 0
+ #endif
+ static_assert(!CXI_LEAN_FOLD_MARKER || CXI_BATCH_DELIVERY, "the marker fold replaces the batched-delivery marker");
++#ifndef CXI_CREDIT_CACHE
++#define CXI_CREDIT_CACHE 0
++#endif
++#ifndef CXI_CREDIT_MARGIN
++#define CXI_CREDIT_MARGIN 8 // spare commands kept beyond the cached count before a fresh status read
++#endif
+ namespace cxi_gin {
+ constexpr uint64_t default_timeout=10000000000ULL;
+ // CxiGpuContext::lean_state bits (host initialises the field to lean_fence_due).
+@@ -86,6 +92,30 @@
+                                    uint32_t* abort=nullptr,uint64_t timeout=default_timeout,bool aggregate=false) {
+   uint64_t start=clock64();
+   c.lean_state&=~lean_last_is_put; // any new command supersedes the pending PUT as newest entry
++#if CXI_CREDIT_CACHE
++  // The NIC's read pointer only advances, so the cached value under-counts free slots and never
++  // over-counts them: emitting against it cannot overwrite an unconsumed command. Read the
++  // NIC-written status only when the cached count is short of CXI_CREDIT_MARGIN spare commands.
++  {
++    uint32_t rp32=c.tx_rp32_cache;bool cached=rp32!=CXI_RP32_UNKNOWN;uint32_t status=0;
++    while(true) {
++      if(cached && cq_positions_valid(c.tx_size32,c.tx_wp32,rp32) &&
++         cq_free_slots32(c.tx_size32,c.tx_wp32,rp32)>=2+2*CXI_CREDIT_MARGIN &&
++         (!CXI_TX_PENDING_LIMIT || cq_pending_commands(c.tx_size32,c.tx_wp32,rp32)<CXI_TX_PENDING_LIMIT))break;
++      status=load32((uint32_t*)c.tx_queue);
++      if(status>>16)return fail(c,3,status);
++      rp32=(status&65535)*2;
++      if(!cq_positions_valid(c.tx_size32,c.tx_wp32,rp32))return fail(c,46,status,c.tx_wp32);
++      c.tx_rp32_cache=rp32;c.tx_status_reads++;cached=false;
++      if(cq_free_slots32(c.tx_size32,c.tx_wp32,rp32)>=2 &&
++         (!CXI_TX_PENDING_LIMIT || cq_pending_commands(c.tx_size32,c.tx_wp32,rp32)<CXI_TX_PENDING_LIMIT))break;
++      // Never wait for NIC credits while unsubmitted descriptors occupy the ring.
++      publish_locked(c);
++      if(expired(start,timeout,abort))return fail(c,4,status,c.tx_wp32);
++      __nanosleep(64);
++    }
++  }
++#else
+   while(true) {
+     uint32_t status=load32((uint32_t*)c.tx_queue);
+     if(status>>16)return fail(c,3,status);
+@@ -98,6 +128,7 @@
+     if(expired(start,timeout,abort))return fail(c,4,status,c.tx_wp32);
+     __nanosleep(64);
+   }
++#endif
+   for(unsigned i=0;i<8;i++)c.tx_queue[c.tx_wp32*4+i]=command[i];
+   __threadfence_system();unsigned next=c.tx_wp32+2;if(next>=c.tx_size32)next=8;
+   c.tx_wp32=next;c.tx_unpublished++;c.tx_commands++;
+--- a/backend/host/cxi_resources.cc	2026-11-02 15:16:09.725296520 +0100
++++ b/backend/host/cxi_resources.cc	2026-11-02 22:11:24.290962537 +0100
+@@ -189,6 +189,7 @@
+     CK(cxil_alloc_cmdq(r->lni,r->eq,&qo,&q->tx));
+     q->wb=page_alloc(65536);q->diag=page_alloc(65536);
+     auto& d=q->descriptor;d.abi_version=CXI_GIN_ABI_VERSION;d.lean_state=1; // fence due, no cached CSTATE
++    d.tx_rp32_cache=CXI_RP32_UNKNOWN;d.tx_status_reads=0;
+     d.ct_writeback=(uint64_t*)r->map(q->wb,65536,false);q->wbmap=true;
+     d.diagnostic=(uint64_t*)r->map(q->diag,65536,false);q->diagmap=true;
+     CK(cxil_alloc_ct(r->lni,(c_ct_writeback*)q->wb,&q->ct));
+@@ -324,6 +325,7 @@
+   q->descriptor.signal_window=nullptr;q->descriptor.signal_offset=0;
+   q->descriptor.pending_local_addr=0;q->descriptor.pending_remote_offset=0;
+   q->descriptor.pending_lac=0;q->descriptor.pending_peer=0;q->descriptor.lean_state=1;
++  q->descriptor.tx_rp32_cache=CXI_RP32_UNKNOWN;q->descriptor.tx_status_reads=0;
+   q->descriptor.nsignals=0;q->descriptor.ncounters=0;
+   q->pooled=true;q->r->idle_channels.push_back(q);return 0;
+ }
+--- a/backend/host/gin_plugin.cc	2026-10-31 00:09:43.153651228 +0100
++++ b/backend/host/gin_plugin.cc	2026-11-02 22:11:24.291061531 +0100
+@@ -108,10 +108,10 @@
+       TD(1);
+     }
+   if(x->device && getenv("CXI_QUEUE_INVENTORY")) {
+-    uint64_t commands=0,doorbells=0,pending=0;
+-    for(const auto& c:x->host){commands+=c.tx_commands;doorbells+=c.tx_doorbells;pending+=c.tx_unpublished;}
+-    fprintf(stderr,"CXI_TX_PUBLICATION rank=%d cumulative_commands=%llu cumulative_doorbells=%llu unpublished=%llu\n",
+-      x->coll->rank,(unsigned long long)commands,(unsigned long long)doorbells,(unsigned long long)pending);
++    uint64_t commands=0,doorbells=0,pending=0,reads=0;
++    for(const auto& c:x->host){commands+=c.tx_commands;doorbells+=c.tx_doorbells;pending+=c.tx_unpublished;reads+=c.tx_status_reads;}
++    fprintf(stderr,"CXI_TX_PUBLICATION rank=%d cumulative_commands=%llu cumulative_doorbells=%llu unpublished=%llu status_reads=%llu\n",
++      x->coll->rank,(unsigned long long)commands,(unsigned long long)doorbells,(unsigned long long)pending,(unsigned long long)reads);
+   }
+   for(size_t i=0;i<x->channels.size();i++)TD(cxi_channel_recycle(x->channels[i],x->device?&x->host[i]:nullptr));
+   if(x->device)TD(cudaFree(x->device));
+--- a/runner/test_queue_credit.cc	2026-10-30 11:33:09.522494017 +0100
++++ b/runner/test_queue_credit.cc	2026-11-02 22:11:24.291401032 +0100
+@@ -77,6 +77,45 @@
+     }
+     assert(posted>capacity*100);
+   }
++  // Cached read pointer (CXI_CREDIT_CACHE): the producer refreshes the NIC status only when the
++  // cached, conservative credit count is below the margin; the NIC consumes and writes its read
++  // pointer back with independent delays. A stale pointer must never admit a write into an
++  // unconsumed slot, and the policy must keep making progress through wraps.
++  // Two regimes: a slow NIC (ring mostly full, every refresh is needed) and a fast NIC (ring mostly
++  // empty, the cache must remove most status reads).
++  uint64_t cached_writes[2]={0,0}, cached_refreshes[2]={0,0};
++  for (unsigned fast : {0u, 1u})
++  for (unsigned margin : {0u, 4u, 8u, 16u})
++    for (unsigned size : {32u, 128u, 2048u}) {
++      const unsigned capacity=(size-8)/2;
++      std::vector<uint64_t> ring(capacity,0);
++      uint64_t posted=0, consumed=0, reported=0; bool cached=false; unsigned rp=0;
++      std::mt19937 rng(size*31+margin+7*fast);
++      for(unsigned tick=0;tick<300000;++tick) {
++        if(consumed<posted && (fast || rng()%3)) {
++          assert(ring[consumed%capacity]==consumed+1);
++          ring[consumed++%capacity]=0;
++        }
++        if(rng()%4==0)reported=consumed; // NIC status write-back lags consumption
++        const unsigned wp=8+2*(posted%capacity);
++        bool admit=false;
++        if(cached && cxi_gin::cq_positions_valid(size,wp,rp) && cxi_gin::cq_free_slots32(size,wp,rp)>=int(2+2*margin)) admit=true;
++        else {
++          rp=reported?8+2*(reported%capacity):0; cached=true; ++cached_refreshes[fast];
++          assert(cxi_gin::cq_positions_valid(size,wp,rp));
++          admit=cxi_gin::cq_free_slots32(size,wp,rp)>=2;
++        }
++        if(admit) {
++          assert(posted-consumed<capacity-1);
++          assert(ring[posted%capacity]==0);
++          ring[posted%capacity]=posted+1;++posted;++cached_writes[fast];
++        }
++      }
++      assert(posted>capacity*20);
++    }
++  assert(cached_refreshes[1]*4<cached_writes[1]);
++  std::printf("PASS cached-credit model: slow NIC writes=%llu refreshes=%llu, fast NIC writes=%llu refreshes=%llu\n",
++              (unsigned long long)cached_writes[0],(unsigned long long)cached_refreshes[0],(unsigned long long)cached_writes[1],(unsigned long long)cached_refreshes[1]);
+   std::printf("PASS states=%llu writes=%llu backpressure=%llu wraps=%llu; CPU ring model only\n",
+               (unsigned long long)states, (unsigned long long)writes,
+               (unsigned long long)full, (unsigned long long)wraps);

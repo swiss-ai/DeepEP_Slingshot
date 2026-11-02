@@ -1,0 +1,61 @@
+--- a/deep_ep/include/deep_ep/common/comm.cuh	2026-11-02 15:16:09.436046100 +0100
++++ b/deep_ep/include/deep_ep/common/comm.cuh	2026-11-02 23:42:56.518201400 +0100
+@@ -11,6 +11,9 @@
+ #ifndef CXI_EP_LOCAL_SELF_SIGNAL
+ #define CXI_EP_LOCAL_SELF_SIGNAL 0
+ #endif
++#ifndef CXI_EP_PREWARM_CONTEXTS
++#define CXI_EP_PREWARM_CONTEXTS 0
++#endif
+ static_assert(CXI_EP_LOCAL_SELF_SIGNAL == 0 || CXI_EP_LOCAL_SELF_SIGNAL == 1);
+ 
+ namespace deep_ep::elastic::comm {
+@@ -154,6 +157,14 @@
+         (gridDim.x > 1) ? cooperative_groups::this_grid().sync() : __syncthreads();
+     }
+ 
++    // CXI_EP_PREWARM_CONTEXTS: touch every GIN context's command ring once while the barrier is pending,
++    // so the first PUT of each channel does not pay the first access to the host-mapped ring (measured
++    // 80-100 us per channel when 128 contexts start together). One context per thread, grid-wide.
++    if constexpr (CXI_EP_PREWARM_CONTEXTS) {
++        for (int i = global_warp_idx * 32 + (thread_idx % 32); i < num_qps; i += kNumSMs * kNumWarps * 32)
++            nccl::gin::cxi::prewarm(ncclGin(nccl_dev_comm, i, NCCL_GIN_RESOURCE_SHARING_CTA)._makeCtx());
++    }
++
+     if (sm_idx == 0) {
+         // Use QP 0 to do barrier
+         const auto team = (std::is_same_v<team_t, ncclTeamTagWorld>) ?
+--- a/backend/device/gin_cxi.cuh	2026-10-30 23:39:26.371484915 +0100
++++ b/backend/device/gin_cxi.cuh	2026-11-02 23:42:56.472730704 +0100
+@@ -7,6 +7,10 @@
+   return static_cast<CxiGpuContext*>(ctx.handle)[ctx.contextId];
+ }
+ NCCL_DEVICE_INLINE void require(bool ok){if(!ok)asm volatile("trap;");}
++// Touch a context's command ring once (a load of the NIC-written status word, no lock, read-only) so
++// that the first emission on it later in the kernel does not pay the first access to the host-mapped
++// page; measured 80-100 us per channel when 128 contexts start together after the entry barrier.
++NCCL_DEVICE_INLINE void prewarm(ncclGinCtx ctx){auto& c=context(ctx);(void)cxi_gin::load32((uint32_t*)c.tx_queue);}
+ NCCL_DEVICE_INLINE bool signal(CxiGpuContext& c,int peer,ncclGinSignalDescriptor s,ncclGinSignalOp_t op,uint64_t arg) {
+   if(s.type==NCCL_GIN_SIGNAL_TYPE_NONE)return true;
+   if(op!=ncclGinSignalInc && op!=ncclGinSignalAdd)return cxi_gin::fail(c,40,op);
+--- a/backend/tests/nvcc_wrapper.py	2026-11-02 15:25:30.794514988 +0100
++++ b/backend/tests/nvcc_wrapper.py	2026-11-02 23:42:56.788571995 +0100
+@@ -17,6 +17,8 @@
+     args=['-DCXI_EP_SKIP_COMBINE_FLUSH='+str(skip_flush),'-DCXI_EP_LOCAL_SELF_SIGNAL='+str(self_signal)]+args
+     double_tma=int(os.environ.get('CXI_EP_COMBINE_DOUBLE_TMA','0')); assert double_tma in (0,1)
+     args=['-DCXI_EP_COMBINE_DOUBLE_TMA='+str(double_tma)]+args
++    prewarm=int(os.environ.get('CXI_EP_PREWARM_CONTEXTS','0')); assert prewarm in (0,1)
++    args=['-DCXI_EP_PREWARM_CONTEXTS='+str(prewarm)]+args
+     assert packc in (0,1) and 1 <= batch <= 64
+     channels=4*int(os.environ.get('CXI_EP_SMS','64'))
+     args=['-DCXI_EP_PACK_COMBINE='+str(packc),'-DCXI_EP_COMBINE_BATCH='+str(batch),'-DCXI_EP_PACK_COMBINE_CHANNELS='+str(channels)]+args
+--- a/backend/tests/ep_benchmark.py	2026-11-02 15:25:30.794613996 +0100
++++ b/backend/tests/ep_benchmark.py	2026-11-02 23:42:56.788661155 +0100
+@@ -210,6 +210,7 @@
+     case['combine_double_tma']=int(os.environ.get('CXI_EP_COMBINE_DOUBLE_TMA','0'))
+     case['skip_combine_flush']=int(os.environ.get('CXI_EP_SKIP_COMBINE_FLUSH','0'))
+     case['local_self_signal']=int(os.environ.get('CXI_EP_LOCAL_SELF_SIGNAL','0'))
++    case['prewarm_contexts']=int(os.environ.get('CXI_EP_PREWARM_CONTEXTS','0'))
+     case['variant']=os.environ.get('CXI_VARIANT','')
+     case['combine_first_batch']=int(os.environ.get('CXI_EP_COMBINE_FIRST_BATCH',os.environ.get('CXI_EP_COMBINE_BATCH','16')))
+     case['first_interval']=int(os.environ.get('CXI_EP_FIRST_INTERVAL',os.environ.get('CXI_EP_UPDATE_INTERVAL','3')))

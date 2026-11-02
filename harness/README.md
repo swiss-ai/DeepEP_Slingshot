@@ -14,7 +14,10 @@
 - `pipeline_1102/`: the signal-path round (prepare/package scripts for the lean, double-buffer, debug,
   isolation and trace snapshots; `prestage_requests.py` to queue gates into an allocation before it
   starts; `effective_rate.py` (headline and `--wall` throughput metrics against the 22.5 GB/s bound);
-  `rank_hist.py` (per-rank timing histograms)).
+  `rank_hist.py` (per-rank timing histograms); `launch_debug_1102.py` (25-minute debug-partition
+  launcher), the evening slice packagers (`package_*_dbg*_1102.py`, `package_credit_trace_1102.py`),
+  `prepare_credit_1102.py` / `prepare_prewarm_1102.py`, and the trace analyses `wire_curve.py`,
+  `receiver_duty.py`, `combine_prewire.py`, `put_split.py`).
 - `link_rate_1102/`: the `cxi_write_bw` link-rate measurement (sbatch drivers for the three
   jobs, a wrapper with connect retry and service-ID handling, node inventory, and
   `collect_write_bw.py` which fetches a job's outputs and tabulates them).
