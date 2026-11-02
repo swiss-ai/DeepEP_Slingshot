@@ -717,3 +717,22 @@ loses ~0.08 ms of its 0.93; if the cost is the GPU→host write path itself, a l
 traced variant will show the 80 µs still in the store. Slice `source-1102-prewarm-dbg-v1` (leanbw =
 lean-b + prewarm against leanb and cand on one pair, stress and 4K ladder first) is queued as the last
 job of the evening.
+
+### 5.8 Context prewarm in the barrier (job 3838468, nid007659/007666): correct, no effect
+
+`CXI_EP_PREWARM_CONTEXTS` passes the irregular stress and the 4K correctness gates and changes nothing
+in the timing (wall per iteration; leanb 3 gates, leanbw 4, cand 1):
+
+| 4K | leanb | leanbw (prewarm) | cand |
+|---|---:|---:|---:|
+| dispatch | 0.934 ms | 0.933 (−0.1 %) | 0.945 |
+| combine | 1.758 | 1.758 (0.0 %) | 1.803 |
+| cycle | 2.692 | 2.692 | 2.749 |
+| 16K dispatch / combine | 3.404 / 6.878 | 3.414 / 6.891 (+0.3 / +0.2 %) | 3.419 / 6.927 |
+
+Two readings remain possible and a traced pair of gates (`source-1102-prewarm-trace-v1`: leanbw and leanb
+on one pair, A000–A002) decides between them: either a load does not warm what the first store plus
+system fence needs (then the first PUT still shows ~100 µs in the trace), or the first emission does move
+to ~0.12 ms and the receive end does not follow, in which case the convoy was never on the critical path
+and the dispatch's remaining 0.15 ms over the bound is the wire under this traffic (bidirectional
+22.5 GB/s ceiling, 17 KB first PUTs, 2 KB packets) plus the peer's skew, not the sender.

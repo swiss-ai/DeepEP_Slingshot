@@ -19,7 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'pipeline_v1'))
 from package import replace  # noqa: E402
 
-def prepare(snapshot):
+def prepare(snapshot, archives=('DeepEP.tar.gz',)):
     out = Path(snapshot)
     gin = out / 'backend/device/gin_cxi.cuh'
     replace(gin, '''NCCL_DEVICE_INLINE void require(bool ok){if(!ok)asm volatile("trap;");}
@@ -29,9 +29,10 @@ def prepare(snapshot):
 // page; measured 80-100 us per channel when 128 contexts start together after the entry barrier.
 NCCL_DEVICE_INLINE void prewarm(ncclGinCtx ctx){auto& c=context(ctx);(void)cxi_gin::load32((uint32_t*)c.tx_queue);}
 ''')
-    with tempfile.TemporaryDirectory() as d:
+    for archive in archives:
+      with tempfile.TemporaryDirectory() as d:
         ep = Path(d)
-        with tarfile.open(out / 'DeepEP.tar.gz') as a: a.extractall(ep)
+        with tarfile.open(out / archive) as a: a.extractall(ep)
         comm = ep / 'deep_ep/include/deep_ep/common/comm.cuh'
         replace(comm, '''#ifndef CXI_EP_LOCAL_SELF_SIGNAL
 #define CXI_EP_LOCAL_SELF_SIGNAL 0
@@ -56,9 +57,9 @@ NCCL_DEVICE_INLINE void prewarm(ncclGinCtx ctx){auto& c=context(ctx);(void)cxi_g
     if (sm_idx == 0) {
         // Use QP 0 to do barrier
 ''')
-        with tarfile.open(out / 'DeepEP.tar.gz', 'w:gz') as a: a.add(ep, arcname='.')
-    replace(out / 'backend/tests/nvcc_wrapper.py', "    args=['-DCXI_EP_COMBINE_DOUBLE_TMA='+str(double_tma)]+args\n",
-            "    args=['-DCXI_EP_COMBINE_DOUBLE_TMA='+str(double_tma)]+args\n"
+        with tarfile.open(out / archive, 'w:gz') as a: a.add(ep, arcname='.')
+    anchor = "    args=['-DCXI_EP_SKIP_COMBINE_FLUSH='+str(skip_flush),'-DCXI_EP_LOCAL_SELF_SIGNAL='+str(self_signal)]+args\n"
+    replace(out / 'backend/tests/nvcc_wrapper.py', anchor, anchor +
             "    prewarm=int(os.environ.get('CXI_EP_PREWARM_CONTEXTS','0')); assert prewarm in (0,1)\n"
             "    args=['-DCXI_EP_PREWARM_CONTEXTS='+str(prewarm)]+args\n")
     replace(out / 'backend/tests/ep_benchmark.py', "    case['local_self_signal']=int(os.environ.get('CXI_EP_LOCAL_SELF_SIGNAL','0'))\n",
