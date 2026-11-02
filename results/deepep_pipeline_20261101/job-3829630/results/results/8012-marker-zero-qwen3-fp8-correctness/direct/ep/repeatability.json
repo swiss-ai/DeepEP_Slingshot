@@ -1,0 +1,542 @@
+[
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "hot_rank",
+    "operation": "combine",
+    "repeat_median_us": 307.23199248313904,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "hot_rank",
+    "operation": "cycle",
+    "repeat_median_us": 533.2480072975159,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "hot_rank",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 244.89599466323853,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "hot_rank",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 312.8640055656433,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "local",
+    "operation": "combine",
+    "repeat_median_us": 189.43999707698822,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "local",
+    "operation": "cycle",
+    "repeat_median_us": 444.3199932575226,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "local",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 199.8080015182495,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "local",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 282.9119861125946,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "combine",
+    "repeat_median_us": 375.71200728416443,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "cycle",
+    "repeat_median_us": 627.0080208778381,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 242.8160011768341,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 309.9839985370636,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "remote",
+    "operation": "combine",
+    "repeat_median_us": 394.6880102157593,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "remote",
+    "operation": "cycle",
+    "repeat_median_us": 726.4959812164307,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "remote",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 270.9760069847107,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "remote",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 318.2399868965149,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "combine",
+    "repeat_median_us": 373.50401282310486,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "cycle",
+    "repeat_median_us": 620.4800009727478,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 228.67199778556824,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 257,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 332.832008600235,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "hot_rank",
+    "operation": "combine",
+    "repeat_median_us": 1975.1039743423462,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "hot_rank",
+    "operation": "cycle",
+    "repeat_median_us": 3201.2479305267334,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "hot_rank",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 1219.648003578186,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "hot_rank",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 1313.5039806365967,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "local",
+    "operation": "combine",
+    "repeat_median_us": 320.47998905181885,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "local",
+    "operation": "cycle",
+    "repeat_median_us": 585.2800011634827,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "local",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 247.45599925518036,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "local",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 315.2959942817688,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "combine",
+    "repeat_median_us": 1807.4239492416382,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "cycle",
+    "repeat_median_us": 2857.6319217681885,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 1047.6479530334473,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 1057.9520463943481,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "remote",
+    "operation": "combine",
+    "repeat_median_us": 1804.0319681167603,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "remote",
+    "operation": "cycle",
+    "repeat_median_us": 2853.8239002227783,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "remote",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 1053.2480478286743,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "remote",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 1055.5520057678223,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "combine",
+    "repeat_median_us": 1985.376000404358,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "cycle",
+    "repeat_median_us": 3131.135940551758,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 1179.8080205917358,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 1247.0719814300537,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "hot_rank",
+    "operation": "combine",
+    "repeat_median_us": 7550.335884094238,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "hot_rank",
+    "operation": "cycle",
+    "repeat_median_us": 11013.1196975708,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "hot_rank",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 3438.1120204925537,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "hot_rank",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 3548.640012741089,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "local",
+    "operation": "combine",
+    "repeat_median_us": 907.584011554718,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "local",
+    "operation": "cycle",
+    "repeat_median_us": 1510.2720260620117,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "local",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 650.7200002670288,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "local",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 611.6160154342651,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "combine",
+    "repeat_median_us": 7004.223823547363,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "cycle",
+    "repeat_median_us": 10458.144187927246,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 3515.80810546875,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 3483.936071395874,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "remote",
+    "operation": "combine",
+    "repeat_median_us": 6841.951847076416,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "remote",
+    "operation": "cycle",
+    "repeat_median_us": 10378.111839294434,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "remote",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 3596.4159965515137,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "remote",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 3560.159921646118,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "combine",
+    "repeat_median_us": 7645.9197998046875,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "cycle",
+    "repeat_median_us": 11259.584426879883,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 3633.5999965667725,
+    "repeat_cv": null
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 16384,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 3622.4639415740967,
+    "repeat_cv": null
+  }
+]

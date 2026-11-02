@@ -1,0 +1,13 @@
+{
+  "request": "03-direct-vmm.json",
+  "start_utc": "2026-10-26T20:40:23.037921+00:00",
+  "spec": {
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/gate-20261026-2041",
+    "node_script": "backend/tools/direct_node.sh",
+    "timeout_seconds": 200,
+    "environment": {
+      "CXI_SMOKE_CONTEXTS": "1,4"
+    }
+  },
+  "node_script_sha256": "a502e6a129fbd604c66695dbca17662e8a886a65ddb30f686c836965930a41eb"
+}

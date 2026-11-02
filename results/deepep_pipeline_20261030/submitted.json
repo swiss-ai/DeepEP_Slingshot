@@ -1,0 +1,11 @@
+{
+  "job": 3809401,
+  "utc": "2026-10-30T22:35:16.162187+00:00",
+  "campaign": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030",
+  "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-v1",
+  "local_snapshot": "/home/yu/CSCS/Load_Balance_Cross_Node/results/deepep_pipeline_20261030/source-v1",
+  "state": "SUBMITTED",
+  "monitor_pid": 518947,
+  "previous_monitor_pid": 500740,
+  "monitor_source": "tools/cxi_gin/experiments/pipeline_v1/monitor.py"
+}

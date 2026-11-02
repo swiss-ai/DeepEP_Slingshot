@@ -1,0 +1,158 @@
+--- a/backend/include/cxi_gin_abi.h
++++ b/backend/include/cxi_gin_abi.h
+@@ -3,7 +3,7 @@
+ #include <stddef.h>
+ 
+ // Private experimental ABI. Not an upstream NCCL backend identifier.
+-#define CXI_GIN_ABI_VERSION 1
++#define CXI_GIN_ABI_VERSION 2
+ #define CXI_GIN_DEVICE_VERSION 1
+ #define CXI_GIN_BACKEND_TYPE 6
+ #define CXI_GIN_MAX_PEERS 64
+@@ -40,6 +40,9 @@
+   uint32_t nsignals, ncounters;
+   uint64_t signal_offset;
+   uint64_t* diagnostic;  // mapped host memory; GPU writes, host only observes
++  uint32_t tx_unpublished; // descriptors reserved/written but not yet doorbelled
++  uint64_t tx_doorbells, tx_commands; // cumulative diagnostics, updated under lock
++  // Remains inside the previous trailing padding; sizeof stays 192 bytes.
+ };
+ 
+ static_assert(sizeof(CxiPeerAddress) == 24, "peer ABI");
+--- a/backend/device/cxi_primitives.cuh
++++ b/backend/device/cxi_primitives.cuh
+@@ -9,6 +9,11 @@
+ #ifndef CXI_CT_THRESHOLD_FLUSH
+ #define CXI_CT_THRESHOLD_FLUSH 0
+ #endif
++
++#ifndef CXI_TX_BATCH_LIMIT
++#define CXI_TX_BATCH_LIMIT 1
++#endif
++static_assert(CXI_TX_BATCH_LIMIT >= 1 && CXI_TX_BATCH_LIMIT <= 64, "bounded TX publication");
+ 
+ namespace cxi_gin {
+ constexpr uint64_t default_timeout=10000000000ULL;
+@@ -35,11 +40,22 @@
+ }
+ __device__ __forceinline__ void release(CxiGpuContext& c){__threadfence();atomicExch(&c.lock,0u);}
+ 
++// Caller owns the context lock. Each producer has already system-fenced its
++// descriptor writes before releasing the lock. Preserve that guarantee even when
++// another producer becomes the publisher; this variant only amortizes doorbells.
++__device__ __forceinline__ void publish_locked(CxiGpuContext& c) {
++  if(!c.tx_unpublished)return;
++  __threadfence_system();
++  store64(c.tx_doorbell,c.tx_wp32/2);
++  c.tx_doorbells++;
++  c.tx_unpublished=0;
++}
++
+ // Caller owns the context lock. Wait for capacity, not for every command to be
+ // consumed. Completion tracking and flush-before-signal ordering are unchanged.
+-// One doorbell per command is retained for this first asynchronous variant.
++// AggregateRequests may defer a bounded number of doorbells. Flush/signals force publication.
+ __device__ __forceinline__ bool emit(CxiGpuContext& c,const uint64_t* command,bool transfer,
+-                                   uint32_t* abort=nullptr,uint64_t timeout=default_timeout) {
++                                   uint32_t* abort=nullptr,uint64_t timeout=default_timeout,bool aggregate=false) {
+   uint64_t start=clock64();
+   while(true) {
+     uint32_t status=load32((uint32_t*)c.tx_queue);
+@@ -48,15 +64,20 @@
+     if(!cq_positions_valid(c.tx_size32,c.tx_wp32,rp32))return fail(c,46,status,c.tx_wp32);
+     if(cq_free_slots32(c.tx_size32,c.tx_wp32,rp32)>=2 &&
+        (!CXI_TX_PENDING_LIMIT || cq_pending_commands(c.tx_size32,c.tx_wp32,rp32)<CXI_TX_PENDING_LIMIT))break;
++    // Never wait for NIC credits while unsubmitted descriptors occupy the ring.
++    publish_locked(c);
+     if(expired(start,timeout,abort))return fail(c,4,status,c.tx_wp32);
+     __nanosleep(64);
+   }
+   for(unsigned i=0;i<8;i++)c.tx_queue[c.tx_wp32*4+i]=command[i];
+   __threadfence_system();unsigned next=c.tx_wp32+2;if(next>=c.tx_size32)next=8;
+-  store64(c.tx_doorbell,next/2);c.tx_wp32=next;
+-  if(transfer)c.posted++;return true;
++  c.tx_wp32=next;c.tx_unpublished++;c.tx_commands++;
++  if(transfer)c.posted++;
++  if(!aggregate || c.tx_unpublished>=CXI_TX_BATCH_LIMIT)publish_locked(c);
++  return true;
+ }
+ __device__ __forceinline__ bool flush_locked(CxiGpuContext& c,uint32_t* abort=nullptr,uint64_t timeout=default_timeout) {
++  publish_locked(c);
+   if(c.completed==c.posted)return true;
+   uint64_t start=clock64();
+   do {
+@@ -94,7 +115,7 @@
+   return true;
+ }
+ __device__ __forceinline__ bool put_locked(CxiGpuContext& c,const CxiWindow* dst,uint64_t dstoff,
+-    const CxiWindow* src,uint64_t srcoff,uint64_t bytes,int peer,uint32_t* abort=nullptr) {
++    const CxiWindow* src,uint64_t srcoff,uint64_t bytes,int peer,uint32_t* abort=nullptr,bool aggregate=false) {
+   if(!region(c,dst,peer,dstoff,bytes) || !region(c,src,0,srcoff,bytes))return false;
+   __threadfence_system();
+   while(bytes) {
+@@ -106,9 +127,10 @@
+     *(uint32_t*)&cmd->dfa=dst->peer[peer].dfa;
+     cmd->remote_offset=dstoff;cmd->local_addr=src->local_iova+srcoff;
+     unsigned n=bytes>CXI_GIN_MAX_CHUNK?CXI_GIN_MAX_CHUNK:unsigned(bytes);cmd->request_len=n;
+-    if(!emit(c,words,true,abort))return false;
++    if(!emit(c,words,true,abort,default_timeout,aggregate))return false;
+     dstoff+=n;srcoff+=n;bytes-=n;
+   }
++  if(!aggregate)publish_locked(c); // includes zero-byte nonaggregated operations
+   return true;
+ }
+ __device__ __forceinline__ bool state_locked(CxiGpuContext& c,const CxiWindow* dst,int peer,uint32_t* abort=nullptr) {
+--- a/backend/device/gin_cxi.cuh
++++ b/backend/device/gin_cxi.cuh
+@@ -31,11 +31,12 @@
+   template<typename Coop>
+   NCCL_DEVICE_INLINE static void call(ncclGinCtx ctx,Coop coop,int peer,bool hasWins,ncclGinWindow_t dst,size_t dstoff,
+       ncclGinWindow_t src,size_t srcoff,size_t bytes,ncclGinSignalDescriptor signal,ncclGinSignalOp_t op,uint64_t arg,
+-      bool hasCounter,ncclGinCounter_t counter,bool,ncclGinDescriptorSmem*,cuda::thread_scope,cuda::thread_scope,uint32_t) {
++      bool hasCounter,ncclGinCounter_t counter,bool,ncclGinDescriptorSmem*,cuda::thread_scope,cuda::thread_scope,uint32_t optFlags) {
+     coop.sync();
+     if(coop.thread_rank()==0) {
+       auto& c=nccl::gin::cxi::context(ctx);nccl::gin::cxi::require(cxi_gin::acquire(c));
+-      bool ok=!hasWins || cxi_gin::put_locked(c,(CxiWindow*)dst,dstoff,(CxiWindow*)src,srcoff,bytes,peer);
++      bool ok=!hasWins || cxi_gin::put_locked(c,(CxiWindow*)dst,dstoff,(CxiWindow*)src,srcoff,bytes,peer,nullptr,
++          bool(optFlags & ncclGinOptFlagsAggregateRequests));
+       if(ok)ok=nccl::gin::cxi::signal(c,peer,signal,op,arg);
+       if(ok && hasCounter) {
+         if(counter>=c.ncounters)ok=cxi_gin::fail(c,43,counter,c.ncounters);
+--- a/backend/host/cxi_resources.cc
++++ b/backend/host/cxi_resources.cc
+@@ -237,7 +237,7 @@
+   // Partial setup, diagnostics, or unfinished work are never reusable. Keep
+   // the existing checked teardown for these paths, including negative tests.
+   if(!state || state->abi_version!=CXI_GIN_ABI_VERSION || state->lock ||
+-     state->posted!=state->completed || cxi_channel_error(q))
++     state->tx_unpublished || state->posted!=state->completed || cxi_channel_error(q))
+     return cxi_channel_close(q,state);
+   const auto& previous=q->descriptor;
+   if(state->tx_queue!=previous.tx_queue || state->ct_queue!=previous.ct_queue ||
+--- a/backend/host/gin_plugin.cc
++++ b/backend/host/gin_plugin.cc
+@@ -97,6 +97,12 @@
+     std::lock_guard<std::mutex> guard(diagnostics_mutex);
+     diagnostics_contexts.erase(std::remove(diagnostics_contexts.begin(),diagnostics_contexts.end(),x),diagnostics_contexts.end());
+   }
++  if(x->device && getenv("CXI_QUEUE_INVENTORY")) {
++    uint64_t commands=0,doorbells=0,pending=0;
++    for(const auto& c:x->host){commands+=c.tx_commands;doorbells+=c.tx_doorbells;pending+=c.tx_unpublished;}
++    fprintf(stderr,"CXI_TX_PUBLICATION rank=%d cumulative_commands=%llu cumulative_doorbells=%llu unpublished=%llu\n",
++      x->coll->rank,(unsigned long long)commands,(unsigned long long)doorbells,(unsigned long long)pending);
++  }
+   for(size_t i=0;i<x->channels.size();i++)TD(cxi_channel_recycle(x->channels[i],x->device?&x->host[i]:nullptr));
+   if(x->device)TD(cudaFree(x->device));
+   TD(close_memory(x->signal_memory));
+--- a/runner/burst_probe.cu
++++ b/runner/burst_probe.cu
+@@ -32,7 +32,7 @@
+     if(!ok || !wait_signal(c,(uint64_t*)(dst+signal_off),epoch+1))return;
+     for(unsigned i=0;i<count;i++) {
+       if(!cxi_gin::acquire(c))return;
+-      ok=cxi_gin::put_locked(c,dstw,i*8,srcw,i*8,8,peer);
++      ok=cxi_gin::put_locked(c,dstw,i*8,srcw,i*8,8,peer,nullptr,true);
+       cxi_gin::release(c);if(!ok)return;
+     }
+     if(!cxi_gin::flush(c))return;

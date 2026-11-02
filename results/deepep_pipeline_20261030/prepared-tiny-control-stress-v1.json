@@ -1,0 +1,104 @@
+[
+  {
+    "name": "852-rows-32-route-stress-diagnostic",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-packed-debug-v2",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "fence-batched",
+      "CXI_TRANSPORT": "direct",
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_EP_DEBUG": "0",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_DROP_EVERY": "0",
+      "CXI_EP_PACK_ROWS": "0",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "32",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed uniform hot_rank local remote",
+      "CXI_EP_SEEDS": "1 2 3",
+      "CXI_EP_WARMUP": "2",
+      "CXI_EP_ITERS": "3",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0",
+      "CXI_DIAGNOSTIC_WATCHDOG": "1"
+    },
+    "requires": [
+      "851-rows-32-routes-diagnostic"
+    ]
+  },
+  {
+    "name": "853-rows-32-route-stress-ordinary",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-packed-rows-v2",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "fence-batched",
+      "CXI_TRANSPORT": "direct",
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_EP_DEBUG": "0",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_DROP_EVERY": "0",
+      "CXI_EP_PACK_ROWS": "0",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "32",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed uniform hot_rank local remote",
+      "CXI_EP_SEEDS": "1 2 3",
+      "CXI_EP_WARMUP": "2",
+      "CXI_EP_ITERS": "3",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0",
+      "CXI_DIAGNOSTIC_WATCHDOG": "0"
+    },
+    "requires": [
+      "852-rows-32-route-stress-diagnostic"
+    ]
+  },
+  {
+    "name": "854-rows-257-route-stress-ordinary",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-packed-rows-v2",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "fence-batched",
+      "CXI_TRANSPORT": "direct",
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_EP_DEBUG": "0",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_DROP_EVERY": "0",
+      "CXI_EP_PACK_ROWS": "0",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "257",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed uniform hot_rank local remote",
+      "CXI_EP_SEEDS": "1 2",
+      "CXI_EP_WARMUP": "2",
+      "CXI_EP_ITERS": "3",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0",
+      "CXI_DIAGNOSTIC_WATCHDOG": "0"
+    },
+    "requires": [
+      "853-rows-32-route-stress-ordinary"
+    ]
+  }
+]

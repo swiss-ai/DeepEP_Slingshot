@@ -1,0 +1,413 @@
+diff --git a/deep_ep/__init__.py b/deep_ep/__init__.py
+index 3985439..3e3d545 100644
+--- a/deep_ep/__init__.py
++++ b/deep_ep/__init__.py
+@@ -1,6 +1,7 @@
+ import filecmp
+ import functools
+ import glob
++import re
+ import subprocess
+ import torch
+ import os
+@@ -54,9 +55,14 @@ def check_nccl_so():
+     # PyTorch may load another NCCL library, which is different to the linked one
+     with open('/proc/self/maps', 'r') as f:
+         loaded_nccl_so = None
+-        for so in [line.strip().split(' ')[-1] for line in f if 'libnccl' in line]:
++        # Network and GIN plugins also start with libnccl, but are not NCCL
++        # runtimes. SGLang may import DeepEP after those plugins are loaded.
++        mapped_paths = [line.strip().split(maxsplit=5)[-1] for line in f]
++        for so in [path for path in mapped_paths
++                   if re.fullmatch(r'libnccl\.so(?:\.\d+)*', os.path.basename(path))]:
+             loaded_nccl_so = so if loaded_nccl_so is None else loaded_nccl_so
+             assert so == loaded_nccl_so, f'Duplicate NCCL runtime found in the current system: {so} and {loaded_nccl_so}'
++    assert loaded_nccl_so is not None, 'No NCCL runtime found in the current process'
+     linked_nccl_so_candidates = sorted(glob.glob(f'{find_nccl_root()}/lib/libnccl.so*'))
+     assert linked_nccl_so_candidates, f'No libnccl.so found in {find_nccl_root()}/lib/'
+     linked_nccl_so = linked_nccl_so_candidates[0]
+diff --git a/deep_ep/include/deep_ep/common/comm.cuh b/deep_ep/include/deep_ep/common/comm.cuh
+index 04a77d4..3db4df6 100644
+--- a/deep_ep/include/deep_ep/common/comm.cuh
++++ b/deep_ep/include/deep_ep/common/comm.cuh
+@@ -157,25 +157,23 @@ __forceinline__ __device__ void gin_barrier_wo_local_sync(
+         for (int i = thread_idx; i < kNumRanks; i += kNumThreads)
+             gin.signal(team, i, ncclGin_SignalInc{static_cast<ncclGinSignal_t>(rank_idx)});
+ 
+-        // TODO(NCCL): Using the official NCCL wait signal API, after they added timeout check.
++        // NCCL 2.32.3 provides a bounded, backend-independent signal wait.
+         for (int i = thread_idx; i < kNumRanks; i += kNumThreads) {
+             const auto signal_idx = static_cast<ncclGinSignal_t>(i);
+             const auto shadow_ptr = gin.getSignalShadowPtr(signal_idx);
+             const auto target = ++(*shadow_ptr);
+ 
+-            const auto gdaki = static_cast<struct ncclGinGdakiGPUContext*>(gin._ginHandle) + gin.contextId;
+-            const auto signal_ptr = reinterpret_cast<uint64_t*>(__ldg(reinterpret_cast<uint64_t*>(&gdaki->signals_table.buffer))) + signal_idx;
+-            timeout_while<kNumTimeoutCycles>([=](const bool& is_last_check) {
+-                const auto signal = ptx::ld_acquire_sys<uint64_t>(signal_ptr);
+-                if (signal >= target)
+-                    return true;
+-
+-                if (is_last_check) {
+-                    printf("DeepEP Gin barrier timeout, tag: %d, scaleout: %d, scaleup: %d, thread: %d, "
+-                           "signal: %lu, target: %lu\n", kTag, scaleout_rank_idx, scaleup_rank_idx, thread_idx, signal, target);
+-                }
+-                return false;
+-            });
++            const auto result = gin.waitSignal(
++                ncclCoopThread(), signal_idx, target, sizeof(*shadow_ptr) * 8,
++                cuda::memory_order_acquire, kNumTimeoutCycles);
++            if (result != ncclSuccess) {
++                const auto signal = gin.readSignal(
++                    signal_idx, sizeof(*shadow_ptr) * 8, cuda::memory_order_acquire);
++                printf("DeepEP Gin barrier wait failed, result: %d, tag: %d, scaleout: %d, scaleup: %d, thread: %d, "
++                       "signal: %lu, target: %lu\n", static_cast<int>(result), kTag,
++                       scaleout_rank_idx, scaleup_rank_idx, thread_idx, signal, target);
++                ptx::trap();
++            }
+         }
+     }
+ }
+diff --git a/deep_ep/include/deep_ep/common/cxi_packed_channel.cuh b/deep_ep/include/deep_ep/common/cxi_packed_channel.cuh
+new file mode 100644
+index 0000000..37a4a1d
+--- /dev/null
++++ b/deep_ep/include/deep_ep/common/cxi_packed_channel.cuh
+@@ -0,0 +1,14 @@
++#pragma once
++#ifdef __CUDACC__
++#define CXI_PACK_HD __host__ __device__
++#else
++#define CXI_PACK_HD
++#endif
++namespace deep_ep { namespace elastic {
++// Sum the actual capacities of preceding strided channels, without padding.
++CXI_PACK_HD constexpr int packed_channel_base(int max_tokens, int channels, int channel) {
++    return channel * (max_tokens / channels) +
++           (channel < max_tokens % channels ? channel : max_tokens % channels);
++}
++}}
++#undef CXI_PACK_HD
+diff --git a/deep_ep/include/deep_ep/common/cxi_packed_combine.cuh b/deep_ep/include/deep_ep/common/cxi_packed_combine.cuh
+new file mode 100644
+index 0000000..cf83929
+--- /dev/null
++++ b/deep_ep/include/deep_ep/common/cxi_packed_combine.cuh
+@@ -0,0 +1,15 @@
++#pragma once
++#ifdef __CUDACC__
++#define CXI_PACKC_HD __host__ __device__
++#else
++#define CXI_PACKC_HD
++#endif
++namespace deep_ep { namespace elastic {
++// Channel-major slot of token `t` inside one scale-out receive layer. Bijective on
++// [0, max_tokens): channel c = t % channels owns slots [base(c), base(c) + count(c)).
++CXI_PACKC_HD constexpr int packed_combine_slot(int max_tokens, int channels, int t) {
++    const int c = t % channels;
++    return c * (max_tokens / channels) + (c < max_tokens % channels ? c : max_tokens % channels) + t / channels;
++}
++}}
++#undef CXI_PACKC_HD
+diff --git a/deep_ep/include/deep_ep/impls/combine_reduce_epilogue.cuh b/deep_ep/include/deep_ep/impls/combine_reduce_epilogue.cuh
+index b574150..a355d0a 100644
+--- a/deep_ep/include/deep_ep/impls/combine_reduce_epilogue.cuh
++++ b/deep_ep/include/deep_ep/impls/combine_reduce_epilogue.cuh
+@@ -1,4 +1,11 @@
+ #pragma once
++#ifndef CXI_EP_PACK_COMBINE
++#define CXI_EP_PACK_COMBINE 0
++#endif
++#ifndef CXI_EP_PACK_COMBINE_CHANNELS
++#define CXI_EP_PACK_COMBINE_CHANNELS 256
++#endif
++#include <deep_ep/common/cxi_packed_combine.cuh>
+ 
+ #include <deep_ep/common/compiled.cuh>
+ #include <deep_ep/common/ptx.cuh>
+@@ -58,8 +65,13 @@ combine_reduce_epilogue_impl(nv_bfloat16* combined_x,
+     // NOTES: PDL is used, please do not use `__ldg`
+     cudaGridDependencySynchronize();
+ 
++    static_assert(!CXI_EP_PACK_COMBINE || (kAllowMultipleReduction && kUseRankLayout && !kUseExpandedLayout && kNumScaleoutRanks == 2),
++                  "Packed combine epilogue requires the two-node multiple-reduction rank layout");
+     // Read from buffers and do reduction
+     for (int token_idx = global_warp_idx; token_idx < num_combined_tokens; token_idx += kNumWarps * kNumSMs) {
++        // Packed combine stores token t of every layer at its channel-major slot.
++        const int comm_token_idx = CXI_EP_PACK_COMBINE ?
++            packed_combine_slot(kNumMaxTokensPerRank, CXI_EP_PACK_COMBINE_CHANNELS, token_idx) : token_idx;
+         // Preprocess all indices
+         int stored_dst_rank_idx = -1, stored_dst_expert_idx = -1;
+         EP_STATIC_ASSERT(kNumTopk <= 32, "Too many top-k selections");
+@@ -102,7 +114,7 @@ combine_reduce_epilogue_impl(nv_bfloat16* combined_x,
+             lane_idx, topk_slot_idx, static_cast<combine_vec_t*>(tma_buffer.get_base_ptr()),
+             /* Get source base */ [=](const int& slot_idx) {
+                 return static_cast<combine_vec_t*>(
+-                    comm_buffer.get_rank_buffer(slot_idx).get_token_buffer(token_idx).get_base_ptr());
++                    comm_buffer.get_rank_buffer(slot_idx).get_token_buffer(comm_token_idx).get_base_ptr());
+             },
+             /* Wait buffer release */ [=]() {
+                 ptx::tma_store_wait();
+@@ -132,7 +144,7 @@ combine_reduce_epilogue_impl(nv_bfloat16* combined_x,
+                 if (stored_dst_rank_idx >= 0) {
+                     const auto dst_ptr = comm_buffer
+                         .get_rank_buffer(kUseRankLayout ? stored_dst_rank_idx : master_lane_idx)
+-                        .get_token_buffer(token_idx).get_topk_weights_ptr() + lane_idx;
++                        .get_token_buffer(comm_token_idx).get_topk_weights_ptr() + lane_idx;
+                     value = *dst_ptr;
+                 }
+                 combined_topk_weights[token_idx * kNumTopk + lane_idx] = value;
+diff --git a/deep_ep/include/deep_ep/impls/hybrid_combine.cuh b/deep_ep/include/deep_ep/impls/hybrid_combine.cuh
+index 7b22ef2..4e671cd 100644
+--- a/deep_ep/include/deep_ep/impls/hybrid_combine.cuh
++++ b/deep_ep/include/deep_ep/impls/hybrid_combine.cuh
+@@ -1,4 +1,20 @@
+ #pragma once
++#ifndef CXI_EP_PACK_COMBINE
++#define CXI_EP_PACK_COMBINE 0
++#endif
++#ifndef CXI_EP_COMBINE_BATCH
++#define CXI_EP_COMBINE_BATCH 16
++#endif
++#ifndef CXI_EP_PACK_COMBINE_CHANNELS
++#define CXI_EP_PACK_COMBINE_CHANNELS 256
++#endif
++static_assert(CXI_EP_PACK_COMBINE == 0 || CXI_EP_PACK_COMBINE == 1);
++static_assert(CXI_EP_COMBINE_BATCH >= 1 && CXI_EP_COMBINE_BATCH <= 64);
++#ifndef CXI_EP_COMBINE_FIRST_BATCH
++#define CXI_EP_COMBINE_FIRST_BATCH CXI_EP_COMBINE_BATCH
++#endif
++static_assert(CXI_EP_COMBINE_FIRST_BATCH >= 1 && CXI_EP_COMBINE_FIRST_BATCH <= CXI_EP_COMBINE_BATCH);
++#include <deep_ep/common/cxi_packed_combine.cuh>
+ 
+ #include <deep_ep/common/comm.cuh>
+ #include <deep_ep/common/layout.cuh>
+@@ -46,6 +62,13 @@ hybrid_combine_impl(nv_bfloat16* x,
+     const auto warp_idx = ptx::get_warp_idx();
+     const auto lane_idx = ptx::get_lane_idx();
+     constexpr bool kDoExpandedSend = not kAllowMultipleReduction and kUseExpandedLayout;
++    static_assert(!CXI_EP_PACK_COMBINE || (kAllowMultipleReduction && kUseScaleoutRankLayout && !kUseExpandedLayout),
++                  "Packed combine prototype requires multiple-reduction rank layout without expansion");
++    static_assert(!CXI_EP_PACK_COMBINE || kNumScaleoutRanks == 2, "Packed combine prototype requires exactly two scale-out nodes");
++    static_assert(!CXI_EP_PACK_COMBINE || kNumChannels == CXI_EP_PACK_COMBINE_CHANNELS,
++                  "Packed combine channel count must match the epilogue's compile-time constant");
++    // The batch limit is an upper bound on a run of consecutive rows; small token counts have
++    // fewer rows per channel than the limit and simply never trigger an early flush.
+ 
+     // Combine vector type selection
+     using combine_vec_t = typename CombineVecTraits<kNumHiddenBytes>::vec_t;
+@@ -362,7 +385,35 @@ hybrid_combine_impl(nv_bfloat16* x,
+         int last_is_token_last_in_chunk = 0;
+         void* last_recv_token_buffer_ptr = nullptr;
+         void* last_send_token_buffer_ptr = nullptr;
++        // Packed combine: consecutive remote-origin rows of this channel are staged at their
++        // channel-local position j of the send slice and land at the same relative position of
++        // the channel-major receive layer, so one PUT covers [first_j, last_j].
++        int packed_first_j = -1, packed_last_j = -1, packed_peer = -1;
++        bool packed_any_flushed = false;
++        void* packed_dst_base = nullptr; void* packed_src_base = nullptr;
++        const auto flush_packed_batch = [&](const bool& final_batch) {
++            if constexpr (CXI_EP_PACK_COMBINE) {
++                if (packed_first_j >= 0 and ptx::elect_one_sync()) {
++                    ptx::tma_store_wait();
++                    gin.put<ncclTeamTagRail>(
++                        packed_dst_base, packed_src_base,
++                        (packed_last_j - packed_first_j + 1) * token_layout.get_num_bytes<false>(),
++                        packed_peer, final_batch ? 0 : ncclGinOptFlagsAggregateRequests);
++                }
++                __syncwarp();
++                if (packed_first_j >= 0)
++                    packed_any_flushed = true;
++                packed_first_j = -1;
++            }
++        };
+         const auto flush_last_tma_and_issue_rdma = [&]() {
++            if constexpr (CXI_EP_PACK_COMBINE) {
++                // Only release the shared TMA staging buffer; the PUT is issued per batch.
++                if (ptx::elect_one_sync())
++                    ptx::tma_store_wait();
++                __syncwarp();
++                return;
++            }
+             if (last_src_scaleout_rank_idx >= 0 and ptx::elect_one_sync()) {
+                 ptx::tma_store_wait();
+ 
+@@ -544,6 +595,41 @@ hybrid_combine_impl(nv_bfloat16* x,
+                     const int src_topk_idx = ptx::get_master_lane_idx(ptx::gather(stored_src_scaleup_rank_idx >= 0));
+                     scaleout_recv_buffer_rank_idx = src_topk_idx;
+                 }
++                if constexpr (CXI_EP_PACK_COMBINE) {
++                    const int packed_slot = packed_combine_slot(kNumMaxTokensPerRank, kNumChannels, src_token_idx);
++                    const auto recv_token_buffer = scaleout_recv_buffer.get_rank_buffer(scaleout_recv_buffer_rank_idx).get_token_buffer(packed_slot);
++                    if (src_scaleout_rank_idx == scaleout_rank_idx) {
++                        // Local bypass: same channel-major position in this rank's own layer.
++                        if (ptx::elect_one_sync()) {
++                            ptx::tma_store_1d(recv_token_buffer.get_base_ptr(), tma_buffer.get_base_ptr(),
++                                              token_layout.get_num_bytes<false>());
++                            ptx::tma_store_commit();
++                        }
++                        __syncwarp();
++                    } else {
++                        const int j = src_token_idx / kNumChannels;
++                        const bool contiguous = packed_first_j >= 0 and packed_peer == src_scaleout_rank_idx and j == packed_last_j + 1;
++                        EP_DEVICE_ASSERT(src_token_idx % kNumChannels == channel_idx);
++                        if (not contiguous) {
++                            flush_packed_batch(false);
++                            packed_first_j = j; packed_peer = src_scaleout_rank_idx;
++                            packed_dst_base = recv_token_buffer.get_base_ptr();
++                            packed_src_base = scaleout_send_buffer.get_token_buffer(j).get_base_ptr();
++                        }
++                        packed_last_j = j;
++                        if (ptx::elect_one_sync()) {
++                            ptx::tma_store_1d(scaleout_send_buffer.get_token_buffer(j).get_base_ptr(), tma_buffer.get_base_ptr(),
++                                              token_layout.get_num_bytes<false>());
++                            ptx::tma_store_commit();
++                        }
++                        __syncwarp();
++                        if (packed_last_j - packed_first_j + 1 >= (packed_any_flushed ? CXI_EP_COMBINE_BATCH : CXI_EP_COMBINE_FIRST_BATCH))
++                            flush_packed_batch(false);
++                    }
++                    // Record only for the (now unused) single-row path bookkeeping.
++                    last_src_scaleout_rank_idx = -1;
++                    continue;
++                }
+                 const auto recv_token_buffer = scaleout_recv_buffer.get_rank_buffer(scaleout_recv_buffer_rank_idx).get_token_buffer(src_token_idx);
+                 const auto send_token_buffer = src_scaleout_rank_idx == scaleout_rank_idx ?
+                     recv_token_buffer :
+@@ -566,8 +652,10 @@ hybrid_combine_impl(nv_bfloat16* x,
+         }
+ 
+         // Issue the last RDMA
+-        if constexpr (kAllowMultipleReduction)
++        if constexpr (kAllowMultipleReduction) {
+             flush_last_tma_and_issue_rdma();
++            flush_packed_batch(true);
++        }
+ 
+         // Clean scaleup tails
+         #pragma unroll
+diff --git a/deep_ep/include/deep_ep/impls/hybrid_dispatch.cuh b/deep_ep/include/deep_ep/impls/hybrid_dispatch.cuh
+index 7d75b02..ac69c93 100644
+--- a/deep_ep/include/deep_ep/impls/hybrid_dispatch.cuh
++++ b/deep_ep/include/deep_ep/impls/hybrid_dispatch.cuh
+@@ -1,4 +1,25 @@
++#ifndef CXI_EP_UPDATE_INTERVAL
++#define CXI_EP_UPDATE_INTERVAL 3
++#endif
++#ifndef CXI_EP_FORWARD_CHUNK
++#define CXI_EP_FORWARD_CHUNK CXI_EP_UPDATE_INTERVAL
++#endif
++static_assert(CXI_EP_UPDATE_INTERVAL >= 1 && CXI_EP_UPDATE_INTERVAL <= 64);
++static_assert(CXI_EP_FORWARD_CHUNK >= 1 && CXI_EP_FORWARD_CHUNK <= 64);
++#ifndef CXI_EP_FIRST_INTERVAL
++#define CXI_EP_FIRST_INTERVAL CXI_EP_UPDATE_INTERVAL
++#endif
++static_assert(CXI_EP_FIRST_INTERVAL >= 1 && CXI_EP_FIRST_INTERVAL <= CXI_EP_UPDATE_INTERVAL);
+ #pragma once
++#ifndef CXI_EP_MERGE_FINAL_TAIL
++#define CXI_EP_MERGE_FINAL_TAIL 0
++#endif
++static_assert(CXI_EP_MERGE_FINAL_TAIL == 0 || CXI_EP_MERGE_FINAL_TAIL == 1);
++#ifndef CXI_EP_PACK_ROWS
++#define CXI_EP_PACK_ROWS 0
++#endif
++static_assert(CXI_EP_PACK_ROWS == 0 || CXI_EP_PACK_ROWS == 1);
++#include <deep_ep/common/cxi_packed_channel.cuh>
+ 
+ #include <deep_ep/common/comm.cuh>
+ #include <deep_ep/common/compiled.cuh>
+@@ -23,8 +44,8 @@ template <bool kDoCPUSync,
+           int kNumChannelsPerSM = kNumScaleoutWarps,
+           int kNumChannels = kNumScaleoutWarps * kNumSMs,
+           int kNumMaxTokensPerChannel = math::constexpr_ceil_div(kNumMaxTokensPerRank, kNumChannels),
+-          int kScaleoutUpdateInterval = 3,
+-          int kNumSlotsPerForwardChunk = kScaleoutUpdateInterval,
++          int kScaleoutUpdateInterval = CXI_EP_UPDATE_INTERVAL,
++          int kNumSlotsPerForwardChunk = CXI_EP_FORWARD_CHUNK,
+           int kNumRanks = kNumScaleoutRanks * kNumScaleupRanks,
+           int kNumNotifyThreads = kNumNotifyWarps * 32,
+           int kNumScaleoutSendThreads = kNumScaleoutWarps * 32,
+@@ -46,6 +67,8 @@ hybrid_dispatch_impl(
+     void* buffer,
+     void* workspace, void* mapped_host_workspace,
+     const int scaleout_rank_idx, const int scaleup_rank_idx) {
++    static_assert(!CXI_EP_PACK_ROWS || kNumScaleoutRanks == 2,
++                  "Packed rows prototype requires exactly two scale-out nodes");
+     constexpr int kNumExpertsPerRank = kNumExperts / kNumRanks;
+     constexpr int kNumExpertsPerScaleout = kNumExperts / kNumScaleoutRanks;
+     EP_STATIC_ASSERT(kNumExperts % kNumScaleupRanks == 0, "Invalid number of experts or ranks");
+@@ -329,10 +352,24 @@ hybrid_dispatch_impl(
+ 
+         // Channel metadata maintenance
+         EP_STATIC_ASSERT(kNumScaleoutRanks <= 32, "Invalid number of scale-out ranks");
++        const int packed_source_base = packed_channel_base(kNumMaxTokensPerRank, kNumChannels, channel_idx);
+         int stored_scaleout_tail = 0, stored_old_scaleout_tail = 0;
+         const auto update_scaleout_tail = [&](const bool& finish_flag = false) {
+             if (lane_idx < kNumScaleoutRanks and
+-                (stored_scaleout_tail >= stored_old_scaleout_tail + kScaleoutUpdateInterval or finish_flag)) {
++                (stored_scaleout_tail >= stored_old_scaleout_tail +
++                     (stored_old_scaleout_tail == 0 ? CXI_EP_FIRST_INTERVAL : kScaleoutUpdateInterval) or finish_flag)) {
++                if constexpr (CXI_EP_PACK_ROWS) {
++                    // The same rows become visible at the same progress boundary.
++                    // All their TMA stores completed before entering this lambda.
++                    const int pending = stored_scaleout_tail - stored_old_scaleout_tail;
++                    if (lane_idx != scaleout_rank_idx && pending > 0) {
++                        gin.put<ncclTeamTagRail>(
++                            scaleout_recv_buffer.get_token_buffer(stored_old_scaleout_tail).get_base_ptr(),
++                            scaleout_send_buffer.get_token_buffer(packed_source_base + stored_old_scaleout_tail).get_base_ptr(),
++                            pending * tma_buffer.get_num_bytes<false>(), lane_idx,
++                            ncclGinOptFlagsAggregateRequests);
++                    }
++                }
+                 const auto signaled_tail = math::pack2<int, int64_t>(finish_flag, stored_scaleout_tail);
+                 const auto ptr = workspace_layout.get_scaleout_channel_signaled_tail_ptr(channel_idx, scaleout_rank_idx);
+                 const auto old_signaled_tail = math::pack2<int, int64_t>(0, stored_old_scaleout_tail);
+@@ -414,14 +451,23 @@ hybrid_dispatch_impl(
+             const auto scaleout_rank_mask = ptx::reduce_or(stored_dst_scaleout_rank_idx >= 0 ? (1u << stored_dst_scaleout_rank_idx) : 0u);
+             stored_scaleout_tail += (scaleout_rank_mask >> lane_idx) & 1;
+ 
++            int packed_remote_slot = 0;
++            if constexpr (CXI_EP_PACK_ROWS) {
++                // Every lane participates in the shuffle. The result is used only
++                // when this token has a remote destination; otherwise it may be -1.
++                packed_remote_slot = packed_source_base +
++                    ptx::exchange(stored_scaleout_tail, 1 - scaleout_rank_idx) - 1;
++            }
++
+             // Wait TMA arrival and issue the TMA store into send buffer
+             if (ptx::elect_one_sync()) {
+                 ptx::mbarrier_arrive_and_set_tx(mbarrier_ptr, kNumHiddenBytes);
+                 ptx::mbarrier_wait_and_flip_phase(mbarrier_ptr, phase);
+ 
+                 // So if no ranks will go by RDMA, we skip the send buffer stores
+-                if (scaleout_rank_mask ^ (1 << scaleout_rank_idx)) {
+-                    ptx::tma_store_1d(scaleout_send_buffer.get_token_buffer(token_idx).get_base_ptr(),
++                if (CXI_EP_PACK_ROWS ? (scaleout_rank_mask & ~(1u << scaleout_rank_idx)) :
++                                        (scaleout_rank_mask ^ (1 << scaleout_rank_idx))) {
++                    ptx::tma_store_1d(scaleout_send_buffer.get_token_buffer(CXI_EP_PACK_ROWS ? packed_remote_slot : token_idx).get_base_ptr(),
+                                       tma_buffer.get_base_ptr(), tma_buffer.get_num_bytes<false>());
+                 }
+             }
+@@ -440,7 +486,7 @@ hybrid_dispatch_impl(
+             preload_next_token(token_idx + kNumChannels);
+ 
+             // Issue IBGDA requests
+-            if (stored_dst_slot_idx >= 0 and stored_dst_scaleout_rank_idx != scaleout_rank_idx) {
++            if (!CXI_EP_PACK_ROWS and stored_dst_slot_idx >= 0 and stored_dst_scaleout_rank_idx != scaleout_rank_idx) {
+                 gin.put<ncclTeamTagRail>(
+                         scaleout_recv_buffer.get_token_buffer(stored_dst_slot_idx).get_base_ptr(),
+                         scaleout_send_buffer.get_token_buffer(token_idx).get_base_ptr(),
+@@ -450,8 +496,11 @@ hybrid_dispatch_impl(
+             }
+             __syncwarp();
+ 
+-            // Issue scale-out tail update
+-            update_scaleout_tail();
++            // The unconditional finish below can publish the last batch and
++            // finish bit together, just as it already does for partial batches.
++            // Keep intermediate progress and empty-channel finish unchanged.
++            if (!CXI_EP_MERGE_FINAL_TAIL || token_idx + kNumChannels < num_tokens)
++                update_scaleout_tail();
+         }
+ 
+         // Flush unflushed tails

@@ -1,0 +1,25 @@
+{
+  "requires": [
+    "3300-zero-rows-irregular-stress",
+    "3301-zero-rows-4k-correctness",
+    "3302-zero-rows-dropped-correctness",
+    "3303-zero-packed-irregular-stress",
+    "3304-zero-packed-4k-correctness",
+    "3305-zero-packed-dropped-correctness",
+    "3306-zero-rows-repeat1",
+    "3307-zero-packed-repeat1",
+    "3308-zero-packed-repeat2",
+    "3309-zero-rows-repeat2",
+    "3310-zero-rows-repeat3",
+    "3311-zero-packed-repeat3"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-packed-delivery-control-v1",
+      "sequence": "prepared-packed-delivery-control-v1-sequence.json",
+      "sequence_sha256": "3a56a3044274467d6c6c64761a8bfd5ae86d50da691499adc3dec3ea8ed2bd31"
+    }
+  ],
+  "scope": "Prepared only; select after ordinary packing results; compare delivery ACK versus zero marker with packed rows and interval3/forwardchunk3 fixed; host compilation pending"
+}

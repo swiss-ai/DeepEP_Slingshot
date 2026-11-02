@@ -1,0 +1,18 @@
+{
+  "requires": [
+    "1603-retire-refresh-tiny-stress",
+    "1604-retire-refresh-ep-correctness",
+    "1605-retire-refresh-sustained16k",
+    "1606-retire-refresh-repeat1",
+    "1607-retire-refresh-repeat2",
+    "1608-retire-refresh-repeat3"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-zero-packed-v2",
+      "sequence": "zero-packed-v2-sequence.json",
+      "sequence_sha256": "9cd730f635bbc54669a93b5c623938bb0daf6472c03f9f9e9968ba17cba13ee0"
+    }
+  ]
+}

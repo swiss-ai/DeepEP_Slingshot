@@ -1,0 +1,33 @@
+{
+  "spec": {
+    "name": "14-threshold-producers",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261030/sources/source-v5",
+    "node_script": "runner/node.sh",
+    "qualification": "gin",
+    "timeout_seconds": 600,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_VARIANT": "threshold",
+      "CXI_TEST_KIND": "producer",
+      "CXI_TEST_TIMEOUT": "540",
+      "CXI_PRODUCER_BLOCKS": "1,2,8",
+      "CXI_PRODUCER_ROUNDS": "512"
+    },
+    "requires": [
+      "13-threshold-burst"
+    ]
+  },
+  "start_utc": "2026-10-30T11:16:12.287438Z",
+  "returncode": 0,
+  "qualification": {
+    "status": "PASS",
+    "kind": "producer",
+    "ranks": 8,
+    "cycles_per_rank": 3
+  },
+  "end_utc": "2026-10-30T11:16:52.462526Z"
+}

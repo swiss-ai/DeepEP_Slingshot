@@ -1,0 +1,56 @@
+{
+  "spec": {
+    "name": "8825-marker-zero-v4flash-size-sweep-repeat1",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1101-release-h-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1800,
+    "environment": {
+      "CXI_VARIANT": "marker-zero",
+      "CXI_TRANSPORT": "direct",
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_UPDATE_INTERVAL": "16",
+      "CXI_EP_DEBUG": "0",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_DROP_EVERY": "0",
+      "CXI_EP_PACK_ROWS": "1",
+      "CXI_EP_FORWARD_CHUNK": "3",
+      "CXI_LOCAL_JIT": "1",
+      "CXI_LOCAL_RESULTS": "1",
+      "CXI_LOCAL_LOGS": "1",
+      "CXI_DIAGNOSTIC_WATCHDOG": "0",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1740",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_TOKENS": "2048 4096 6144 8192 10240 12288 14336 16384",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "100",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0",
+      "CXI_EP_PACK_COMBINE": "1",
+      "CXI_EP_MERGE_FINAL_TAIL": "1",
+      "CXI_EP_COMBINE_BATCH": "16",
+      "CXI_EP_FIRST_INTERVAL": "4",
+      "CXI_EP_COMBINE_FIRST_BATCH": "4"
+    },
+    "requires": [
+      "8810-marker-zero-v4flash-fp8-correctness",
+      "8811-marker-zero-v4flash-bf16-correctness"
+    ]
+  },
+  "start_utc": "2026-11-02T03:39:49.326066Z",
+  "returncode": 0,
+  "qualification": {
+    "status": "PASS",
+    "kind": "ep",
+    "ranks": 8,
+    "cases_per_rank": 8,
+    "gin_type": "6"
+  },
+  "end_utc": "2026-11-02T03:44:02.796844Z"
+}

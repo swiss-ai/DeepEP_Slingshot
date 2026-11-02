@@ -1,0 +1,67 @@
+{
+  "spec": {
+    "name": "5207-zero-ladder-8256B-16384-coalesced",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-transport-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_VARIANT": "marker-zero",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "16384",
+      "CXI_LADDER_ROW_BYTES": "8256",
+      "CXI_LADDER_SIGNAL_INTERVAL": "0",
+      "CXI_LADDER_COALESCE": "1",
+      "CXI_LADDER_CONTEXTS": "129,257",
+      "CXI_LADDER_ROUNDS": "30",
+      "CXI_LOCAL_JIT": "1",
+      "CXI_LOCAL_RESULTS": "1",
+      "CXI_LOCAL_LOGS": "1",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_EP_DEBUG": "0"
+    },
+    "requires": [
+      "5000-allocation2-packed-i16-q129-irregular-stress",
+      "5001-allocation2-packed-i16-q129-4k-correctness",
+      "5002-allocation2-packed-i16-q129-dropped-correctness",
+      "5003-allocation2-packed-i16-q129-sustained16k",
+      "5004-allocation2-packed-i16-q257-irregular-stress",
+      "5005-allocation2-packed-i16-q257-4k-correctness",
+      "5006-allocation2-packed-i16-q257-dropped-correctness",
+      "5007-allocation2-packed-i16-q257-sustained16k",
+      "5008-allocation2-packed-i16-q129-repeat1",
+      "5009-allocation2-packed-i16-q257-repeat1",
+      "5010-allocation2-packed-i16-q257-repeat2",
+      "5011-allocation2-packed-i16-q129-repeat2",
+      "5012-allocation2-packed-i16-q129-repeat3",
+      "5013-allocation2-packed-i16-q257-repeat3",
+      "5200-zero-ladder-4320B-4096-rows-final",
+      "5201-zero-ladder-4320B-4096-coalesced",
+      "5202-zero-ladder-8256B-4096-rows-final",
+      "5203-zero-ladder-8256B-4096-coalesced",
+      "5204-zero-ladder-4320B-16384-rows-final",
+      "5205-zero-ladder-4320B-16384-coalesced",
+      "5206-zero-ladder-8256B-16384-rows-final"
+    ]
+  },
+  "start_utc": "2026-10-31T07:26:04.783890Z",
+  "executor_sha256": "e062105803afbe6d4b163bd31e8aacd8ee31e60faf8127cefa852e8d2d8975d0",
+  "sequence_sha256": "60d9955283a7d2ab410617929d5f40ce7d910ac4fbd77c015cfa94506bcbf4a6",
+  "scheduled_between_gates": true,
+  "returncode": 0,
+  "qualification": {
+    "status": "PASS",
+    "kind": "ladder",
+    "ranks": 8,
+    "contexts": [
+      129,
+      257
+    ],
+    "rounds": 30,
+    "scope": "prepacked public-GIN transport intervention; no NVLink forwarding or expert computation"
+  },
+  "end_utc": "2026-10-31T07:26:46.825436Z"
+}

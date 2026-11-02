@@ -1,0 +1,14 @@
+{
+  "requires": [
+    "1122-marker-zero-notification-probe",
+    "1202-zero-marker-producers"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-retire-refresh-v2",
+      "sequence": "retire-refresh-v2-sequence.json",
+      "sequence_sha256": "ee154670a79d00dbc5847464a02018fba0491d97be8e0e883900106b9c4dc0c5"
+    }
+  ]
+}

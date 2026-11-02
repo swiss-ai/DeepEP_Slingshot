@@ -1,0 +1,53 @@
+{
+  "scope": "Local vendor/provider reference evidence; not proof that the experimental restricted GPU transport is qualified",
+  "sources": [
+    {
+      "path": "tools/clariden_deepep/libfabric/prov/cxi/src/cxip_cmdq.c",
+      "sha256": "cb5a0ca3e3df9fd075420b1000867d3ffa4730a94c2446c631ed13f3cc7d030a"
+    },
+    {
+      "path": "tools/clariden_deepep/libfabric/man/fi_cxi.7.md",
+      "sha256": "a966cd97122a32bbd3c1cb83572168d5b6b35cb1928800e6c90f5e25d6089bbf"
+    },
+    {
+      "path": "tools/cxi_gin/reference/shs-libcxi/utils/send_bw.c",
+      "sha256": "459b8858a649fe917662220a88b07291d50c60a450d1376f5779235455348857"
+    }
+  ],
+  "observations": [
+    {
+      "path": "tools/clariden_deepep/libfabric/prov/cxi/src/cxip_cmdq.c",
+      "function": "cxip_cmdq_emit_c_state / cxip_cmdq_emit_idc_put",
+      "lines": [
+        340,
+        361
+      ],
+      "fact": "Successful CSTATE emission does not ring; following IDC PUT is appended. Error paths ring to prevent deferred-submission deadlock."
+    },
+    {
+      "path": "tools/clariden_deepep/libfabric/prov/cxi/src/cxip_cmdq.c",
+      "function": "cxip_cmdq_emic_idc_amo",
+      "lines": [
+        438,
+        448,
+        492
+      ],
+      "fact": "Fetching-AMO delivery flush builds a zero-initialized DMA PUT with flush=1 and leaves request_len at zero, then appends it after the AMO. This is a distinct path from our restricted marker."
+    },
+    {
+      "path": "tools/clariden_deepep/libfabric/man/fi_cxi.7.md",
+      "lines": [
+        281,
+        301
+      ],
+      "fact": "FI_MORE defers publication to a later operation; delivery completion uses a target PCIe flushing read."
+    },
+    {
+      "path": "tools/cxi_gin/reference/shs-libcxi/utils/send_bw.c",
+      "lines": [
+        494
+      ],
+      "fact": "Vendor send benchmark explicitly emits a zero-length DMA PUT."
+    }
+  ]
+}

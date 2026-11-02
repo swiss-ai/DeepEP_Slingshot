@@ -1,0 +1,15 @@
+{
+  "submission": "3811125",
+  "command": [
+    "sbatch",
+    "--parsable",
+    "--dependency=afterany:3810110",
+    "--export=ALL,CAMPAIGN=/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030,INITIAL_SNAPSHOT=/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/controllers/controller-followup-v2",
+    "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/controllers/controller-followup-v2/runner/run.sbatch"
+  ],
+  "job": 3811125,
+  "submitted_utc": "2026-10-31T03:56:48.695068+00:00",
+  "dependency": "afterany:3810110",
+  "scope": "Two GH200 nodes, four hours; no overlap; held startup for current qualified source selection",
+  "monitor_pid": 645186
+}

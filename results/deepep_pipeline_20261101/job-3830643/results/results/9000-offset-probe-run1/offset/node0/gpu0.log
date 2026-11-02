@@ -1,0 +1,112 @@
+CXI service inventory svc=5 limits_rc=0 usage_rc=0 limited=1
+CXI service resource=0 max=2027 reserved=1728 in_use=0
+CXI service resource=1 max=988 reserved=576 in_use=0
+CXI service resource=2 max=490 reserved=288 in_use=0
+CXI service resource=3 max=2004 reserved=576 in_use=0
+CXI service resource=4 max=2047 reserved=288 in_use=0
+CXI service resource=5 max=15204 reserved=4608 in_use=0
+CXI service resource=6 max=288 reserved=288 in_use=0
+CXI service resource=7 max=1018 reserved=576 in_use=0
+CXI resources GPU=0 NIC=cxi0 service=5 VNI=64055
+CXI_QUEUE gpu=0 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=1 eq_id=44
+RAW_SETUP rank=0 phase=kernel_ready elapsed_s=3.729442
+RAW_SETUP rank=0 phase=peer_ready elapsed_s=3.732017
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":0,"phase":0,"rep":0,"puts":256,"bytes":17694720,"ns":1613600,"gbps":10.966}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":0,"phase":0,"rep":1,"puts":256,"bytes":17694720,"ns":1615776,"gbps":10.951}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":0,"phase":0,"rep":2,"puts":256,"bytes":17694720,"ns":1616960,"gbps":10.943}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":1,"phase":1,"rep":0,"puts":256,"bytes":17694720,"ns":1750784,"gbps":10.107}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":1,"phase":1,"rep":1,"puts":256,"bytes":17694720,"ns":1756288,"gbps":10.075}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":1,"phase":1,"rep":2,"puts":256,"bytes":17694720,"ns":1765184,"gbps":10.024}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":2,"phase":2,"rep":0,"puts":256,"bytes":17694720,"ns":3612864,"gbps":4.898}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":2,"phase":2,"rep":1,"puts":256,"bytes":17694720,"ns":3647552,"gbps":4.851}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":2,"phase":2,"rep":2,"puts":256,"bytes":17694720,"ns":3626112,"gbps":4.880}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":3,"phase":3,"rep":0,"puts":256,"bytes":17694720,"ns":1756448,"gbps":10.074}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":3,"phase":3,"rep":1,"puts":256,"bytes":17694720,"ns":1741920,"gbps":10.158}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":3,"phase":3,"rep":2,"puts":256,"bytes":17694720,"ns":1756032,"gbps":10.077}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":4,"phase":0,"rep":0,"puts":256,"bytes":17694720,"ns":1646944,"gbps":10.744}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":4,"phase":0,"rep":1,"puts":256,"bytes":17694720,"ns":1615680,"gbps":10.952}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":4,"phase":0,"rep":2,"puts":256,"bytes":17694720,"ns":1611552,"gbps":10.980}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":5,"phase":1,"rep":0,"puts":256,"bytes":17694720,"ns":1746976,"gbps":10.129}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":5,"phase":1,"rep":1,"puts":256,"bytes":17694720,"ns":1761248,"gbps":10.047}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":5,"phase":1,"rep":2,"puts":256,"bytes":17694720,"ns":1760128,"gbps":10.053}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":6,"phase":2,"rep":0,"puts":256,"bytes":17694720,"ns":3618464,"gbps":4.890}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":6,"phase":2,"rep":1,"puts":256,"bytes":17694720,"ns":3647712,"gbps":4.851}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":6,"phase":2,"rep":2,"puts":256,"bytes":17694720,"ns":3717280,"gbps":4.760}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":8,"phase":0,"rep":0,"puts":256,"bytes":17694720,"ns":1631520,"gbps":10.846}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":8,"phase":0,"rep":1,"puts":256,"bytes":17694720,"ns":1616288,"gbps":10.948}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":16,"off_rows":8,"phase":0,"rep":2,"puts":256,"bytes":17694720,"ns":1617248,"gbps":10.941}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":15,"off_rows":0,"phase":0,"rep":0,"puts":256,"bytes":16588800,"ns":1643456,"gbps":10.094}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":15,"off_rows":0,"phase":0,"rep":1,"puts":256,"bytes":16588800,"ns":1608640,"gbps":10.312}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":15,"off_rows":0,"phase":0,"rep":2,"puts":256,"bytes":16588800,"ns":1611168,"gbps":10.296}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":14,"off_rows":0,"phase":0,"rep":0,"puts":256,"bytes":15482880,"ns":1612544,"gbps":9.602}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":14,"off_rows":0,"phase":0,"rep":1,"puts":256,"bytes":15482880,"ns":1611488,"gbps":9.608}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":14,"off_rows":0,"phase":0,"rep":2,"puts":256,"bytes":15482880,"ns":1608544,"gbps":9.625}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":13,"off_rows":0,"phase":0,"rep":0,"puts":256,"bytes":14376960,"ns":1608992,"gbps":8.935}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":13,"off_rows":0,"phase":0,"rep":1,"puts":256,"bytes":14376960,"ns":1609920,"gbps":8.930}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":13,"off_rows":0,"phase":0,"rep":2,"puts":256,"bytes":14376960,"ns":1609856,"gbps":8.931}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":12,"off_rows":0,"phase":0,"rep":0,"puts":256,"bytes":13271040,"ns":1607328,"gbps":8.257}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":12,"off_rows":0,"phase":0,"rep":1,"puts":256,"bytes":13271040,"ns":1606688,"gbps":8.260}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":12,"off_rows":0,"phase":0,"rep":2,"puts":256,"bytes":13271040,"ns":1607200,"gbps":8.257}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":15,"off_rows":1,"phase":1,"rep":0,"puts":256,"bytes":16588800,"ns":1728576,"gbps":9.597}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":15,"off_rows":1,"phase":1,"rep":1,"puts":256,"bytes":16588800,"ns":1738368,"gbps":9.543}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":15,"off_rows":1,"phase":1,"rep":2,"puts":256,"bytes":16588800,"ns":1673536,"gbps":9.912}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":14,"off_rows":2,"phase":2,"rep":0,"puts":256,"bytes":15482880,"ns":3180992,"gbps":4.867}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":14,"off_rows":2,"phase":2,"rep":1,"puts":256,"bytes":15482880,"ns":3216000,"gbps":4.814}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":14,"off_rows":2,"phase":2,"rep":2,"puts":256,"bytes":15482880,"ns":3270976,"gbps":4.733}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":13,"off_rows":3,"phase":3,"rep":0,"puts":256,"bytes":14376960,"ns":1677216,"gbps":8.572}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":13,"off_rows":3,"phase":3,"rep":1,"puts":256,"bytes":14376960,"ns":1670016,"gbps":8.609}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":13,"off_rows":3,"phase":3,"rep":2,"puts":256,"bytes":14376960,"ns":1681728,"gbps":8.549}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":12,"off_rows":4,"phase":0,"rep":0,"puts":256,"bytes":13271040,"ns":1631648,"gbps":8.134}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":12,"off_rows":4,"phase":0,"rep":1,"puts":256,"bytes":13271040,"ns":1606688,"gbps":8.260}
+{"rank":0,"stage":"offset_case","row":4320,"len_rows":12,"off_rows":4,"phase":0,"rep":2,"puts":256,"bytes":13271040,"ns":1607872,"gbps":8.254}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":0,"phase":0,"rep":0,"puts":256,"bytes":33816576,"ns":1659648,"gbps":20.376}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":0,"phase":0,"rep":1,"puts":256,"bytes":33816576,"ns":1636832,"gbps":20.660}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":0,"phase":0,"rep":2,"puts":256,"bytes":33816576,"ns":1638176,"gbps":20.643}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":1,"phase":1,"rep":0,"puts":256,"bytes":33816576,"ns":7133184,"gbps":4.741}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":1,"phase":1,"rep":1,"puts":256,"bytes":33816576,"ns":7141248,"gbps":4.735}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":1,"phase":1,"rep":2,"puts":256,"bytes":33816576,"ns":7153792,"gbps":4.727}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":2,"phase":2,"rep":0,"puts":256,"bytes":33816576,"ns":1640352,"gbps":20.615}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":2,"phase":2,"rep":1,"puts":256,"bytes":33816576,"ns":1632864,"gbps":20.710}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":2,"phase":2,"rep":2,"puts":256,"bytes":33816576,"ns":1630432,"gbps":20.741}
+{"rank":0,"starank 0: offset kernel failed
+ge":"offset_case","row":8256,"len_rows":16,"off_rows":3,"phase":3,"rep":0,"puts":256,"bytes":33816576,"ns":7174816,"gbps":4.713}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":3,"phase":3,"rep":1,"puts":256,"bytes":33816576,"ns":7105152,"gbps":4.759}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":3,"phase":3,"rep":2,"puts":256,"bytes":33816576,"ns":7175168,"gbps":4.713}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":4,"phase":0,"rep":0,"puts":256,"bytes":33816576,"ns":1639200,"gbps":20.630}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":4,"phase":0,"rep":1,"puts":256,"bytes":33816576,"ns":1636192,"gbps":20.668}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":4,"phase":0,"rep":2,"puts":256,"bytes":33816576,"ns":1637568,"gbps":20.650}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":5,"phase":1,"rep":0,"puts":256,"bytes":33816576,"ns":7099584,"gbps":4.763}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":5,"phase":1,"rep":1,"puts":256,"bytes":33816576,"ns":7199648,"gbps":4.697}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":5,"phase":1,"rep":2,"puts":256,"bytes":33816576,"ns":7176160,"gbps":4.712}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":6,"phase":2,"rep":0,"puts":256,"bytes":33816576,"ns":1636928,"gbps":20.659}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":6,"phase":2,"rep":1,"puts":256,"bytes":33816576,"ns":1638912,"gbps":20.634}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":6,"phase":2,"rep":2,"puts":256,"bytes":33816576,"ns":1630432,"gbps":20.741}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":8,"phase":0,"rep":0,"puts":256,"bytes":33816576,"ns":1639680,"gbps":20.624}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":8,"phase":0,"rep":1,"puts":256,"bytes":33816576,"ns":1641856,"gbps":20.597}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":16,"off_rows":8,"phase":0,"rep":2,"puts":256,"bytes":33816576,"ns":1641856,"gbps":20.597}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":15,"off_rows":0,"phase":0,"rep":0,"puts":256,"bytes":31703040,"ns":1692576,"gbps":18.731}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":15,"off_rows":0,"phase":0,"rep":1,"puts":256,"bytes":31703040,"ns":1632928,"gbps":19.415}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":15,"off_rows":0,"phase":0,"rep":2,"puts":256,"bytes":31703040,"ns":1636992,"gbps":19.367}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":14,"off_rows":0,"phase":0,"rep":0,"puts":256,"bytes":29589504,"ns":1635776,"gbps":18.089}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":14,"off_rows":0,"phase":0,"rep":1,"puts":256,"bytes":29589504,"ns":1631872,"gbps":18.132}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":14,"off_rows":0,"phase":0,"rep":2,"puts":256,"bytes":29589504,"ns":1631456,"gbps":18.137}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":13,"off_rows":0,"phase":0,"rep":0,"puts":256,"bytes":27475968,"ns":1630016,"gbps":16.856}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":13,"off_rows":0,"phase":0,"rep":1,"puts":256,"bytes":27475968,"ns":1628672,"gbps":16.870}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":13,"off_rows":0,"phase":0,"rep":2,"puts":256,"bytes":27475968,"ns":1630048,"gbps":16.856}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":12,"off_rows":0,"phase":0,"rep":0,"puts":256,"bytes":25362432,"ns":1627968,"gbps":15.579}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":12,"off_rows":0,"phase":0,"rep":1,"puts":256,"bytes":25362432,"ns":1628832,"gbps":15.571}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":12,"off_rows":0,"phase":0,"rep":2,"puts":256,"bytes":25362432,"ns":1624896,"gbps":15.609}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":15,"off_rows":1,"phase":1,"rep":0,"puts":256,"bytes":31703040,"ns":6647936,"gbps":4.769}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":15,"off_rows":1,"phase":1,"rep":1,"puts":256,"bytes":31703040,"ns":6708064,"gbps":4.726}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":15,"off_rows":1,"phase":1,"rep":2,"puts":256,"bytes":31703040,"ns":6683200,"gbps":4.744}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":14,"off_rows":2,"phase":2,"rep":0,"puts":256,"bytes":29589504,"ns":1624128,"gbps":18.219}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":14,"off_rows":2,"phase":2,"rep":1,"puts":256,"bytes":29589504,"ns":1630208,"gbps":18.151}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":14,"off_rows":2,"phase":2,"rep":2,"puts":256,"bytes":29589504,"ns":1632128,"gbps":18.129}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":13,"off_rows":3,"phase":3,"rep":0,"puts":256,"bytes":27475968,"ns":5762400,"gbps":4.768}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":13,"off_rows":3,"phase":3,"rep":1,"puts":256,"bytes":27475968,"ns":5767808,"gbps":4.764}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":13,"off_rows":3,"phase":3,"rep":2,"puts":256,"bytes":27475968,"ns":5851520,"gbps":4.696}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":12,"off_rows":4,"phase":0,"rep":0,"puts":256,"bytes":25362432,"ns":1624640,"gbps":15.611}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":12,"off_rows":4,"phase":0,"rep":1,"puts":256,"bytes":25362432,"ns":1628096,"gbps":15.578}
+{"rank":0,"stage":"offset_case","row":8256,"len_rows":12,"off_rows":4,"phase":0,"rep":2,"puts":256,"bytes":25362432,"ns":1625248,"gbps":15.605}
+{"rank":0,"stage":"offset_result","cases":96,"expected":96,"errors":0,"posted":24864,"completed":24863,"diagnostic":0,"diag1":0,"diag2":0}
+{"rank":0,"stage":"process_result","rc":1,"is_nccl_gin":false}

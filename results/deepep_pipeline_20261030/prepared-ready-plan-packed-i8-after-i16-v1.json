@@ -1,0 +1,37 @@
+{
+  "requires": [
+    "3300-zero-rows-irregular-stress",
+    "3301-zero-rows-4k-correctness",
+    "3302-zero-rows-dropped-correctness",
+    "3303-zero-packed-irregular-stress",
+    "3304-zero-packed-4k-correctness",
+    "3305-zero-packed-dropped-correctness",
+    "3306-zero-rows-repeat1",
+    "3307-zero-packed-repeat1",
+    "3308-zero-packed-repeat2",
+    "3309-zero-rows-repeat2",
+    "3310-zero-rows-repeat3",
+    "3311-zero-packed-repeat3",
+    "4000-rows-i16-irregular-correctness",
+    "4001-rows-i16-4k-correctness",
+    "4002-rows-i16-dropped-token-correctness",
+    "4003-packed-i16-irregular-correctness",
+    "4004-packed-i16-4k-correctness",
+    "4005-packed-i16-dropped-token-correctness",
+    "4006-rows-i16-repeat1",
+    "4007-packed-i16-repeat1",
+    "4008-packed-i16-repeat2",
+    "4009-rows-i16-repeat2",
+    "4010-rows-i16-repeat3",
+    "4011-packed-i16-repeat3"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-zero-packed-v7",
+      "sequence": "prepared-packed-i8-after-i16-v1-sequence.json",
+      "sequence_sha256": "f6a1888e0bf0629fc573e795e51cf92e9f271bd99ae7ce0de6a6d4dd66093028"
+    }
+  ],
+  "scope": "Prepared only; one complete matched interval comparison then hold for agent review; source/settings identical to preparedv4"
+}

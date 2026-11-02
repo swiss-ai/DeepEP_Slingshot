@@ -1,0 +1,41 @@
+{
+  "spec": {
+    "name": "2260-zero-full-matrix-diagnostic",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-first-call-debug-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "marker-zero",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "257 4096",
+      "CXI_EP_DTYPES": "fp8 bf16",
+      "CXI_EP_ROUTING": "mixed uniform hot_rank local remote",
+      "CXI_EP_SEEDS": "1 2",
+      "CXI_EP_WARMUP": "2",
+      "CXI_EP_ITERS": "3",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0",
+      "CXI_REQUIRE_REUSE": "1",
+      "CXI_DIAGNOSTIC_WATCHDOG": "1"
+    },
+    "requires": [
+      "1803-retire-refresh-tiny-stress",
+      "2200-marker-zero-first257-diagnostic",
+      "2201-marker-control-first257-diagnostic"
+    ]
+  },
+  "start_utc": "2026-10-31T03:46:15.092180Z",
+  "executor_sha256": "e062105803afbe6d4b163bd31e8aacd8ee31e60faf8127cefa852e8d2d8975d0",
+  "sequence_sha256": "8170dbc2e7c569bfeb65a82174ef4357db2290b6b50257296e55aca0ce6deff4",
+  "scheduled_between_gates": true
+}

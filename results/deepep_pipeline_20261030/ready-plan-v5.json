@@ -1,0 +1,19 @@
+{
+  "requires": [
+    "850-rows-32-local-diagnostic",
+    "851-rows-32-routes-diagnostic"
+  ],
+  "phases": [
+    {
+      "snapshot": "source-packed-debug-v2",
+      "sequence": "prepared-tiny-control-stress-diagnostic-v1.json",
+      "sequence_sha256": "9006aa3f5b70621337c7e08bf482a1dc5672f835cce5e3250cd1a23966e463d0"
+    },
+    {
+      "snapshot": "source-packed-rows-v2",
+      "sequence": "prepared-tiny-control-stress-ordinary-v1.json",
+      "sequence_sha256": "06d5fb08752a2a7f9be76aebfa56c7f050cf0b54d24551c32c9b6333d6b44153"
+    }
+  ],
+  "resume_original": false
+}

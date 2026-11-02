@@ -1,0 +1,45 @@
+{
+  "spec": {
+    "name": "3535-marker-matched-control-repeat2",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-local-runtime-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 600,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "marker-control",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "540",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096 16384",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "100",
+      "CXI_EP_NIC_ITERS": "600",
+      "CXI_EP_PROFILE_STEPS": "0",
+      "CXI_LOCAL_JIT": "1",
+      "CXI_LOCAL_RESULTS": "1",
+      "CXI_DIAGNOSTIC_WATCHDOG": "0",
+      "CXI_LOCAL_LOGS": "1"
+    },
+    "requires": [
+      "3531-marker-matched-control-sustained16k",
+      "2920-local-logs-sustained16k",
+      "2921-local-logs-repeat1",
+      "2922-local-logs-repeat2",
+      "2923-local-logs-repeat3"
+    ]
+  },
+  "start_utc": "2026-10-31T05:09:54.905017Z",
+  "executor_sha256": "e062105803afbe6d4b163bd31e8aacd8ee31e60faf8127cefa852e8d2d8975d0",
+  "sequence_sha256": "ad55cd62899d6d2e583ed8a265bd88d8e371443393382b7e0128ffac7ca7a050",
+  "scheduled_between_gates": true
+}

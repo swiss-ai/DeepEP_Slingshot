@@ -1,0 +1,40 @@
+{
+  "spec": {
+    "name": "1101-marker-replay-mutation-probe",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-marker-probe-v2",
+    "node_script": "runner/node.sh",
+    "qualification": "burst",
+    "timeout_seconds": 360,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "marker-replay",
+      "CXI_TEST_KIND": "burst",
+      "CXI_TEST_TIMEOUT": "300",
+      "CXI_SMOKE_CONTEXTS": "2",
+      "CXI_SMOKE_ROUNDS": "14",
+      "CXI_MUTATION_EXPECT": "clobber"
+    },
+    "requires": [
+      "407-fence-dc-ep-correctness",
+      "1100-marker-control-mutation-probe"
+    ]
+  },
+  "start_utc": "2026-10-31T02:19:51.897968Z",
+  "executor_sha256": "e062105803afbe6d4b163bd31e8aacd8ee31e60faf8127cefa852e8d2d8975d0",
+  "sequence_sha256": "c250dc28cf8290f756ecf352fa97f38ce86ca349c4bb2b82faa5ec1a11911f0a",
+  "scheduled_between_gates": true,
+  "returncode": 0,
+  "qualification": {
+    "status": "PASS",
+    "kind": "burst_wrap_source_reuse",
+    "ranks": 8,
+    "payload_commands_per_rank": 16384
+  },
+  "end_utc": "2026-10-31T02:20:10.654842Z"
+}

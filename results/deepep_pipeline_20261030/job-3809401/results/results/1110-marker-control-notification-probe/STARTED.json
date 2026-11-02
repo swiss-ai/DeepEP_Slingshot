@@ -1,0 +1,31 @@
+{
+  "spec": {
+    "name": "1110-marker-control-notification-probe",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-marker-probe-v2",
+    "node_script": "runner/node.sh",
+    "qualification": "gin",
+    "timeout_seconds": 480,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "marker-control",
+      "CXI_TEST_KIND": "smoke",
+      "CXI_TEST_TIMEOUT": "420",
+      "CXI_SMOKE_CONTEXTS": "2",
+      "CXI_SMOKE_ROUNDS": "14",
+      "CXI_MUTATION_EXPECT": "preserve"
+    },
+    "requires": [
+      "407-fence-dc-ep-correctness"
+    ]
+  },
+  "start_utc": "2026-10-31T02:21:12.111303Z",
+  "executor_sha256": "e062105803afbe6d4b163bd31e8aacd8ee31e60faf8127cefa852e8d2d8975d0",
+  "sequence_sha256": "96fae294223d19454c678b91f55fdb041536d29a4f1a02239c685d65388e4103",
+  "scheduled_between_gates": true
+}

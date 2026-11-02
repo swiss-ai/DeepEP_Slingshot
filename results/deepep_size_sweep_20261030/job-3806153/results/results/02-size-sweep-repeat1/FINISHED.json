@@ -1,0 +1,43 @@
+{
+  "spec": {
+    "name": "02-size-sweep-repeat1",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-size-sweep-20261030/sources/source-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1500,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_VARIANT": "threshold",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1440",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "2048 4096 6144 8192 10240 12288 14336 16384",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "100",
+      "CXI_EP_NIC_ITERS": "600",
+      "CXI_EP_PROFILE_STEPS": "0",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_SWEEP_REPEAT": "1"
+    },
+    "requires": [
+      "01-threshold-gin"
+    ]
+  },
+  "start_utc": "2026-10-30T19:57:47.473201Z",
+  "returncode": 0,
+  "qualification": {
+    "status": "PASS",
+    "kind": "ep",
+    "ranks": 8,
+    "cases_per_rank": 8,
+    "gin_type": "6"
+  },
+  "end_utc": "2026-10-30T20:05:10.875360Z"
+}

@@ -1,0 +1,238 @@
+--- parent/backend/device/cxi_primitives.cuh
++++ candidate/backend/device/cxi_primitives.cuh
+@@ -4,6 +4,10 @@
+ #include "cassini_user_defs.h"
+ #include "cxi_queue_credit.h"
+ #include "cxi_fence_command.h"
++#include "cxi_idc_state.h"
++#ifndef CXI_CACHE_IDC_STATE
++#define CXI_CACHE_IDC_STATE 0
++#endif
+ #ifndef CXI_HW_SIGNAL_FENCE
+ #define CXI_HW_SIGNAL_FENCE 0
+ #endif
+@@ -178,12 +182,22 @@
+   return true;
+ }
+ __device__ __forceinline__ bool state_locked(CxiGpuContext& c,const CxiWindow* dst,int peer,uint32_t* abort=nullptr) {
++  const uint32_t index=dst->peer[peer].index_ext, lac=dst->local_lac;
++  if(!idc_state_fields_valid(index,lac,c.ct_id,c.eq_id))return fail(c,48,index,lac);
++  const uint32_t key=idc_state_key(index,lac,c.ct_id,c.eq_id);
++  if(CXI_CACHE_IDC_STATE && c.idc_state_key==key)return true;
+   uint64_t words[8]{};auto* st=(c_cstate_cmd*)words;
+   st->command.cmd_type=C_CMD_TYPE_IDC;st->command.cmd_size=C_CMD_SIZE_32B;st->command.opcode=C_CMD_CSTATE;
+   st->length=sizeof(c_cstate_cmd);st->restricted=1;st->flush=1;
+   st->event_send_disable=1;st->event_success_disable=1;st->event_ct_ack=1;
+   st->index_ext=dst->peer[peer].index_ext;st->ct=c.ct_id;st->eq=c.eq_id;
+-  st->write_lac=dst->local_lac;return emit(c,words,false,abort);
++  st->write_lac=dst->local_lac;
++  if(!emit(c,words,false,abort))return false;
++  // Queue order programs this state before subsequent IDC commands. No other
++  // writer may touch this CQ outside the context lock. Healthy queue recycling
++  // preserves the key and hardware state; fresh descriptor{} starts invalid.
++  c.idc_state_key=key;
++  return true;
+ }
+ // Keep payload visibility before notification, but let the NIC enforce the
+ // dependency. No GPU CT writeback wait here; explicit flush/counters still wait.
+--- parent/backend/include/cxi_gin_abi.h
++++ candidate/backend/include/cxi_gin_abi.h
+@@ -3,7 +3,7 @@
+ #include <stddef.h>
+ 
+ // Private experimental ABI. Not an upstream NCCL backend identifier.
+-#define CXI_GIN_ABI_VERSION 3
++#define CXI_GIN_ABI_VERSION 5
+ #define CXI_GIN_DEVICE_VERSION 1
+ #define CXI_GIN_BACKEND_TYPE 6
+ #define CXI_GIN_MAX_PEERS 64
+@@ -41,6 +41,7 @@
+   uint64_t signal_offset;
+   uint64_t* diagnostic;  // mapped host memory; GPU writes, host only observes
+   uint32_t tx_unpublished; // descriptors reserved/written but not yet doorbelled
++  uint32_t idc_state_key; // valid + complete variable CSTATE fields; context lock protects
+   uint64_t tx_doorbells, tx_commands; // cumulative diagnostics, updated under lock
+   CxiWindow* pending_dst;
+   uint64_t pending_local_addr, pending_remote_offset;
+@@ -52,5 +53,6 @@
+ static_assert(offsetof(CxiGpuContext, posted) % 8 == 0, "counter alignment");
+ static_assert(alignof(CxiGpuContext) == 64, "context alignment");
+ 
++static_assert(offsetof(CxiGpuContext, idc_state_key) == 140, "IDC state uses existing padding");
+ static_assert(sizeof(CxiGpuContext) == 192, "context host/device ABI size");
+ static_assert(sizeof(CxiWindow) == 1576, "window host/device ABI size");
+--- parent/backend/tests/gin_smoke.py
++++ candidate/backend/tests/gin_smoke.py
+@@ -32,6 +32,11 @@
+         function = lib.gin_smoke
+         dimensions = os.getenv('CXI_SMOKE_CONTEXTS', '1,4')
+         rounds = int(os.getenv('CXI_SMOKE_ROUNDS', '14'))
++        dimension_name = 'contexts'
++    elif kind == 'ladder':
++        function = lib.gin_stage_ladder
++        dimensions = os.getenv('CXI_LADDER_CONTEXTS', '129,257')
++        rounds = int(os.getenv('CXI_LADDER_ROUNDS', '30'))
+         dimension_name = 'contexts'
+     elif kind == 'producer':
+         function = lib.gin_producer_stress
+--- parent/backend/tools/direct_node.sh
++++ candidate/backend/tools/direct_node.sh
+@@ -62,6 +62,7 @@
+ case "${CXI_TEST_KIND:-smoke}" in
+   smoke) test_source=gin_smoke.cu;;
+   producer) test_source=gin_producer_stress.cu;;
++  ladder) test_source=gin_stage_ladder.cu;;
+   bad_offset) test_source=gin_bad_offset.cu;;
+   bounds) test_source=gin_bounds.cu;;
+   ep|sglang) test_source=;;
+--- parent/runner/install.py
++++ candidate/runner/install.py
+@@ -14,7 +14,7 @@
+     (dest/'lib/libnccl.so.2').symlink_to('libnccl.so.2.32.3');(dest/'lib/libnccl.so').symlink_to('libnccl.so.2')
+     d=dest/'include/nccl_device/gin/cxi'
+     if variant not in ['baseline','baseline-trace']:
+-        for name in ['cxi_primitives.cuh','cxi_queue_credit.h','gin_cxi.cuh','cxi_fence_command.h']:shutil.copyfile(snapshot/'backend/device'/name,d/name)
++        for name in ['cxi_primitives.cuh','cxi_queue_credit.h','gin_cxi.cuh','cxi_fence_command.h','cxi_idc_state.h']:shutil.copyfile(snapshot/'backend/device'/name,d/name)
+         shutil.copyfile(snapshot/'backend/include/cxi_gin_abi.h',d/'cxi_gin_abi.h')
+     p=d/'cxi_primitives.cuh';p.write_text(''.join('#define %s %d\n'%(k,v) for k,v in sorted(defines.items()))+p.read_text())
+     if variant.endswith('-trace'):prepare_headers(d)
+--- parent/runner/preflight.sh
++++ candidate/runner/preflight.sh
+@@ -9,21 +9,23 @@
+ "$out/queue-test"
+ g++ -std=c++17 -Wall -Wextra -Werror -Wno-misleading-indentation \
+  -I"$sdk/include" -I"$src/backend/include" -c "$src/backend/host/cxi_resources.cc" -o "$out/resources.o"
+-for variant in fence-control fence-dc fence-batched; do
++for variant in state-control state-cached; do
+   prefix="$CAMPAIGN/runtime/$(basename "$src")/$variant"
+   flags=()
+   if [[ "$variant" = *-trace ]];then flags=(-DEP_TRACE_PTR=4096ULL);fi
+-  for name in gin_smoke gin_producer_stress device_compile_probe; do
++  for name in gin_smoke gin_producer_stress device_compile_probe gin_stage_ladder; do
+     "$sdk/bin/nvcc" -std=c++17 -arch=sm_90 "${flags[@]}" -I"$prefix/include" \
+       -c "$src/backend/tests/$name.cu" -o "$out/$variant-$name.o"
+   done
+ done
+-for limit in 0 1; do
+-for hw_fence in 0 1; do
+-  "$sdk/bin/nvcc" -std=c++17 -arch=sm_90 -DCXI_HW_SIGNAL_FENCE="$hw_fence" -DCXI_TX_BATCH_LIMIT=8 -DCXI_BATCH_DELIVERY="$limit" -DCXI_CT_THRESHOLD_FLUSH=1 \
+-    -I"$src/backend/include" -I"$src/backend/device" -c "$src/runner/burst_probe.cu" -o "$out/burst-$limit-fence$hw_fence.o"
++for limit in 1; do
++for cache in 0 1; do
++  "$sdk/bin/nvcc" -std=c++17 -arch=sm_90 -DCXI_HW_SIGNAL_FENCE=1 -DCXI_CACHE_IDC_STATE="$cache" -DCXI_TX_BATCH_LIMIT=8 -DCXI_BATCH_DELIVERY="$limit" -DCXI_CT_THRESHOLD_FLUSH=1 \
++    -I"$src/backend/include" -I"$src/backend/device" -c "$src/runner/burst_probe.cu" -o "$out/burst-$limit-state$cache.o"
+ done
+ done
+ g++ -std=c++17 -Wall -Wextra -Werror -I"$src/backend/device"   "$src/runner/test_fence_descriptor.cc" -o "$out/fence-descriptor"
+ "$out/fence-descriptor"
++g++ -std=c++17 -O2 -Wall -Wextra -Werror -I"$src/backend/device" -I"$src/backend/include"   "$src/runner/test_idc_state.cc" -o "$out/idc-state-test"
++"$out/idc-state-test"
+ date -Is > "$out/PASS"
+--- parent/runner/validate_gate.py
++++ candidate/runner/validate_gate.py
+@@ -47,6 +47,38 @@
+     base = Path(destination) / transport
+     require(all((base / ('node%d' % node) / 'PASS').is_file() for node in range(2)),
+             'both node scripts must finish successfully')
++    if mode == 'ladder':
++        require(transport == 'direct', 'ladder requires direct transport')
++        contexts = [int(v) for v in env['CXI_LADDER_CONTEXTS'].split(',')]
++        rounds = int(env['CXI_LADDER_ROUNDS'])
++        for rank in range(8):
++            record = json.loads((base/'smoke'/('rank%d.json' % rank)).read_text())
++            require(record.get('rank') == rank and record.get('stage') == 'complete'
++                    and record.get('gin_type') == '6' and record.get('kind') == 'ladder', 'wrong/incomplete ladder rank')
++            require(len(record['cases']) == len(contexts), 'missing ladder dimensions')
++            for cycle, case in enumerate(record['cases']):
++                require(case.get('contexts') == contexts[cycle] and case.get('returncode') == 0, 'ladder context failed')
++                require(Path(case['evidence']).name == case['evidence'], 'unsafe evidence path')
++                rows = json_lines(base/'smoke'/case['evidence'])
++                require(rows[-1].get('complete') is True and rows[-1].get('rc') == 0, 'ladder cleanup failed')
++                times = [r for r in rows if 'cuda_ms' in r]
++                stamps = [r for r in rows if 'channel' in r]
++                require(len(times) == rounds and {r['iteration'] for r in times} == set(range(rounds)), 'missing ladder iterations')
++                require(len(stamps) == rounds*256, 'missing producer timestamps')
++                for r in times:
++                    require(r['rank'] == rank and r['contexts'] == contexts[cycle]
++                            and r['rows'] == int(env['CXI_LADDER_ROWS'])
++                            and r['row_bytes'] == 4320 and r['errors'] == 0
++                            and r['signal_interval'] == int(env['CXI_LADDER_SIGNAL_INTERVAL'])
++                            and r['coalesce'] == bool(int(env['CXI_LADDER_COALESCE']))
++                            and 0 < r['cuda_ms'] < 60000, 'ladder payload/dimensions failure')
++                require({(r['iteration'],r['channel']) for r in stamps} ==
++                        {(i,c) for i in range(rounds) for c in range(256)}, 'duplicate or missing channel')
++                require(all(r['rank'] == rank and r['errors'] == 0 and
++                            0 < r['ready_ns'] <= r['submitted_ns'] <= r['flushed_ns'] <= r['received_ns']
++                            for r in stamps), 'invalid ladder timestamp')
++        return {'status':'PASS', 'kind':'ladder', 'ranks':8, 'contexts':contexts, 'rounds':rounds,
++                'scope':'prepacked public-GIN transport intervention; no NVLink forwarding or expert computation'}
+     if mode == 'gin':
+         require(transport == 'direct', 'GIN qualification requires direct transport')
+         expected_kind = env.get('CXI_TEST_KIND', 'smoke')
+--- parent/backend/device/cxi_idc_state.h
++++ candidate/backend/device/cxi_idc_state.h
+@@ -0,0 +1,22 @@
++#pragma once
++#include <stdint.h>
++#ifdef __CUDACC__
++#define CXI_STATE_HD __host__ __device__
++#else
++#define CXI_STATE_HD
++#endif
++namespace cxi_gin {
++// All remaining CSTATE fields are fixed in state_locked(): zero-initialized,
++// restricted/flush/send-disable/success-disable/ct-ack set. Changing those
++// constants or adding a variable field requires updating this key and ABI.
++// DFA and remote offset belong to each IDC command, not to CSTATE.
++CXI_STATE_HD inline bool idc_state_fields_valid(uint32_t index, uint32_t lac,
++                                               uint32_t ct, uint32_t eq) {
++  return index < 32 && lac < 8 && ct < 2048 && eq < 2048;
++}
++CXI_STATE_HD inline uint32_t idc_state_key(uint32_t index, uint32_t lac,
++                                         uint32_t ct, uint32_t eq) {
++  return (1u << 31) | index | (lac << 5) | (ct << 8) | (eq << 19);
++}
++}
++#undef CXI_STATE_HD
+--- parent/runner/test_idc_state.cc
++++ candidate/runner/test_idc_state.cc
+@@ -0,0 +1,39 @@
++#include "cxi_idc_state.h"
++#include "cxi_gin_abi.h"
++#include "cassini_user_defs.h"
++#include <cassert>
++#include <cstdio>
++#include <random>
++
++int main() {
++  CxiGpuContext fresh{};
++  assert(fresh.idc_state_key == 0);
++  assert(!cxi_gin::idc_state_fields_valid(32,0,0,0));
++  assert(!cxi_gin::idc_state_fields_valid(0,8,0,0));
++  assert(!cxi_gin::idc_state_fields_valid(0,0,2048,0));
++  assert(!cxi_gin::idc_state_fields_valid(0,0,0,2048));
++  std::mt19937 rng(49);
++  unsigned checks=0;
++  for(unsigned i=0;i<1000000;i++) {
++    unsigned index=rng()%32,lac=rng()%8,ct=rng()%2048,eq=rng()%2048;
++    assert(cxi_gin::idc_state_fields_valid(index,lac,ct,eq));
++    auto key=cxi_gin::idc_state_key(index,lac,ct,eq);
++    assert((key>>31)==1 && ((key>>30)&1)==0);
++    assert((key&31)==index && ((key>>5)&7)==lac);
++    assert(((key>>8)&2047)==ct && ((key>>19)&2047)==eq);
++    c_cstate_cmd command{};
++    command.index_ext=index;command.write_lac=lac;command.ct=ct;command.eq=eq;
++    assert(command.index_ext==index && command.write_lac==lac);
++    assert(command.ct==ct && command.eq==eq);
++    // Every single-field transition changes the key, including wrap to zero.
++    assert(key!=cxi_gin::idc_state_key((index+1)%32,lac,ct,eq));
++    assert(key!=cxi_gin::idc_state_key(index,(lac+1)%8,ct,eq));
++    assert(key!=cxi_gin::idc_state_key(index,lac,(ct+1)%2048,eq));
++    assert(key!=cxi_gin::idc_state_key(index,lac,ct,(eq+1)%2048));
++    fresh.idc_state_key=key;
++    CxiGpuContext recycled=fresh;
++    assert(recycled.idc_state_key==key);
++    checks++;
++  }
++  std::printf("PASS IDC state ABI/layout/key: %u randomized field transitions\n",checks);
++}

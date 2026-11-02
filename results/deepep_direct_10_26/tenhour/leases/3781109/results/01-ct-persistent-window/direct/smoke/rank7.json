@@ -1,0 +1,208 @@
+{
+  "rank": 7,
+  "cpu_affinity": [
+    216,
+    217,
+    218,
+    219,
+    220,
+    221,
+    222,
+    223,
+    224,
+    225,
+    226,
+    227,
+    228,
+    229,
+    230,
+    231,
+    232,
+    233,
+    234,
+    235,
+    236,
+    237,
+    238,
+    239,
+    240,
+    241,
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249,
+    250,
+    251,
+    252,
+    253,
+    254,
+    255,
+    256,
+    257,
+    258,
+    259,
+    260,
+    261,
+    262,
+    263,
+    264,
+    265,
+    266,
+    267,
+    268,
+    269,
+    270,
+    271,
+    272,
+    273,
+    274,
+    275,
+    276,
+    277,
+    278,
+    279,
+    280,
+    281,
+    282,
+    283,
+    284,
+    285,
+    286,
+    287
+  ],
+  "stage": "complete",
+  "gin_type": "6",
+  "plugin": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/leases/3781109/results/01-ct-persistent-window/direct/node1/libnccl-gin-cxi.so",
+  "cases": [
+    {
+      "contexts": 129,
+      "cycle": 0,
+      "evidence": "contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 1,
+      "evidence": "cycle1-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 2,
+      "evidence": "cycle2-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 3,
+      "evidence": "cycle3-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 4,
+      "evidence": "cycle4-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 5,
+      "evidence": "cycle5-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 6,
+      "evidence": "cycle6-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 7,
+      "evidence": "cycle7-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 8,
+      "evidence": "cycle8-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 9,
+      "evidence": "cycle9-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 10,
+      "evidence": "cycle10-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 11,
+      "evidence": "cycle11-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 12,
+      "evidence": "cycle12-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 13,
+      "evidence": "cycle13-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 14,
+      "evidence": "cycle14-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 15,
+      "evidence": "cycle15-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 16,
+      "evidence": "cycle16-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 17,
+      "evidence": "cycle17-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 18,
+      "evidence": "cycle18-contexts129-rank7.jsonl",
+      "returncode": 0
+    },
+    {
+      "contexts": 129,
+      "cycle": 19,
+      "evidence": "cycle19-contexts129-rank7.jsonl",
+      "returncode": 0
+    }
+  ],
+  "deep_ep": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027/deep_ep/__init__.py",
+  "kind": "smoke",
+  "rounds_requested": 14,
+  "held_window": true,
+  "contexts": 129,
+  "held_window_released": true
+}

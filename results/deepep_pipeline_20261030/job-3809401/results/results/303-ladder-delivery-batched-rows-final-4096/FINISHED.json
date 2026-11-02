@@ -1,0 +1,40 @@
+{
+  "spec": {
+    "name": "303-ladder-delivery-batched-rows-final-4096",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "delivery-batched",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "4096",
+      "CXI_LADDER_SIGNAL_INTERVAL": "0",
+      "CXI_LADDER_COALESCE": "0",
+      "CXI_LADDER_CONTEXTS": "129",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "207-delivery-batched-ep-correctness"
+    ]
+  },
+  "start_utc": "2026-10-30T23:41:40.614871Z",
+  "executor_sha256": "63b757edc41112341207c2bec112f385286b086259b2a865a45d18cb1af977c8",
+  "sequence_sha256": "b7726312deefbc67a35ffa16720df597ea078228bebe15ec7fb7bb3b2aff5a4a",
+  "scheduled_between_gates": true,
+  "returncode": 0,
+  "qualification": {
+    "status": "PASS",
+    "kind": "ladder",
+    "ranks": 8,
+    "contexts": [
+      129
+    ],
+    "rounds": 30,
+    "scope": "prepacked public-GIN transport intervention; no NVLink forwarding or expert computation"
+  },
+  "end_utc": "2026-10-30T23:42:17.610026Z"
+}

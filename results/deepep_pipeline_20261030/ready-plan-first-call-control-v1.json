@@ -1,0 +1,13 @@
+{
+  "requires": [
+    "1803-retire-refresh-tiny-stress"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-first-call-debug-v1",
+      "sequence": "first-call-control-v1-sequence.json",
+      "sequence_sha256": "9bcb09df0864034c77d30155741a72df830c86fd96ebc0063098acaaf9e801a4"
+    }
+  ]
+}

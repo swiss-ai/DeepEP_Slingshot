@@ -1,0 +1,13 @@
+{
+  "requires": [
+    "1112-marker-zero-notification-probe"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-marker-probe-v2",
+      "sequence": "prepared-zero-marker-checks-v3-sequence.json",
+      "sequence_sha256": "065016a9780e27bf4f7e9f4ccdc065988bb032a431afa72a9305367caebb7814"
+    }
+  ]
+}

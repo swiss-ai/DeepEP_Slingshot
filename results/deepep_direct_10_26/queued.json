@@ -1,0 +1,5 @@
+{
+  "command": "bash /iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tools/submit.sh",
+  "queued_at_utc": "20261026T143026Z",
+  "backup": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/queue-before-direct-20261026T143026Z.txt"
+}

@@ -1,0 +1,18 @@
+{
+  "requires": [
+    "1803-retire-refresh-tiny-stress",
+    "1804-retire-refresh-ep-correctness",
+    "1805-retire-refresh-sustained16k",
+    "1806-retire-refresh-repeat1",
+    "1807-retire-refresh-repeat2",
+    "1808-retire-refresh-repeat3"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-cstate-defer-v2",
+      "sequence": "cstate-defer-v2-sequence.json",
+      "sequence_sha256": "8a2b4a9915eb47c6bea942fe268ebaa20e2a7e739c20c2d2d9be83c2ab3424fb"
+    }
+  ]
+}

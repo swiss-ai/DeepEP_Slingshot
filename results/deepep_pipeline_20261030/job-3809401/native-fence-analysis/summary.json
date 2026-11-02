@@ -1,0 +1,254 @@
+[
+  {
+    "tokens": 4096,
+    "operation": "dispatch_fresh",
+    "variant": "fence-control",
+    "median_ms": 2.8413119316101074,
+    "min_repeat_ms": 2.839792013168335,
+    "max_repeat_ms": 2.8464159965515137,
+    "reduction_percent": 0.0,
+    "gates": [
+      "412-fence-control-repeat1",
+      "417-fence-control-repeat2",
+      "420-fence-control-repeat3"
+    ]
+  },
+  {
+    "tokens": 4096,
+    "operation": "dispatch_fresh",
+    "variant": "fence-dc",
+    "median_ms": 2.6803680658340454,
+    "min_repeat_ms": 2.6726080179214478,
+    "max_repeat_ms": 2.6848959922790527,
+    "reduction_percent": 5.664420860854189,
+    "gates": [
+      "413-fence-dc-repeat1",
+      "416-fence-dc-repeat2",
+      "418-fence-dc-repeat3"
+    ]
+  },
+  {
+    "tokens": 4096,
+    "operation": "dispatch_fresh",
+    "variant": "fence-batched",
+    "median_ms": 2.8180640935897827,
+    "min_repeat_ms": 2.815567970275879,
+    "max_repeat_ms": 2.8181920051574707,
+    "reduction_percent": 0.8182078764984695,
+    "gates": [
+      "414-fence-batched-repeat1",
+      "415-fence-batched-repeat2",
+      "419-fence-batched-repeat3"
+    ]
+  },
+  {
+    "tokens": 4096,
+    "operation": "dispatch_cached",
+    "variant": "fence-control",
+    "median_ms": 2.8357439041137695,
+    "min_repeat_ms": 2.8346240520477295,
+    "max_repeat_ms": 2.837264060974121,
+    "reduction_percent": 0.0,
+    "gates": [
+      "412-fence-control-repeat1",
+      "417-fence-control-repeat2",
+      "420-fence-control-repeat3"
+    ]
+  },
+  {
+    "tokens": 4096,
+    "operation": "dispatch_cached",
+    "variant": "fence-dc",
+    "median_ms": 2.681104063987732,
+    "min_repeat_ms": 2.680799961090088,
+    "max_repeat_ms": 2.6815199851989746,
+    "reduction_percent": 5.453237152399551,
+    "gates": [
+      "413-fence-dc-repeat1",
+      "416-fence-dc-repeat2",
+      "418-fence-dc-repeat3"
+    ]
+  },
+  {
+    "tokens": 4096,
+    "operation": "dispatch_cached",
+    "variant": "fence-batched",
+    "median_ms": 2.814736008644104,
+    "min_repeat_ms": 2.8074400424957275,
+    "max_repeat_ms": 2.8216159343719482,
+    "reduction_percent": 0.7408248480827094,
+    "gates": [
+      "414-fence-batched-repeat1",
+      "415-fence-batched-repeat2",
+      "419-fence-batched-repeat3"
+    ]
+  },
+  {
+    "tokens": 4096,
+    "operation": "combine",
+    "variant": "fence-control",
+    "median_ms": 3.848528027534485,
+    "min_repeat_ms": 3.834544062614441,
+    "max_repeat_ms": 3.8612639904022217,
+    "reduction_percent": 0.0,
+    "gates": [
+      "412-fence-control-repeat1",
+      "417-fence-control-repeat2",
+      "420-fence-control-repeat3"
+    ]
+  },
+  {
+    "tokens": 4096,
+    "operation": "combine",
+    "variant": "fence-dc",
+    "median_ms": 3.8455519676208496,
+    "min_repeat_ms": 3.8096479177474976,
+    "max_repeat_ms": 3.8464319705963135,
+    "reduction_percent": 0.0773298230477441,
+    "gates": [
+      "413-fence-dc-repeat1",
+      "416-fence-dc-repeat2",
+      "418-fence-dc-repeat3"
+    ]
+  },
+  {
+    "tokens": 4096,
+    "operation": "combine",
+    "variant": "fence-batched",
+    "median_ms": 3.3323839902877808,
+    "min_repeat_ms": 3.3316320180892944,
+    "max_repeat_ms": 3.3353919982910156,
+    "reduction_percent": 13.411466242519893,
+    "gates": [
+      "414-fence-batched-repeat1",
+      "415-fence-batched-repeat2",
+      "419-fence-batched-repeat3"
+    ]
+  },
+  {
+    "tokens": 16384,
+    "operation": "dispatch_fresh",
+    "variant": "fence-control",
+    "median_ms": 10.723343849182129,
+    "min_repeat_ms": 10.722239971160889,
+    "max_repeat_ms": 10.723488330841064,
+    "reduction_percent": 0.0,
+    "gates": [
+      "412-fence-control-repeat1",
+      "417-fence-control-repeat2",
+      "420-fence-control-repeat3"
+    ]
+  },
+  {
+    "tokens": 16384,
+    "operation": "dispatch_fresh",
+    "variant": "fence-dc",
+    "median_ms": 10.454704284667969,
+    "min_repeat_ms": 10.453808307647705,
+    "max_repeat_ms": 10.482863903045654,
+    "reduction_percent": 2.505184654082032,
+    "gates": [
+      "413-fence-dc-repeat1",
+      "416-fence-dc-repeat2",
+      "418-fence-dc-repeat3"
+    ]
+  },
+  {
+    "tokens": 16384,
+    "operation": "dispatch_fresh",
+    "variant": "fence-batched",
+    "median_ms": 10.598176002502441,
+    "min_repeat_ms": 10.589600086212158,
+    "max_repeat_ms": 10.64628791809082,
+    "reduction_percent": 1.1672464152982847,
+    "gates": [
+      "414-fence-batched-repeat1",
+      "415-fence-batched-repeat2",
+      "419-fence-batched-repeat3"
+    ]
+  },
+  {
+    "tokens": 16384,
+    "operation": "dispatch_cached",
+    "variant": "fence-control",
+    "median_ms": 10.716784000396729,
+    "min_repeat_ms": 10.709392070770264,
+    "max_repeat_ms": 10.717679977416992,
+    "reduction_percent": 0.0,
+    "gates": [
+      "412-fence-control-repeat1",
+      "417-fence-control-repeat2",
+      "420-fence-control-repeat3"
+    ]
+  },
+  {
+    "tokens": 16384,
+    "operation": "dispatch_cached",
+    "variant": "fence-dc",
+    "median_ms": 10.48641586303711,
+    "min_repeat_ms": 10.473151683807373,
+    "max_repeat_ms": 10.567200183868408,
+    "reduction_percent": 2.1496013855564415,
+    "gates": [
+      "413-fence-dc-repeat1",
+      "416-fence-dc-repeat2",
+      "418-fence-dc-repeat3"
+    ]
+  },
+  {
+    "tokens": 16384,
+    "operation": "dispatch_cached",
+    "variant": "fence-batched",
+    "median_ms": 10.613920211791992,
+    "min_repeat_ms": 10.603903770446777,
+    "max_repeat_ms": 10.625455856323242,
+    "reduction_percent": 0.9598382182651846,
+    "gates": [
+      "414-fence-batched-repeat1",
+      "415-fence-batched-repeat2",
+      "419-fence-batched-repeat3"
+    ]
+  },
+  {
+    "tokens": 16384,
+    "operation": "combine",
+    "variant": "fence-control",
+    "median_ms": 14.734096050262451,
+    "min_repeat_ms": 14.704400062561035,
+    "max_repeat_ms": 14.86575984954834,
+    "reduction_percent": 0.0,
+    "gates": [
+      "412-fence-control-repeat1",
+      "417-fence-control-repeat2",
+      "420-fence-control-repeat3"
+    ]
+  },
+  {
+    "tokens": 16384,
+    "operation": "combine",
+    "variant": "fence-dc",
+    "median_ms": 14.834239959716797,
+    "min_repeat_ms": 14.827888011932373,
+    "max_repeat_ms": 14.958992004394531,
+    "reduction_percent": -0.6796746072017217,
+    "gates": [
+      "413-fence-dc-repeat1",
+      "416-fence-dc-repeat2",
+      "418-fence-dc-repeat3"
+    ]
+  },
+  {
+    "tokens": 16384,
+    "operation": "combine",
+    "variant": "fence-batched",
+    "median_ms": 12.881392002105713,
+    "min_repeat_ms": 12.853775978088379,
+    "max_repeat_ms": 12.965648174285889,
+    "reduction_percent": 12.574263408061174,
+    "gates": [
+      "414-fence-batched-repeat1",
+      "415-fence-batched-repeat2",
+      "419-fence-batched-repeat3"
+    ]
+  }
+]

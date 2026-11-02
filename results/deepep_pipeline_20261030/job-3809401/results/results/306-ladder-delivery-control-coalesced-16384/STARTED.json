@@ -1,0 +1,28 @@
+{
+  "spec": {
+    "name": "306-ladder-delivery-control-coalesced-16384",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "16384",
+      "CXI_LADDER_SIGNAL_INTERVAL": "0",
+      "CXI_LADDER_COALESCE": "1",
+      "CXI_LADDER_CONTEXTS": "129",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "203-delivery-control-ep-correctness"
+    ]
+  },
+  "start_utc": "2026-10-30T23:43:34.717326Z",
+  "executor_sha256": "63b757edc41112341207c2bec112f385286b086259b2a865a45d18cb1af977c8",
+  "sequence_sha256": "b7726312deefbc67a35ffa16720df597ea078228bebe15ec7fb7bb3b2aff5a4a",
+  "scheduled_between_gates": true
+}

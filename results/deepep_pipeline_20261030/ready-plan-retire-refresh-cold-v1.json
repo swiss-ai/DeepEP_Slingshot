@@ -1,0 +1,15 @@
+{
+  "requires": [
+    "1803-retire-refresh-tiny-stress",
+    "2200-marker-zero-first257-diagnostic",
+    "2201-marker-control-first257-diagnostic"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-retire-refresh-v2",
+      "sequence": "retire-refresh-cold-v1-sequence.json",
+      "sequence_sha256": "40b087c97b5391b26330019639751a5e8952f0d8a84de38388491e32b35b6d25"
+    }
+  ]
+}

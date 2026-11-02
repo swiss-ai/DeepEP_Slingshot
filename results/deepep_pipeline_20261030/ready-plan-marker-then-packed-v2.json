@@ -1,0 +1,25 @@
+{
+  "requires": [
+    "1120-marker-control-notification-probe",
+    "1122-marker-zero-notification-probe",
+    "1803-retire-refresh-tiny-stress",
+    "2211-retire-refresh-cold-ep-correctness",
+    "2212-retire-refresh-cold-sustained16k",
+    "2213-retire-refresh-cold-repeat1",
+    "2214-retire-refresh-cold-repeat2",
+    "2215-retire-refresh-cold-repeat3"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-retire-refresh-v2",
+      "sequence": "marker-matched-v3-sequence.json",
+      "sequence_sha256": "00a881bf27d2dc410bfd47d498c86ec68c3f3b2226b02d7414ac7a95c21bc70f"
+    },
+    {
+      "snapshot": "source-zero-packed-v3",
+      "sequence": "zero-packed-v4-sequence.json",
+      "sequence_sha256": "07b6f52309ad15c9b16c058185fd56bc8eeeddb236428d317ecda6023a0b84d3"
+    }
+  ]
+}

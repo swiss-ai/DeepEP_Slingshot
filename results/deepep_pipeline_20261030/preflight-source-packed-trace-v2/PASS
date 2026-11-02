@@ -1,0 +1,1 @@
+PASS 12 actual FP8 4K traced dispatch templates; transport inherits byte-identical parent with trace scopes only; GPU qualification pending. Evidence: /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/preflight/source-packed-trace-v2/trace-templates-0d3d23141b4c

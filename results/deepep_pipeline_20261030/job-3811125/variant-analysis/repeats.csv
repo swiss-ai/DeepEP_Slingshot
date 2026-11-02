@@ -1,0 +1,13 @@
+snapshot,variant,experiment,contexts,sms,interval,repeat,model,tokens,dtype,routing,operation,median_ms,p95_ms,gate
+source-zero-packed-v7,marker-zero,allocation2-packed-i16-q129,129,64,16,1,v4flash,4096,fp8,mixed,combine,3.382159948348999,3.6292479038238525,5008-allocation2-packed-i16-q129-repeat1
+source-zero-packed-v7,marker-zero,allocation2-packed-i16-q129,129,64,16,1,v4flash,4096,fp8,mixed,dispatch_cached,1.0511199831962585,1.1304320096969604,5008-allocation2-packed-i16-q129-repeat1
+source-zero-packed-v7,marker-zero,allocation2-packed-i16-q129,129,64,16,1,v4flash,4096,fp8,mixed,dispatch_fresh,1.065567970275879,1.1176960468292236,5008-allocation2-packed-i16-q129-repeat1
+source-zero-packed-v7,marker-zero,allocation2-packed-i16-q129,129,64,16,1,v4flash,16384,fp8,mixed,combine,13.02459192276001,13.5697603225708,5008-allocation2-packed-i16-q129-repeat1
+source-zero-packed-v7,marker-zero,allocation2-packed-i16-q129,129,64,16,1,v4flash,16384,fp8,mixed,dispatch_cached,3.493391990661621,3.5854721069335938,5008-allocation2-packed-i16-q129-repeat1
+source-zero-packed-v7,marker-zero,allocation2-packed-i16-q129,129,64,16,1,v4flash,16384,fp8,mixed,dispatch_fresh,3.4942080974578857,3.5721919536590576,5008-allocation2-packed-i16-q129-repeat1
+source-zero-packed-v7,marker-zero,allocation2-packed-i16-q257,257,64,16,1,v4flash,4096,fp8,mixed,combine,3.4873759746551514,3.8111679553985596,5009-allocation2-packed-i16-q257-repeat1
+source-zero-packed-v7,marker-zero,allocation2-packed-i16-q257,257,64,16,1,v4flash,4096,fp8,mixed,dispatch_cached,1.1986560225486755,1.2978880405426025,5009-allocation2-packed-i16-q257-repeat1
+source-zero-packed-v7,marker-zero,allocation2-packed-i16-q257,257,64,16,1,v4flash,4096,fp8,mixed,dispatch_fresh,1.1870239973068237,1.3012479543685913,5009-allocation2-packed-i16-q257-repeat1
+source-zero-packed-v7,marker-zero,allocation2-packed-i16-q257,257,64,16,1,v4flash,16384,fp8,mixed,combine,13.069503784179688,13.568896293640137,5009-allocation2-packed-i16-q257-repeat1
+source-zero-packed-v7,marker-zero,allocation2-packed-i16-q257,257,64,16,1,v4flash,16384,fp8,mixed,dispatch_cached,3.671631932258606,3.893728017807007,5009-allocation2-packed-i16-q257-repeat1
+source-zero-packed-v7,marker-zero,allocation2-packed-i16-q257,257,64,16,1,v4flash,16384,fp8,mixed,dispatch_fresh,3.7006720304489136,3.9051198959350586,5009-allocation2-packed-i16-q257-repeat1

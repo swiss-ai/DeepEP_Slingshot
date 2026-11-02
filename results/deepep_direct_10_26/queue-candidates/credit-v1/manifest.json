@@ -1,0 +1,13 @@
+{
+  "status": "PREPARED_UNQUALIFIED",
+  "base_bundle": "/home/yu/CSCS/Load_Balance_Cross_Node/results/deepep_direct_10_26/source-bundles/20261027-sequence-checked",
+  "base_primitives_sha256": "93bdce1609a1c1126c1a134552e9a76d15fb9a7d0723d62b8242d152fcb9a736",
+  "files_sha256": {
+    "cxi_primitives.cuh": "a8e3ec7732ea37eac34b58e0d65d42ded5e3cc3afcb795579b11499fd9c48fdb",
+    "cxi_queue_credit.h": "1dbb1732aca71b990567e87d2ed89dc687abad421893c4e5f9a3cb00d10306f9",
+    "candidate.patch": "6eda9fdf57fa562ae31bd3c76e616e3eaf0b6d629bd478519f4d9ea621b20aba"
+  },
+  "change": "bounded TX queue credits instead of per-command consumption wait; still ring every command",
+  "invariants": "same ABI, lock, system fence, transfer ACKs, flush-before-signal, host progress policy",
+  "next": "compile in an isolated prefix; raw/public GIN, wrap/concurrency/source-reuse, EP8 and matched profile/timing gates"
+}

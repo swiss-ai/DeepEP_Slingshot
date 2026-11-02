@@ -1,0 +1,4 @@
+{
+  "external_executor": true,
+  "reason": "Run ABI-v3 matched delivery wrap, producer, EP correctness and timing with candidate-specific completion-count validator after public-GIN gates."
+}

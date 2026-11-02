@@ -1,0 +1,20 @@
+{
+  "requires": [
+    "1120-marker-control-notification-probe",
+    "1122-marker-zero-notification-probe",
+    "1803-retire-refresh-tiny-stress",
+    "1804-retire-refresh-ep-correctness",
+    "1805-retire-refresh-sustained16k",
+    "1806-retire-refresh-repeat1",
+    "1807-retire-refresh-repeat2",
+    "1808-retire-refresh-repeat3"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-retire-refresh-v2",
+      "sequence": "marker-matched-v2-sequence.json",
+      "sequence_sha256": "d15010995b5c1feb29a4cf836a025a847a57fd170be508dae85f145e6ebf6121"
+    }
+  ]
+}

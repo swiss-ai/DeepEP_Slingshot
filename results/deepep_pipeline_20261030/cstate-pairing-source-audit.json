@@ -1,0 +1,28 @@
+{
+  "status": "SOURCE_AUDIT_ONLY_NOT_IMPLEMENTED",
+  "finding": "Installed libcxi emits small UINT64 SUM atomics as32-byte IDC commands; current GPU emitter reserves64bytes for every emit, including CSTATE and the small atomic.",
+  "potential": "Test packing a32-byte CSTATE and32-byte small atomic into one64-byte publication unit, preserving ordering and one transfer completion. This could remove one queue-space observation/system fence and publication unit per notification without an ABI or variable-width cursor change.",
+  "priority": "Only after cold correctness qualification and matched row-packing/CSTATE-publication results; no performance claim.",
+  "required_checks": [
+    "Verify sizeof/layout and exact64-byte bytes against installed libcxi helper output",
+    "Preserve native CQ_FENCE and delivery-marker semantics before the paired commands",
+    "Count only the atomic in posted transfer completions; distinguish64-byte publication units from NIC semantic commands",
+    "Full API/reset/negative/notification-mutation/wrap/concurrent-producer/EP correctness and three matched ordinary repeats"
+  ],
+  "sources": [
+    {
+      "path": "tools/cxi_gin/reference/clariden-installed-20261031/cxi_prov_hw.h",
+      "sha256": "7e4d3394f4f46e1b4718cc3f70cd689b283c868e30d4c6a40cc5f714bb510122"
+    },
+    {
+      "path": "results/deepep_pipeline_20261030/source-retire-refresh-v2/backend/device/cxi_primitives.cuh",
+      "sha256": "2bf59643036e6a0a637bcfa5f5a0515b021b6a23f0fae2779d377de3f8769378"
+    }
+  ],
+  "source_locations": {
+    "vendor_small_amo": "cxi_prov_hw.h:1181-1204",
+    "current_state": "cxi_primitives.cuh:183-189",
+    "current_add": "cxi_primitives.cuh:201-212",
+    "current_emit": "cxi_primitives.cuh:67-86"
+  }
+}

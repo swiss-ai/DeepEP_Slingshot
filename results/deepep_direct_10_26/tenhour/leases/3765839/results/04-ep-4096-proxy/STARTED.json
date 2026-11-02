@@ -1,0 +1,42 @@
+{
+  "request": "04-ep-4096-proxy.json",
+  "start_utc": "2026-10-27T10:45:45.215642+00:00",
+  "allocation": {
+    "checked_epoch": 1793097945.2174532,
+    "exported_end_epoch": "1793098283",
+    "source": "scontrol current job record",
+    "job_state": [
+      "RUNNING"
+    ],
+    "end_epoch": 1793098763.0,
+    "remaining_seconds": 817.7825467586517
+  },
+  "spec": {
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/gate-20261027-1035",
+    "node_script": "backend/tools/direct_node.sh",
+    "timeout_seconds": 360,
+    "environment": {
+      "CXI_TEST_KIND": "ep",
+      "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_SMS": "64",
+      "CXI_TRANSPORT": "proxy",
+      "CXI_EP_MODELS": "v4flash qwen3 minimax",
+      "CXI_EP_TOKENS": "4096",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "uniform",
+      "CXI_EP_SEEDS": "1 2 3",
+      "CXI_EP_WARMUP": "10",
+      "CXI_EP_ITERS": "50",
+      "CXI_EP_NIC_ITERS": "50",
+      "CXI_TEST_TIMEOUT": "330",
+      "CXI_EP_DEBUG": "0"
+    },
+    "qualification": "ep",
+    "requires": [
+      "03-ep-4096-direct"
+    ],
+    "stop_after": false
+  },
+  "node_script_sha256": "7fa3d696afd18ed54e69239876bb4d59de7aada87ae8045de12eb14f0956fe85"
+}

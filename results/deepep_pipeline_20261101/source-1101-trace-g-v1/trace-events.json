@@ -1,0 +1,15 @@
+{
+  "events": {
+    "113": "packed_payload_submission",
+    "114": "tail_notification_submission",
+    "115": "receiver_tail_observation",
+    "209": "TX_publication",
+    "210": "delivery_marker_enqueue",
+    "211": "NIC_fence_enqueue",
+    "212": "CSTATE_submission",
+    "213": "atomic_notification_submission",
+    "214": "TX_admission_cursor_observation",
+    "116": "packed_combine_batch_submission"
+  },
+  "scope": "GPU-observed submission/observation scopes; overlapping; not NIC wire timestamps"
+}

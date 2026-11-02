@@ -1,0 +1,55 @@
+{
+  "spec": {
+    "name": "8575-f8-4k-correctness",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1101-first-batch-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_VARIANT": "marker-zero",
+      "CXI_TRANSPORT": "direct",
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_UPDATE_INTERVAL": "16",
+      "CXI_EP_DEBUG": "0",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_DROP_EVERY": "0",
+      "CXI_TEST_KIND": "ep",
+      "CXI_EP_PACK_ROWS": "1",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096",
+      "CXI_EP_DTYPES": "fp8 bf16",
+      "CXI_EP_ROUTING": "mixed uniform hot_rank local remote",
+      "CXI_EP_SEEDS": "1 2",
+      "CXI_EP_WARMUP": "2",
+      "CXI_EP_ITERS": "3",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0",
+      "CXI_LOCAL_JIT": "1",
+      "CXI_LOCAL_RESULTS": "1",
+      "CXI_DIAGNOSTIC_WATCHDOG": "0",
+      "CXI_LOCAL_LOGS": "1",
+      "CXI_EP_FORWARD_CHUNK": "3",
+      "CXI_EP_COMBINE_BATCH": "16",
+      "CXI_EP_PACK_COMBINE": "1",
+      "CXI_EP_MERGE_FINAL_TAIL": "1",
+      "CXI_EP_FIRST_INTERVAL": "8",
+      "CXI_EP_COMBINE_FIRST_BATCH": "4"
+    },
+    "requires": [
+      "8574-f8-irregular-stress"
+    ]
+  },
+  "start_utc": "2026-11-02T02:20:32.776241Z",
+  "returncode": 0,
+  "qualification": {
+    "status": "PASS",
+    "kind": "ep",
+    "ranks": 8,
+    "cases_per_rank": 20,
+    "gin_type": "6"
+  },
+  "end_utc": "2026-11-02T02:21:57.631596Z"
+}

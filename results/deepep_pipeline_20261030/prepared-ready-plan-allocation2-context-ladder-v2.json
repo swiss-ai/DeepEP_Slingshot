@@ -1,0 +1,22 @@
+{
+  "requires": [],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-zero-packed-v7",
+      "sequence": "prepared-allocation2-context-v1-sequence.json",
+      "sequence_sha256": "595198f253fe8d0601a3329d8bf25fabd09541675687f0b05d5e323002a8defc"
+    },
+    {
+      "snapshot": "source-packed-trace-v2",
+      "sequence": "prepared-allocation2-context-trace-v1-sequence.json",
+      "sequence_sha256": "b0d2a518ffd00719e47543c97d5e98220abaa73af1b77f001e38590802a9732c"
+    },
+    {
+      "snapshot": "source-transport-ladder-v1",
+      "sequence": "prepared-allocation2-transport-ladder-v1-sequence.json",
+      "sequence_sha256": "60d9955283a7d2ab410617929d5f40ce7d910ac4fbd77c015cfa94506bcbf4a6"
+    }
+  ],
+  "scope": "Fresh-allocation EP qualification, paired context repeats, private traces, then matched raw4320/8256-byte transport probes using identical zero-marker transport; hold for agent review. Not launched."
+}

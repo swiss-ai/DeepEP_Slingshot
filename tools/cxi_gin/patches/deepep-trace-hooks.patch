@@ -1,0 +1,697 @@
+diff -ruN ep/csrc/elastic/buffer.hpp trace/csrc/elastic/buffer.hpp
+--- ep/csrc/elastic/buffer.hpp	2026-10-26 15:14:18.993620000 +0100
++++ trace/csrc/elastic/buffer.hpp	2026-10-30 13:29:34.178185500 +0100
+@@ -1,3 +1,4 @@
++#include "host_trace.hpp"
+ #pragma once
+ 
+ #include <cuda_runtime.h>
+@@ -691,6 +692,7 @@
+         // Check SM count
+         EP_HOST_ASSERT(num_sms > 0);
+ 
++        ep_trace_host::mark("dispatch_enter");
+         // Cached mode must have responding handles
+         const bool cached_mode = cached_num_recv_tokens.has_value();
+         if (cached_mode) {
+@@ -758,7 +760,9 @@
+ 
+         // Stream control
+         // All new tensor allocations should happen after this
++        ep_trace_host::mark("stream_prologue_begin");
+         const auto compute_stream = stream_control_prologue(previous_event, allocate_on_comm_stream, async_with_compute_stream);
++        ep_trace_host::mark("stream_prologue_end");
+ 
+         // The number of received tokens per expert
+         // This is useful for expanding mode
+@@ -945,6 +949,7 @@
+ 
+         // Do dispatch into the buffers (with SM limitation)
+         EP_HOST_ASSERT(num_sms <= jit::device_runtime->get_num_sms());
++        ep_trace_host::mark("hybrid_launch_begin");
+         launch_dispatch(x.data_ptr(), sf_ptr,
+                         topk_idx.data_ptr<topk_idx_t>(), topk_weights_ptr,
+                         copied_topk_idx_ptr,
+@@ -969,6 +974,8 @@
+                         cached_mode, deterministic, do_cpu_sync,
+                         comm_stream);
+ 
++        ep_trace_host::mark("hybrid_launch_end");
++        ep_trace_host::mark("receive_counts_begin");
+         // Received token counters
+         int num_recv_tokens = 0, num_expanded_tokens = 0;
+         int counter_scaleup_rank_idx = 0, counter_local_expert_idx = 0;
+@@ -1039,6 +1046,8 @@
+             num_expanded_tokens = math::align(num_expanded_tokens, expert_alignment);
+         }
+ 
++        ep_trace_host::mark("receive_counts_end");
++        ep_trace_host::mark("output_allocation_begin");
+         // Allocate received tensors
+         // `recv_src_metadata` includes source token indices and buffer slot indices
+         const auto num_allocated_tokens = do_expand ? num_expanded_tokens : num_recv_tokens;
+@@ -1089,6 +1098,8 @@
+         }
+         EP_HOST_ASSERT(psum_num_recv_tokens_per_expert.size(0) == num_local_experts);
+ 
++        ep_trace_host::mark("output_allocation_end");
++        ep_trace_host::mark("copy_launch_begin");
+         // Launch copy kernels with full SMs
+         stream_control_before_epilogue(previous_event_before_epilogue);
+         launch_dispatch_copy_epilogue(buffer, workspace,
+@@ -1110,6 +1121,8 @@
+                                       do_expand, cached_mode,
+                                       comm_stream);
+ 
++        ep_trace_host::mark("copy_launch_end");
++        ep_trace_host::mark("stream_epilogue_begin");
+         // Stream control
+         const auto event = stream_control_epilogue(
+             {x, sf, topk_idx, topk_weights,
+@@ -1126,6 +1139,8 @@
+             compute_stream,
+             allocate_on_comm_stream, async_with_compute_stream);
+ 
++        ep_trace_host::mark("stream_epilogue_end");
++        ep_trace_host::mark("dispatch_exit");
+         return {recv_x, recv_sf,
+                 recv_topk_idx, recv_topk_weights,
+                 copied_topk_idx,
+diff -ruN ep/csrc/elastic/host_trace.hpp trace/csrc/elastic/host_trace.hpp
+--- ep/csrc/elastic/host_trace.hpp	1970-01-01 01:00:00.000000000 +0100
++++ trace/csrc/elastic/host_trace.hpp	2026-10-30 13:29:34.175870700 +0100
+@@ -0,0 +1,15 @@
++#pragma once
++#include <time.h>
++#include <stdint.h>
++#include <vector>
++namespace ep_trace_host {
++struct Event {const char* name; uint64_t ns;};
++inline thread_local bool active=false;
++inline thread_local std::vector<Event> events;
++inline void mark(const char* name) {
++  if (!active) return;
++  timespec t; clock_gettime(CLOCK_MONOTONIC,&t);
++  events.push_back({name,uint64_t(t.tv_sec)*1000000000ULL+uint64_t(t.tv_nsec)});
++}
++inline void enable(bool value) {events.clear();events.reserve(256);active=value;}
++}
+diff -ruN ep/csrc/python_api.cpp trace/csrc/python_api.cpp
+--- ep/csrc/python_api.cpp	2026-10-26 15:14:18.998402800 +0100
++++ trace/csrc/python_api.cpp	2026-10-30 13:29:34.176147000 +0100
+@@ -20,6 +20,12 @@
+ }
+ 
+ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
++    m.def("_ep_trace_host_enable", [](bool enabled) {ep_trace_host::enable(enabled);});
++    m.def("_ep_trace_host_read", []() {
++        ep_trace_host::active=false; pybind11::list result;
++        for (const auto& e:ep_trace_host::events) result.append(pybind11::make_tuple(e.name,e.ns));
++        return result;
++    });
+     m.doc() = "DeepEP: an efficient expert-parallel communication library";
+ 
+     // Whether support FP8 and TMA features
+diff -ruN ep/deep_ep/include/deep_ep/common/cxi_packed_channel.cuh trace/deep_ep/include/deep_ep/common/cxi_packed_channel.cuh
+--- ep/deep_ep/include/deep_ep/common/cxi_packed_channel.cuh	2026-10-31 04:58:27.213717700 +0100
++++ trace/deep_ep/include/deep_ep/common/cxi_packed_channel.cuh	1970-01-01 01:00:00.000000000 +0100
+@@ -1,14 +0,0 @@
+-#pragma once
+-#ifdef __CUDACC__
+-#define CXI_PACK_HD __host__ __device__
+-#else
+-#define CXI_PACK_HD
+-#endif
+-namespace deep_ep { namespace elastic {
+-// Sum the actual capacities of preceding strided channels, without padding.
+-CXI_PACK_HD constexpr int packed_channel_base(int max_tokens, int channels, int channel) {
+-    return channel * (max_tokens / channels) +
+-           (channel < max_tokens % channels ? channel : max_tokens % channels);
+-}
+-}}
+-#undef CXI_PACK_HD
+diff -ruN ep/deep_ep/include/deep_ep/common/cxi_packed_combine.cuh trace/deep_ep/include/deep_ep/common/cxi_packed_combine.cuh
+--- ep/deep_ep/include/deep_ep/common/cxi_packed_combine.cuh	2026-11-01 22:11:45.047654000 +0100
++++ trace/deep_ep/include/deep_ep/common/cxi_packed_combine.cuh	1970-01-01 01:00:00.000000000 +0100
+@@ -1,15 +0,0 @@
+-#pragma once
+-#ifdef __CUDACC__
+-#define CXI_PACKC_HD __host__ __device__
+-#else
+-#define CXI_PACKC_HD
+-#endif
+-namespace deep_ep { namespace elastic {
+-// Channel-major slot of token `t` inside one scale-out receive layer. Bijective on
+-// [0, max_tokens): channel c = t % channels owns slots [base(c), base(c) + count(c)).
+-CXI_PACKC_HD constexpr int packed_combine_slot(int max_tokens, int channels, int t) {
+-    const int c = t % channels;
+-    return c * (max_tokens / channels) + (c < max_tokens % channels ? c : max_tokens % channels) + t / channels;
+-}
+-}}
+-#undef CXI_PACKC_HD
+diff -ruN ep/deep_ep/include/deep_ep/impls/combine_reduce_epilogue.cuh trace/deep_ep/include/deep_ep/impls/combine_reduce_epilogue.cuh
+--- ep/deep_ep/include/deep_ep/impls/combine_reduce_epilogue.cuh	2026-11-01 22:11:45.049692200 +0100
++++ trace/deep_ep/include/deep_ep/impls/combine_reduce_epilogue.cuh	2026-10-30 13:29:34.183069000 +0100
+@@ -1,11 +1,5 @@
++#include <deep_ep/impls/device_trace.cuh>
+ #pragma once
+-#ifndef CXI_EP_PACK_COMBINE
+-#define CXI_EP_PACK_COMBINE 0
+-#endif
+-#ifndef CXI_EP_PACK_COMBINE_CHANNELS
+-#define CXI_EP_PACK_COMBINE_CHANNELS 256
+-#endif
+-#include <deep_ep/common/cxi_packed_combine.cuh>
+ 
+ #include <deep_ep/common/compiled.cuh>
+ #include <deep_ep/common/ptx.cuh>
+@@ -61,17 +55,15 @@
+     const auto bias_0_buffer = layout::BufferLayout<false>(output_token_layout, 1, num_combined_tokens, bias_0);
+     const auto bias_1_buffer = layout::BufferLayout<false>(output_token_layout, 1, num_combined_tokens, bias_1);
+ 
++    ep_trace::Scope trace_epilogue(140,0,0,lane_idx==0);
++    const auto trace_dependency=ep_trace::begin(lane_idx==0);
+     // Will block until the main combine kernel has finished and all data are visible
+     // NOTES: PDL is used, please do not use `__ldg`
+     cudaGridDependencySynchronize();
++    ep_trace::finish(141,trace_dependency);
+ 
+-    static_assert(!CXI_EP_PACK_COMBINE || (kAllowMultipleReduction && kUseRankLayout && !kUseExpandedLayout && kNumScaleoutRanks == 2),
+-                  "Packed combine epilogue requires the two-node multiple-reduction rank layout");
+     // Read from buffers and do reduction
+     for (int token_idx = global_warp_idx; token_idx < num_combined_tokens; token_idx += kNumWarps * kNumSMs) {
+-        // Packed combine stores token t of every layer at its channel-major slot.
+-        const int comm_token_idx = CXI_EP_PACK_COMBINE ?
+-            packed_combine_slot(kNumMaxTokensPerRank, CXI_EP_PACK_COMBINE_CHANNELS, token_idx) : token_idx;
+         // Preprocess all indices
+         int stored_dst_rank_idx = -1, stored_dst_expert_idx = -1;
+         EP_STATIC_ASSERT(kNumTopk <= 32, "Too many top-k selections");
+@@ -114,7 +106,7 @@
+             lane_idx, topk_slot_idx, static_cast<combine_vec_t*>(tma_buffer.get_base_ptr()),
+             /* Get source base */ [=](const int& slot_idx) {
+                 return static_cast<combine_vec_t*>(
+-                    comm_buffer.get_rank_buffer(slot_idx).get_token_buffer(comm_token_idx).get_base_ptr());
++                    comm_buffer.get_rank_buffer(slot_idx).get_token_buffer(token_idx).get_base_ptr());
+             },
+             /* Wait buffer release */ [=]() {
+                 ptx::tma_store_wait();
+@@ -144,7 +136,7 @@
+                 if (stored_dst_rank_idx >= 0) {
+                     const auto dst_ptr = comm_buffer
+                         .get_rank_buffer(kUseRankLayout ? stored_dst_rank_idx : master_lane_idx)
+-                        .get_token_buffer(comm_token_idx).get_topk_weights_ptr() + lane_idx;
++                        .get_token_buffer(token_idx).get_topk_weights_ptr() + lane_idx;
+                     value = *dst_ptr;
+                 }
+                 combined_topk_weights[token_idx * kNumTopk + lane_idx] = value;
+diff -ruN ep/deep_ep/include/deep_ep/impls/device_trace.cuh trace/deep_ep/include/deep_ep/impls/device_trace.cuh
+--- ep/deep_ep/include/deep_ep/impls/device_trace.cuh	1970-01-01 01:00:00.000000000 +0100
++++ trace/deep_ep/include/deep_ep/impls/device_trace.cuh	2026-10-30 13:29:34.180858100 +0100
+@@ -0,0 +1,29 @@
++#ifndef EP_DEVICE_TRACE_V1_HEADER
++#define EP_DEVICE_TRACE_V1_HEADER
++#include <cuda_runtime.h>
++#include <stdint.h>
++#ifndef EP_TRACE_PTR
++#define EP_TRACE_PTR 0ULL
++#endif
++namespace ep_trace {
++constexpr unsigned slots=8192, capacity=4096, header_words=8+slots, words=8;
++__device__ __forceinline__ uint64_t now(){uint64_t t;asm volatile("mov.u64 %0, %%globaltimer;":"=l"(t));return t;}
++__device__ __forceinline__ uint64_t begin(bool select=true){return select && EP_TRACE_PTR && *reinterpret_cast<volatile uint64_t*>(EP_TRACE_PTR) ? now():0;}
++__device__ __forceinline__ void finish(unsigned event,uint64_t start,uint64_t a=0,uint64_t b=0){
++  if(!start)return;const auto end=now();
++  auto* base=reinterpret_cast<unsigned long long*>(EP_TRACE_PTR);
++  const unsigned slot=blockIdx.x*32+threadIdx.x/32;
++  if(slot>=slots){atomicAdd(base+1,1ULL);return;}
++  const auto i=atomicAdd(base+8+slot,1ULL);
++  if(i>=capacity){atomicAdd(base+1,1ULL);return;}
++  auto* p=base+header_words+(slot*capacity+i)*words;
++  unsigned sm;asm volatile("mov.u32 %0, %%smid;":"=r"(sm));
++  p[0]=start;p[1]=end;p[2]=event;p[3]=blockIdx.x;p[4]=threadIdx.x;p[5]=a;p[6]=b;p[7]=sm;
++}
++struct Scope {
++  unsigned event;uint64_t start,a,b;
++  __device__ __forceinline__ Scope(unsigned e,uint64_t x=0,uint64_t y=0,bool select=true):event(e),start(begin(select)),a(x),b(y){}
++  __device__ __forceinline__ ~Scope(){finish(event,start,a,b);}
++};
++}
++#endif
+diff -ruN ep/deep_ep/include/deep_ep/impls/dispatch_copy_epilogue.cuh trace/deep_ep/include/deep_ep/impls/dispatch_copy_epilogue.cuh
+--- ep/deep_ep/include/deep_ep/impls/dispatch_copy_epilogue.cuh	2026-10-26 15:14:19.001418000 +0100
++++ trace/deep_ep/include/deep_ep/impls/dispatch_copy_epilogue.cuh	2026-10-30 13:29:34.180685300 +0100
+@@ -1,3 +1,4 @@
++#include <deep_ep/impls/device_trace.cuh>
+ #pragma once
+ 
+ #include <deep_ep/common/compiled.cuh>
+@@ -54,9 +55,12 @@
+         ptx::mbarrier_init_with_fence(mbarrier_ptr, 1);
+     __syncwarp();
+ 
++    ep_trace::Scope trace_copy(120,0,0,lane_idx==0);
++    const auto trace_dep=ep_trace::begin(lane_idx==0);
+     // Will block until the main dispatch kernel has finished and all data are visible
+     // NOTES: PDL is used, please do not use `__ldg`
+     cudaGridDependencySynchronize();
++    ep_trace::finish(121,trace_dep);
+ 
+     // For no CPU sync case, the number of received tokens should be read from the GPU tensor
+     if (num_recv_tokens == kNumMaxTokensPerRank * kNumRanks)
+diff -ruN ep/deep_ep/include/deep_ep/impls/hybrid_combine.cuh trace/deep_ep/include/deep_ep/impls/hybrid_combine.cuh
+--- ep/deep_ep/include/deep_ep/impls/hybrid_combine.cuh	2026-11-02 02:06:49.133578500 +0100
++++ trace/deep_ep/include/deep_ep/impls/hybrid_combine.cuh	2026-10-30 13:29:34.182831800 +0100
+@@ -1,20 +1,5 @@
++#include <deep_ep/impls/device_trace.cuh>
+ #pragma once
+-#ifndef CXI_EP_PACK_COMBINE
+-#define CXI_EP_PACK_COMBINE 0
+-#endif
+-#ifndef CXI_EP_COMBINE_BATCH
+-#define CXI_EP_COMBINE_BATCH 16
+-#endif
+-#ifndef CXI_EP_PACK_COMBINE_CHANNELS
+-#define CXI_EP_PACK_COMBINE_CHANNELS 256
+-#endif
+-static_assert(CXI_EP_PACK_COMBINE == 0 || CXI_EP_PACK_COMBINE == 1);
+-static_assert(CXI_EP_COMBINE_BATCH >= 1 && CXI_EP_COMBINE_BATCH <= 64);
+-#ifndef CXI_EP_COMBINE_FIRST_BATCH
+-#define CXI_EP_COMBINE_FIRST_BATCH CXI_EP_COMBINE_BATCH
+-#endif
+-static_assert(CXI_EP_COMBINE_FIRST_BATCH >= 1 && CXI_EP_COMBINE_FIRST_BATCH <= CXI_EP_COMBINE_BATCH);
+-#include <deep_ep/common/cxi_packed_combine.cuh>
+ 
+ #include <deep_ep/common/comm.cuh>
+ #include <deep_ep/common/layout.cuh>
+@@ -62,13 +47,6 @@
+     const auto warp_idx = ptx::get_warp_idx();
+     const auto lane_idx = ptx::get_lane_idx();
+     constexpr bool kDoExpandedSend = not kAllowMultipleReduction and kUseExpandedLayout;
+-    static_assert(!CXI_EP_PACK_COMBINE || (kAllowMultipleReduction && kUseScaleoutRankLayout && !kUseExpandedLayout),
+-                  "Packed combine prototype requires multiple-reduction rank layout without expansion");
+-    static_assert(!CXI_EP_PACK_COMBINE || kNumScaleoutRanks == 2, "Packed combine prototype requires exactly two scale-out nodes");
+-    static_assert(!CXI_EP_PACK_COMBINE || kNumChannels == CXI_EP_PACK_COMBINE_CHANNELS,
+-                  "Packed combine channel count must match the epilogue's compile-time constant");
+-    // The batch limit is an upper bound on a run of consecutive rows; small token counts have
+-    // fewer rows per channel than the limit and simply never trigger an early flush.
+ 
+     // Combine vector type selection
+     using combine_vec_t = typename CombineVecTraits<kNumHiddenBytes>::vec_t;
+@@ -113,12 +91,15 @@
+         comm::get_qp_mode<kNumSMs, kNumQPs, kNumChannelsPerSM>(sm_idx, warp_idx % kNumChannelsPerSM);
+     const auto gin = handle::NCCLGin(nccl_dev_comm, nccl_window, qp_idx, sharing_mode);
+ 
++    ep_trace::Scope trace_kernel(130,0,0,lane_idx==0);
++    const auto trace_initial=ep_trace::begin(lane_idx==0);
+     // Global parallel barriers for scale-out subteam and scale-up subteam
+     // NOTES: this barrier needs a grid sync, as there are channel scale-up tail cleaning before
+     comm::gpu_barrier<true, kNumScaleoutRanks, kNumScaleupRanks,
+                       kNumSMs, kNumThreads, kNumQPs, kNumTimeoutCycles, comm::kHybridCombineTag0, false, true, true>(
+         gin, workspace_layout, scaleout_rank_idx, scaleup_rank_idx, sm_idx, thread_idx);
+ 
++    ep_trace::finish(131,trace_initial);
+     // Adjust register count at certain cases
+     // TODO: support more cases, or try to make channel count more aligned
+     const bool kAdjustRegisters = (kNumChannelsPerSM == 4 or kNumChannelsPerSM == 8) and not kUseExpandedLayout;
+@@ -127,6 +108,7 @@
+ 
+     // Different warp roles
+     if (warp_idx < kNumScaleupWarps) {
++        ep_trace::Scope trace_scaleup(132,0,0,lane_idx==0);
+         const auto channel_idx = sm_idx * kNumChannelsPerSM + warp_idx;
+ 
+         // Adjust registers
+@@ -366,6 +348,7 @@
+         // Update for the unissued ones
+         update_tails(true);
+     } else {
++        ep_trace::Scope trace_forward(133,0,0,lane_idx==0);
+         const auto forward_warp_idx = warp_idx - kNumScaleupWarps;
+         const auto channel_idx = sm_idx * kNumChannelsPerSM + forward_warp_idx;
+ 
+@@ -385,37 +368,11 @@
+         int last_is_token_last_in_chunk = 0;
+         void* last_recv_token_buffer_ptr = nullptr;
+         void* last_send_token_buffer_ptr = nullptr;
+-        // Packed combine: consecutive remote-origin rows of this channel are staged at their
+-        // channel-local position j of the send slice and land at the same relative position of
+-        // the channel-major receive layer, so one PUT covers [first_j, last_j].
+-        int packed_first_j = -1, packed_last_j = -1, packed_peer = -1;
+-        bool packed_any_flushed = false;
+-        void* packed_dst_base = nullptr; void* packed_src_base = nullptr;
+-        const auto flush_packed_batch = [&](const bool& final_batch) {
+-            if constexpr (CXI_EP_PACK_COMBINE) {
+-                if (packed_first_j >= 0 and ptx::elect_one_sync()) {
+-                    ptx::tma_store_wait();
+-                    gin.put<ncclTeamTagRail>(
+-                        packed_dst_base, packed_src_base,
+-                        (packed_last_j - packed_first_j + 1) * token_layout.get_num_bytes<false>(),
+-                        packed_peer, final_batch ? 0 : ncclGinOptFlagsAggregateRequests);
+-                }
+-                __syncwarp();
+-                if (packed_first_j >= 0)
+-                    packed_any_flushed = true;
+-                packed_first_j = -1;
+-            }
+-        };
+         const auto flush_last_tma_and_issue_rdma = [&]() {
+-            if constexpr (CXI_EP_PACK_COMBINE) {
+-                // Only release the shared TMA staging buffer; the PUT is issued per batch.
+-                if (ptx::elect_one_sync())
+-                    ptx::tma_store_wait();
+-                __syncwarp();
+-                return;
+-            }
+             if (last_src_scaleout_rank_idx >= 0 and ptx::elect_one_sync()) {
++                const auto trace_tma=ep_trace::begin();
+                 ptx::tma_store_wait();
++                ep_trace::finish(136,trace_tma,channel_idx,last_src_scaleout_rank_idx);
+ 
+                 // Issue only if not local rank
+                 if (last_src_scaleout_rank_idx != scaleout_rank_idx) {
+@@ -457,6 +414,7 @@
+             for (int j = 0; j < kNumScaleupRanksPerLane; ++ j)
+                 stored_is_scaleup_rank_needed[j] = (scaleup_mask >> (j * 32 + lane_idx)) & 1;
+ 
++            const auto trace_local=ep_trace::begin(lane_idx==0);
+             // Wait all tails to arrive
+             comm::timeout_while<kNumTimeoutCycles>([&](const bool& is_last_check) {
+                 bool arrived = true;
+@@ -490,6 +448,8 @@
+                 return false;
+             });
+ 
++            ep_trace::finish(134,trace_local,channel_idx,src_token_global_idx);
++            const auto trace_reduce=ep_trace::begin(lane_idx==0);
+             // Increase received count
+             #pragma unroll
+             for (int j = 0; j < kNumScaleupRanksPerLane; ++ j)
+@@ -595,41 +555,6 @@
+                     const int src_topk_idx = ptx::get_master_lane_idx(ptx::gather(stored_src_scaleup_rank_idx >= 0));
+                     scaleout_recv_buffer_rank_idx = src_topk_idx;
+                 }
+-                if constexpr (CXI_EP_PACK_COMBINE) {
+-                    const int packed_slot = packed_combine_slot(kNumMaxTokensPerRank, kNumChannels, src_token_idx);
+-                    const auto recv_token_buffer = scaleout_recv_buffer.get_rank_buffer(scaleout_recv_buffer_rank_idx).get_token_buffer(packed_slot);
+-                    if (src_scaleout_rank_idx == scaleout_rank_idx) {
+-                        // Local bypass: same channel-major position in this rank's own layer.
+-                        if (ptx::elect_one_sync()) {
+-                            ptx::tma_store_1d(recv_token_buffer.get_base_ptr(), tma_buffer.get_base_ptr(),
+-                                              token_layout.get_num_bytes<false>());
+-                            ptx::tma_store_commit();
+-                        }
+-                        __syncwarp();
+-                    } else {
+-                        const int j = src_token_idx / kNumChannels;
+-                        const bool contiguous = packed_first_j >= 0 and packed_peer == src_scaleout_rank_idx and j == packed_last_j + 1;
+-                        EP_DEVICE_ASSERT(src_token_idx % kNumChannels == channel_idx);
+-                        if (not contiguous) {
+-                            flush_packed_batch(false);
+-                            packed_first_j = j; packed_peer = src_scaleout_rank_idx;
+-                            packed_dst_base = recv_token_buffer.get_base_ptr();
+-                            packed_src_base = scaleout_send_buffer.get_token_buffer(j).get_base_ptr();
+-                        }
+-                        packed_last_j = j;
+-                        if (ptx::elect_one_sync()) {
+-                            ptx::tma_store_1d(scaleout_send_buffer.get_token_buffer(j).get_base_ptr(), tma_buffer.get_base_ptr(),
+-                                              token_layout.get_num_bytes<false>());
+-                            ptx::tma_store_commit();
+-                        }
+-                        __syncwarp();
+-                        if (packed_last_j - packed_first_j + 1 >= (packed_any_flushed ? CXI_EP_COMBINE_BATCH : CXI_EP_COMBINE_FIRST_BATCH))
+-                            flush_packed_batch(false);
+-                    }
+-                    // Record only for the (now unused) single-row path bookkeeping.
+-                    last_src_scaleout_rank_idx = -1;
+-                    continue;
+-                }
+                 const auto recv_token_buffer = scaleout_recv_buffer.get_rank_buffer(scaleout_recv_buffer_rank_idx).get_token_buffer(src_token_idx);
+                 const auto send_token_buffer = src_scaleout_rank_idx == scaleout_rank_idx ?
+                     recv_token_buffer :
+@@ -649,13 +574,12 @@
+                 last_recv_token_buffer_ptr = recv_token_buffer.get_base_ptr();
+                 last_send_token_buffer_ptr = send_token_buffer.get_base_ptr();
+             }
++            ep_trace::finish(135,trace_reduce,channel_idx,src_token_global_idx);
+         }
+ 
+         // Issue the last RDMA
+-        if constexpr (kAllowMultipleReduction) {
++        if constexpr (kAllowMultipleReduction)
+             flush_last_tma_and_issue_rdma();
+-            flush_packed_batch(true);
+-        }
+ 
+         // Clean scaleup tails
+         #pragma unroll
+@@ -666,6 +590,7 @@
+         }
+         __syncwarp();
+ 
++        const auto trace_finish=ep_trace::begin(lane_idx==0);
+         // Update, wait and clean
+         EP_STATIC_ASSERT(kNumScaleoutRanks <= 32, "Invalid ranks");
+         const auto expected_signal = math::pack2<int, int64_t>(1, 0);
+@@ -678,6 +603,8 @@
+         }
+         __syncwarp();
+ 
++        ep_trace::finish(137,trace_finish,channel_idx);
++        const auto trace_remote=ep_trace::begin(lane_idx==0);
+         // Wait tail arrival
+         if (lane_idx < kNumScaleoutRanks) {
+             const auto wait_ptr = workspace_layout.get_scaleout_channel_signaled_tail_ptr(channel_idx, lane_idx);
+@@ -700,8 +627,10 @@
+             });
+         }
+         __syncwarp();
++        ep_trace::finish(138,trace_remote,channel_idx);
+     }
+ 
++    ep_trace::finish(139,ep_trace::begin(lane_idx==0));
+     // No barrier at epilogue
+ }
+ 
+diff -ruN ep/deep_ep/include/deep_ep/impls/hybrid_dispatch.cuh trace/deep_ep/include/deep_ep/impls/hybrid_dispatch.cuh
+--- ep/deep_ep/include/deep_ep/impls/hybrid_dispatch.cuh	2026-11-02 02:06:49.133023300 +0100
++++ trace/deep_ep/include/deep_ep/impls/hybrid_dispatch.cuh	2026-10-30 23:28:19.050585700 +0100
+@@ -6,20 +6,8 @@
+ #endif
+ static_assert(CXI_EP_UPDATE_INTERVAL >= 1 && CXI_EP_UPDATE_INTERVAL <= 64);
+ static_assert(CXI_EP_FORWARD_CHUNK >= 1 && CXI_EP_FORWARD_CHUNK <= 64);
+-#ifndef CXI_EP_FIRST_INTERVAL
+-#define CXI_EP_FIRST_INTERVAL CXI_EP_UPDATE_INTERVAL
+-#endif
+-static_assert(CXI_EP_FIRST_INTERVAL >= 1 && CXI_EP_FIRST_INTERVAL <= CXI_EP_UPDATE_INTERVAL);
++#include <deep_ep/impls/device_trace.cuh>
+ #pragma once
+-#ifndef CXI_EP_MERGE_FINAL_TAIL
+-#define CXI_EP_MERGE_FINAL_TAIL 0
+-#endif
+-static_assert(CXI_EP_MERGE_FINAL_TAIL == 0 || CXI_EP_MERGE_FINAL_TAIL == 1);
+-#ifndef CXI_EP_PACK_ROWS
+-#define CXI_EP_PACK_ROWS 0
+-#endif
+-static_assert(CXI_EP_PACK_ROWS == 0 || CXI_EP_PACK_ROWS == 1);
+-#include <deep_ep/common/cxi_packed_channel.cuh>
+ 
+ #include <deep_ep/common/comm.cuh>
+ #include <deep_ep/common/compiled.cuh>
+@@ -67,8 +55,6 @@
+     void* buffer,
+     void* workspace, void* mapped_host_workspace,
+     const int scaleout_rank_idx, const int scaleup_rank_idx) {
+-    static_assert(!CXI_EP_PACK_ROWS || kNumScaleoutRanks == 2,
+-                  "Packed rows prototype requires exactly two scale-out nodes");
+     constexpr int kNumExpertsPerRank = kNumExperts / kNumRanks;
+     constexpr int kNumExpertsPerScaleout = kNumExperts / kNumScaleoutRanks;
+     EP_STATIC_ASSERT(kNumExperts % kNumScaleupRanks == 0, "Invalid number of experts or ranks");
+@@ -100,11 +86,14 @@
+         sm_idx, (warp_idx - kNumNotifyWarps) % kNumChannelsPerSM, warp_idx < kNumNotifyWarps);
+     const auto gin = handle::NCCLGin(nccl_dev_comm, nccl_window, qp_idx, sharing_mode);
+ 
++    ep_trace::Scope trace_kernel(100, 0, 0, lane_idx == 0);
++    const auto trace_initial=ep_trace::begin(lane_idx == 0);
+     // Global parallel barriers for scale-out subteam and scale-up subteam
+     comm::gpu_barrier<true, kNumScaleoutRanks, kNumScaleupRanks,
+                       kNumSMs, kNumThreads, kNumQPs, kNumTimeoutCycles, comm::kHybridDispatchTag0, false, false, true>(
+         gin, workspace_layout, scaleout_rank_idx, scaleup_rank_idx, sm_idx, thread_idx);
+ 
++    ep_trace::finish(101,trace_initial);
+     // The golden layout during the whole process for both scale-out and forward warps
+     const auto token_layout = layout::TokenLayout(kNumHiddenBytes, kNumSFPacks * sizeof(sf_pack_t), kNumTopk, true);
+     const auto tma_buffer = layout::BufferLayout<true>(token_layout, kNumScaleoutWarps + kNumForwardWarps, 1,
+@@ -127,6 +116,7 @@
+ 
+     // Different warp roles
+     if (warp_idx < kNumNotifyWarps) {
++        ep_trace::Scope trace_notify(102,0,0,lane_idx==0);
+         // Assign shared memory
+         constexpr int kNumAlignedElems = kNumSmemBytesForNotify / sizeof(int);
+         const auto rank_expert_count = math::advance_ptr<int>(smem, 0);
+@@ -345,6 +335,7 @@
+             }
+         }
+     } else if (warp_idx < kNumNotifyWarps + kNumScaleoutWarps) {
++        ep_trace::Scope trace_scaleout(103,0,0,lane_idx==0);
+         const int scaleout_warp_idx = warp_idx - kNumNotifyWarps;
+         const int channel_idx = sm_idx * kNumChannelsPerSM + scaleout_warp_idx;
+         scaleout_recv_buffer = scaleout_recv_buffer.get_rank_buffer(scaleout_rank_idx);
+@@ -352,30 +343,17 @@
+ 
+         // Channel metadata maintenance
+         EP_STATIC_ASSERT(kNumScaleoutRanks <= 32, "Invalid number of scale-out ranks");
+-        const int packed_source_base = packed_channel_base(kNumMaxTokensPerRank, kNumChannels, channel_idx);
+         int stored_scaleout_tail = 0, stored_old_scaleout_tail = 0;
+         const auto update_scaleout_tail = [&](const bool& finish_flag = false) {
+             if (lane_idx < kNumScaleoutRanks and
+-                (stored_scaleout_tail >= stored_old_scaleout_tail +
+-                     (stored_old_scaleout_tail == 0 ? CXI_EP_FIRST_INTERVAL : kScaleoutUpdateInterval) or finish_flag)) {
+-                if constexpr (CXI_EP_PACK_ROWS) {
+-                    // The same rows become visible at the same progress boundary.
+-                    // All their TMA stores completed before entering this lambda.
+-                    const int pending = stored_scaleout_tail - stored_old_scaleout_tail;
+-                    if (lane_idx != scaleout_rank_idx && pending > 0) {
+-                        gin.put<ncclTeamTagRail>(
+-                            scaleout_recv_buffer.get_token_buffer(stored_old_scaleout_tail).get_base_ptr(),
+-                            scaleout_send_buffer.get_token_buffer(packed_source_base + stored_old_scaleout_tail).get_base_ptr(),
+-                            pending * tma_buffer.get_num_bytes<false>(), lane_idx,
+-                            ncclGinOptFlagsAggregateRequests);
+-                    }
+-                }
++                (stored_scaleout_tail >= stored_old_scaleout_tail + kScaleoutUpdateInterval or finish_flag)) {
+                 const auto signaled_tail = math::pack2<int, int64_t>(finish_flag, stored_scaleout_tail);
+                 const auto ptr = workspace_layout.get_scaleout_channel_signaled_tail_ptr(channel_idx, scaleout_rank_idx);
+                 const auto old_signaled_tail = math::pack2<int, int64_t>(0, stored_old_scaleout_tail);
+ 
+                 // NOTES: the "release" scope will be `sys` for the local rank (we may involve NVLink so not `gpu`)
+                 // For RDMA requests, "release" is ensured by "atomic"
++                ep_trace::Scope trace_signal(110,channel_idx,lane_idx);
+                 gin.red_add_rel<ncclTeamTagRail>(ptr, signaled_tail - old_signaled_tail, lane_idx);
+                 stored_old_scaleout_tail = stored_scaleout_tail;
+             }
+@@ -419,6 +397,7 @@
+         // Iterate all tokens
+         preload_next_token(channel_idx);
+         for (int token_idx = channel_idx; token_idx < num_tokens; token_idx += kNumChannels) {
++            const auto trace_pack=ep_trace::begin(lane_idx==0);
+             // Load top-k indices and weights
+             EP_STATIC_ASSERT(kNumTopk <= 32, "Insufficient lanes for loading top-k indices");
+             int stored_dst_scaleout_rank_idx = -1;
+@@ -451,23 +430,14 @@
+             const auto scaleout_rank_mask = ptx::reduce_or(stored_dst_scaleout_rank_idx >= 0 ? (1u << stored_dst_scaleout_rank_idx) : 0u);
+             stored_scaleout_tail += (scaleout_rank_mask >> lane_idx) & 1;
+ 
+-            int packed_remote_slot = 0;
+-            if constexpr (CXI_EP_PACK_ROWS) {
+-                // Every lane participates in the shuffle. The result is used only
+-                // when this token has a remote destination; otherwise it may be -1.
+-                packed_remote_slot = packed_source_base +
+-                    ptx::exchange(stored_scaleout_tail, 1 - scaleout_rank_idx) - 1;
+-            }
+-
+             // Wait TMA arrival and issue the TMA store into send buffer
+             if (ptx::elect_one_sync()) {
+                 ptx::mbarrier_arrive_and_set_tx(mbarrier_ptr, kNumHiddenBytes);
+                 ptx::mbarrier_wait_and_flip_phase(mbarrier_ptr, phase);
+ 
+                 // So if no ranks will go by RDMA, we skip the send buffer stores
+-                if (CXI_EP_PACK_ROWS ? (scaleout_rank_mask & ~(1u << scaleout_rank_idx)) :
+-                                        (scaleout_rank_mask ^ (1 << scaleout_rank_idx))) {
+-                    ptx::tma_store_1d(scaleout_send_buffer.get_token_buffer(CXI_EP_PACK_ROWS ? packed_remote_slot : token_idx).get_base_ptr(),
++                if (scaleout_rank_mask ^ (1 << scaleout_rank_idx)) {
++                    ptx::tma_store_1d(scaleout_send_buffer.get_token_buffer(token_idx).get_base_ptr(),
+                                       tma_buffer.get_base_ptr(), tma_buffer.get_num_bytes<false>());
+                 }
+             }
+@@ -482,11 +452,13 @@
+             ptx::tma_store_wait();
+             __syncwarp();
+ 
++            ep_trace::finish(112,trace_pack,token_idx,channel_idx);
+             // Preload the next token (overlapping with the IBGDA issues)
+             preload_next_token(token_idx + kNumChannels);
+ 
+             // Issue IBGDA requests
+-            if (!CXI_EP_PACK_ROWS and stored_dst_slot_idx >= 0 and stored_dst_scaleout_rank_idx != scaleout_rank_idx) {
++            if (stored_dst_slot_idx >= 0 and stored_dst_scaleout_rank_idx != scaleout_rank_idx) {
++                ep_trace::Scope trace_put(111,token_idx,stored_dst_scaleout_rank_idx);
+                 gin.put<ncclTeamTagRail>(
+                         scaleout_recv_buffer.get_token_buffer(stored_dst_slot_idx).get_base_ptr(),
+                         scaleout_send_buffer.get_token_buffer(token_idx).get_base_ptr(),
+@@ -496,16 +468,14 @@
+             }
+             __syncwarp();
+ 
+-            // The unconditional finish below can publish the last batch and
+-            // finish bit together, just as it already does for partial batches.
+-            // Keep intermediate progress and empty-channel finish unchanged.
+-            if (!CXI_EP_MERGE_FINAL_TAIL || token_idx + kNumChannels < num_tokens)
+-                update_scaleout_tail();
++            // Issue scale-out tail update
++            update_scaleout_tail();
+         }
+ 
+         // Flush unflushed tails
+         update_scaleout_tail(true);
+     } else {
++        ep_trace::Scope trace_forward(104,0,0,lane_idx==0);
+         const int forward_warp_idx = warp_idx - (kNumNotifyWarps + kNumScaleoutWarps);
+         const int channel_idx = sm_idx * kNumChannelsPerSM + forward_warp_idx;
+         scaleout_recv_buffer = scaleout_recv_buffer.get_channel_buffer<kNumMaxTokensPerChannel>(channel_idx);
+@@ -540,6 +510,7 @@
+             const auto hi_mask = (wip_mask >> offset) << offset;
+             recv_scaleout_rank_idx = hi_mask ? ptx::ffs(hi_mask) : ptx::ffs(wip_mask);
+ 
++            const auto trace_arrival=ep_trace::begin(lane_idx==0);
+             // Wait for this rank to have data (or finish)
+             comm::timeout_while<kNumTimeoutCycles>([&](const bool& is_last_check) {
+                 const uint32_t arrived_or_finished =
+@@ -569,6 +540,7 @@
+                 return false;
+             });
+ 
++            ep_trace::finish(105,trace_arrival,channel_idx,recv_scaleout_rank_idx);
+             // Process one chunk from the current rank
+             const auto start_slot_idx = ptx::exchange(stored_scaleout_old_tail_idx, recv_scaleout_rank_idx);
+             const auto end_slot_idx = std::min(
+@@ -595,6 +567,8 @@
+                 }
+                 __syncwarp();
+ 
++                const auto trace_token=ep_trace::begin(lane_idx==0);
++                const auto trace_src=lane_idx==0 ? *tma_buffer.get_src_token_global_idx_ptr() : 0;
+                 // Read top-k indices
+                 EP_STATIC_ASSERT(kNumTopk <= 32, "Too many top-k selections");
+                 int stored_dst_scaleup_rank_idx = -1;
+@@ -635,6 +609,7 @@
+ 
+                 // Issue TMAs
+                 if (stored_dst_slot_idx >= 0) {
++                    ep_trace::Scope trace_nvl(109,stored_dst_scaleup_rank_idx,*tma_buffer.get_src_token_global_idx_ptr());
+                     const auto dst_ptr = gin.get_sym_ptr<ncclTeamTagLsa>(
+                         scaleup_buffer.get_token_buffer(stored_dst_slot_idx).get_base_ptr(),
+                         stored_dst_scaleup_rank_idx);
+@@ -653,6 +628,7 @@
+                 for (int j = 0; j < kNumScaleupRanksPerLane; ++ j)
+                     stored_scaleup_send_counters[j] += (scaleup_send_mask >> (j * 32 + lane_idx)) & 1;
+ 
++                ep_trace::finish(108,trace_token,trace_src,channel_idx);
+                 // Record metadata at forward
+                 if constexpr (not kReuseSlotIndices) {
+                     EP_STATIC_ASSERT(kNumTopk <= 32, "Invalid number of selections");
+@@ -702,12 +678,14 @@
+         __syncwarp();
+     }
+ 
++    const auto trace_final=ep_trace::begin(lane_idx==0);
+     // Scale-up barrier to ensure data arrival
+     // As scale-out tokens have already been consumed by forwarders, no need to do scale-out barrier again
+     comm::gpu_barrier<true, kNumScaleoutRanks, kNumScaleupRanks,
+                       kNumSMs, kNumThreads, kNumQPs, kNumTimeoutCycles, comm::kHybridDispatchTag1, true, true, false>(
+         gin, workspace_layout, scaleout_rank_idx, scaleup_rank_idx, sm_idx, thread_idx, /* do not scale-out */ false, true);
+ 
++    ep_trace::finish(106,trace_final);
+     // Trigger the copy epilogue kernel
+     cudaTriggerProgrammaticLaunchCompletion();
+ 

@@ -1,0 +1,17 @@
+{
+  "requires": [
+    "850-rows-32-local-diagnostic",
+    "851-rows-32-routes-diagnostic",
+    "852-rows-32-route-stress-diagnostic",
+    "853-rows-32-route-stress-ordinary",
+    "854-rows-257-route-stress-ordinary"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-packed-debug-v4",
+      "sequence": "sources/source-packed-debug-v4/sequence.json",
+      "sequence_sha256": "88397a5a91d0affac570426556f74060966d3056fc1cae53f94ee39f7a152450"
+    }
+  ]
+}

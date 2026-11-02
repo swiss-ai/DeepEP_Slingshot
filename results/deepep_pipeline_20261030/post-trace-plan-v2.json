@@ -1,0 +1,27 @@
+{
+  "job": 3809401,
+  "allocation_end_epoch": 1793414116,
+  "after_gate": "09g-fence-batched-trace",
+  "requires": [
+    "520-credit-control-repeat1",
+    "09c-delivery-control-trace",
+    "09d-delivery-batched-trace",
+    "09e-fence-control-trace",
+    "09f-fence-dc-trace",
+    "09g-fence-batched-trace"
+  ],
+  "phases": [
+    {
+      "snapshot": "source-packed-rows-v2",
+      "sequence": "sources/source-packed-rows-v2/sequence.json",
+      "sequence_sha256": "c07ebb31987d3f5016d78cce0a4d3684518a130a844671178c64d90f940a61ac"
+    },
+    {
+      "snapshot": "source-cq-policy-v1",
+      "sequence": "prepared-cq-policy-v1-sequence.json",
+      "sequence_sha256": "026579393573ebc0ff4cc289605a28b29c5d6b26f0973d38abe03478471442d2"
+    }
+  ],
+  "scope": "Run only after existing traces pass; hold between GPU steps; packing before NIC writeback policy; no new Slurm allocation or source mutation; halt on failure and defer if time insufficient.",
+  "reason": "Gate 521 cached-credit sustained timing failed; that candidate is quarantined. Traces, packed rows and CQ policy use previously qualified ABI3 sources and do not depend on the cached-credit candidate. Retain all parent correctness prerequisites."
+}

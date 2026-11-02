@@ -1,0 +1,10 @@
+{
+  "job": 3829402,
+  "utc": "2026-11-01T21:16:37.578753+00:00",
+  "campaign": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030",
+  "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1101-combine-pack-v2",
+  "local_snapshot": "/home/yu/CSCS/Load_Balance_Cross_Node/results/deepep_pipeline_20261101/source-1101-combine-pack-v2",
+  "state": "SUBMITTED",
+  "time": "04:00:00",
+  "monitor_pid": 1657523
+}

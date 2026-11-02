@@ -1,0 +1,5 @@
+{
+  "status": "STOPPED_AFTER2612",
+  "reason": "node1 all four ranks blocked in write(2) to shared smoke.log; step40 stopped; future phases never launched",
+  "replacement": "ready-plan-local-logs-through-packing-v1.json"
+}

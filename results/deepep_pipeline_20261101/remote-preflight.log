@@ -1,0 +1,4 @@
+PASS states=1044160 writes=478906 backpressure=321094 wraps=33620; CPU ring model only
+PASS GPU CQ_FENCE descriptor builder matches installed libcxi helper; no NIC semantics tested
+PASS GPU CQ_FENCE descriptor builder matches installed libcxi helper; no NIC semantics tested
+PASS packed channel layout/source lifetime model: cases=6020400 rows=10156230 batches=4811071; GPU untested

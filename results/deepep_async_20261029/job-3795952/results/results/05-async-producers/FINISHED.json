@@ -1,0 +1,32 @@
+{
+  "spec": {
+    "name": "05-async-producers",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "gin",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "async",
+      "CXI_TEST_KIND": "producer",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_PRODUCER_BLOCKS": "1,2,8",
+      "CXI_PRODUCER_ROUNDS": "512"
+    },
+    "requires": [
+      "04-async-bounds"
+    ]
+  },
+  "start_utc": "2026-10-30T04:51:49.945485Z",
+  "returncode": 0,
+  "qualification": {
+    "status": "PASS",
+    "kind": "producer",
+    "ranks": 8,
+    "cycles_per_rank": 3
+  },
+  "end_utc": "2026-10-30T04:52:28.838188Z"
+}

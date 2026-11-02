@@ -1,0 +1,51 @@
+{
+  "request": "02-ep4k-profile.json",
+  "start_utc": "2026-10-28T10:41:55.458704+00:00",
+  "allocation": {
+    "checked_epoch": 1793184115.459953,
+    "exported_end_epoch": "1793185855",
+    "source": "scontrol current job record",
+    "job_state": [
+      "RUNNING"
+    ],
+    "end_epoch": 1793185855.0,
+    "remaining_seconds": 1739.540046930313
+  },
+  "spec": {
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/gate-20261028-ep8-profile-v1",
+    "node_script": "backend/tools/direct_node.sh",
+    "timeout_seconds": 600,
+    "qualification": "ep",
+    "environment": {
+      "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TEST_KIND": "ep",
+      "CXI_EP_MODELS": "v4flash qwen3 minimax",
+      "CXI_EP_TOKENS": "4096",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_ROUTING": "uniform",
+      "CXI_EP_WARMUP": "10",
+      "CXI_EP_ITERS": "50",
+      "CXI_EP_NIC_ITERS": "100",
+      "CXI_EP_PROFILE_STEPS": "5",
+      "CXI_TEST_TIMEOUT": "570"
+    },
+    "requires": [
+      "01-ct-persistent-window"
+    ],
+    "stop_after": false
+  },
+  "node_script_sha256": "e75fddf51fc1d2a377aea983a9b7a45622b64e74134de4bc62d2c351444899d3",
+  "returncode": 0,
+  "qualification": {
+    "status": "PASS",
+    "kind": "ep",
+    "ranks": 8,
+    "cases_per_rank": 3,
+    "gin_type": "6"
+  },
+  "end_utc": "2026-10-28T10:43:44.314780+00:00"
+}

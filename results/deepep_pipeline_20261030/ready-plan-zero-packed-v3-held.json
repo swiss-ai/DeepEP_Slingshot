@@ -1,0 +1,5 @@
+{
+  "status": "HELD_NOT_LAUNCHED",
+  "reason": "Prerequisite1804failed; require explicit new qualification results and newly named plan before scheduling",
+  "source_plan": "ready-plan-zero-packed-v3.json"
+}

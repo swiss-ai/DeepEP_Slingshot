@@ -1,0 +1,18 @@
+{
+  "requires": [
+    "1203-zero-marker-tiny-stress",
+    "1204-zero-marker-ep-correctness",
+    "1205-zero-marker-sustained16k",
+    "1206-zero-marker-repeat1",
+    "1207-zero-marker-repeat2",
+    "1208-zero-marker-repeat3"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-zero-packed-v1",
+      "sequence": "zero-packed-v1-sequence.json",
+      "sequence_sha256": "225f9a4f118676c1b07498584eeaf0ce52a5d21f58de5140074323104e08be03"
+    }
+  ]
+}

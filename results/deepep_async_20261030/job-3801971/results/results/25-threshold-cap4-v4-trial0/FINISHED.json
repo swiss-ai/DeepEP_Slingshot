@@ -1,0 +1,41 @@
+{
+  "spec": {
+    "name": "25-threshold-cap4-v4-trial0",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261030/sources/source-v5",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_VARIANT": "threshold-cap4",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "10",
+      "CXI_EP_ITERS": "50",
+      "CXI_EP_NIC_ITERS": "600",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "17-threshold-cap4-producers"
+    ]
+  },
+  "start_utc": "2026-10-30T11:29:06.929826Z",
+  "returncode": 0,
+  "qualification": {
+    "status": "PASS",
+    "kind": "ep",
+    "ranks": 8,
+    "cases_per_rank": 1,
+    "gin_type": "6"
+  },
+  "end_utc": "2026-10-30T11:30:15.790962Z"
+}

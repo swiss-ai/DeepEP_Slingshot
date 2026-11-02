@@ -1,0 +1,14 @@
+{
+  "job": 3795952,
+  "submitted_utc": "2026-10-29T20:27:05.060435+00:00",
+  "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+  "local_snapshot": "/home/yu/CSCS/Load_Balance_Cross_Node/results/deepep_async_20261029/source-v3",
+  "partition": "normal",
+  "nodes": 2,
+  "gpus": 8,
+  "hours": 4,
+  "steps": 16,
+  "scope": "bounded asynchronous TX correctness and paired dispatch/combine; no GPU qualification yet",
+  "monitor_pid": 4045668,
+  "monitor_output": "/home/yu/CSCS/Load_Balance_Cross_Node/results/deepep_async_20261029/job-3795952"
+}

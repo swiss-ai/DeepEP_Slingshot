@@ -1,0 +1,30 @@
+{
+  "spec": {
+    "name": "04-async-bounds",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "gin",
+    "timeout_seconds": 420,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "async",
+      "CXI_TEST_KIND": "bounds",
+      "CXI_TEST_TIMEOUT": "360"
+    },
+    "requires": [
+      "03-async-public-gin"
+    ]
+  },
+  "start_utc": "2026-10-30T04:51:17.533703Z",
+  "returncode": 0,
+  "qualification": {
+    "status": "PASS",
+    "kind": "bounds",
+    "ranks": 8,
+    "cycles_per_rank": 1
+  },
+  "end_utc": "2026-10-30T04:51:49.920034Z"
+}

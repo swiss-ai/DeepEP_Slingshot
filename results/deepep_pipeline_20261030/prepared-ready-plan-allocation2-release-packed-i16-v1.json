@@ -1,0 +1,21 @@
+{
+  "requires": [
+    "5200-zero-ladder-4320B-4096-rows-final",
+    "5201-zero-ladder-4320B-4096-coalesced",
+    "5202-zero-ladder-8256B-4096-rows-final",
+    "5203-zero-ladder-8256B-4096-coalesced",
+    "5204-zero-ladder-4320B-16384-rows-final",
+    "5205-zero-ladder-4320B-16384-coalesced",
+    "5206-zero-ladder-8256B-16384-rows-final",
+    "5207-zero-ladder-8256B-16384-coalesced"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-serving-local-v2",
+      "sequence": "prepared-allocation2-release-packed-i16-v1-sequence.json",
+      "sequence_sha256": "836a08e59f60f8b31c28853b441c934dcf45f87dc58794d8792b20ec2c5897ee"
+    }
+  ],
+  "scope": "Prepared only. Exact GPU/transport-identical serving harness, three model correctness/timing, full optimized2K\u201316K sweeps x3, actual SGLang adapter/scatter/gather/reduced FFN checks. Launch after raw probe review within available allocation or remap fresh prerequisites later."
+}

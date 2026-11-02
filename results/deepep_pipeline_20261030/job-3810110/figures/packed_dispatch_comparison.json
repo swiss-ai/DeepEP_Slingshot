@@ -1,0 +1,153 @@
+{
+  "job": "job-3810110",
+  "source": "source-zero-packed-v7",
+  "contexts": 129,
+  "forward_chunk": 3,
+  "rows": [
+    {
+      "experiment": "zero-rows",
+      "tokens": 4096,
+      "operation": "dispatch_fresh",
+      "median_ms": 2.7558239698410034,
+      "min_ms": 2.751792073249817,
+      "max_ms": 2.757312059402466,
+      "gates": "3306-zero-rows-repeat1;3309-zero-rows-repeat2;3310-zero-rows-repeat3"
+    },
+    {
+      "experiment": "zero-rows",
+      "tokens": 4096,
+      "operation": "combine",
+      "median_ms": 3.312880039215088,
+      "min_ms": 3.2919520139694214,
+      "max_ms": 3.334976077079773,
+      "gates": "3306-zero-rows-repeat1;3309-zero-rows-repeat2;3310-zero-rows-repeat3"
+    },
+    {
+      "experiment": "zero-rows",
+      "tokens": 16384,
+      "operation": "dispatch_fresh",
+      "median_ms": 10.380655765533447,
+      "min_ms": 10.369264125823975,
+      "max_ms": 10.404880046844482,
+      "gates": "3306-zero-rows-repeat1;3309-zero-rows-repeat2;3310-zero-rows-repeat3"
+    },
+    {
+      "experiment": "zero-rows",
+      "tokens": 16384,
+      "operation": "combine",
+      "median_ms": 12.857920169830322,
+      "min_ms": 12.767407894134521,
+      "max_ms": 12.865520000457764,
+      "gates": "3306-zero-rows-repeat1;3309-zero-rows-repeat2;3310-zero-rows-repeat3"
+    },
+    {
+      "experiment": "zero-packed",
+      "tokens": 4096,
+      "operation": "dispatch_fresh",
+      "median_ms": 2.1979520320892334,
+      "min_ms": 2.1898080110549927,
+      "max_ms": 2.2034239768981934,
+      "gates": "3307-zero-packed-repeat1;3308-zero-packed-repeat2;3311-zero-packed-repeat3"
+    },
+    {
+      "experiment": "zero-packed",
+      "tokens": 4096,
+      "operation": "combine",
+      "median_ms": 3.321295976638794,
+      "min_ms": 3.280992031097412,
+      "max_ms": 3.323632001876831,
+      "gates": "3307-zero-packed-repeat1;3308-zero-packed-repeat2;3311-zero-packed-repeat3"
+    },
+    {
+      "experiment": "zero-packed",
+      "tokens": 16384,
+      "operation": "dispatch_fresh",
+      "median_ms": 8.698336124420166,
+      "min_ms": 8.686048030853271,
+      "max_ms": 8.69913625717163,
+      "gates": "3307-zero-packed-repeat1;3308-zero-packed-repeat2;3311-zero-packed-repeat3"
+    },
+    {
+      "experiment": "zero-packed",
+      "tokens": 16384,
+      "operation": "combine",
+      "median_ms": 12.792175769805908,
+      "min_ms": 12.729296207427979,
+      "max_ms": 12.804240226745605,
+      "gates": "3307-zero-packed-repeat1;3308-zero-packed-repeat2;3311-zero-packed-repeat3"
+    },
+    {
+      "experiment": "rows-i16",
+      "tokens": 4096,
+      "operation": "dispatch_fresh",
+      "median_ms": 2.37609601020813,
+      "min_ms": 2.3746559619903564,
+      "max_ms": 2.3865280151367188,
+      "gates": "4006-rows-i16-repeat1;4009-rows-i16-repeat2;4010-rows-i16-repeat3"
+    },
+    {
+      "experiment": "rows-i16",
+      "tokens": 4096,
+      "operation": "combine",
+      "median_ms": 3.3140639066696167,
+      "min_ms": 3.31167995929718,
+      "max_ms": 3.3303840160369873,
+      "gates": "4006-rows-i16-repeat1;4009-rows-i16-repeat2;4010-rows-i16-repeat3"
+    },
+    {
+      "experiment": "rows-i16",
+      "tokens": 16384,
+      "operation": "dispatch_fresh",
+      "median_ms": 8.912256240844727,
+      "min_ms": 8.909327983856201,
+      "max_ms": 8.951632022857666,
+      "gates": "4006-rows-i16-repeat1;4009-rows-i16-repeat2;4010-rows-i16-repeat3"
+    },
+    {
+      "experiment": "rows-i16",
+      "tokens": 16384,
+      "operation": "combine",
+      "median_ms": 12.759472370147705,
+      "min_ms": 12.744048118591309,
+      "max_ms": 12.807951927185059,
+      "gates": "4006-rows-i16-repeat1;4009-rows-i16-repeat2;4010-rows-i16-repeat3"
+    },
+    {
+      "experiment": "packed-i16",
+      "tokens": 4096,
+      "operation": "dispatch_fresh",
+      "median_ms": 1.060591995716095,
+      "min_ms": 1.0601760149002075,
+      "max_ms": 1.061855971813202,
+      "gates": "4007-packed-i16-repeat1;4008-packed-i16-repeat2;4011-packed-i16-repeat3"
+    },
+    {
+      "experiment": "packed-i16",
+      "tokens": 4096,
+      "operation": "combine",
+      "median_ms": 3.3099359273910522,
+      "min_ms": 3.2985919713974,
+      "max_ms": 3.361680030822754,
+      "gates": "4007-packed-i16-repeat1;4008-packed-i16-repeat2;4011-packed-i16-repeat3"
+    },
+    {
+      "experiment": "packed-i16",
+      "tokens": 16384,
+      "operation": "dispatch_fresh",
+      "median_ms": 3.4980639219284058,
+      "min_ms": 3.492959976196289,
+      "max_ms": 3.5031360387802124,
+      "gates": "4007-packed-i16-repeat1;4008-packed-i16-repeat2;4011-packed-i16-repeat3"
+    },
+    {
+      "experiment": "packed-i16",
+      "tokens": 16384,
+      "operation": "combine",
+      "median_ms": 12.800992012023926,
+      "min_ms": 12.7467679977417,
+      "max_ms": 12.8089280128479,
+      "gates": "4007-packed-i16-repeat1;4008-packed-i16-repeat2;4011-packed-i16-repeat3"
+    }
+  ],
+  "scope": "Same two-node allocation; qualified ordinary timing; no wire-level decomposition"
+}

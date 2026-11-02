@@ -1,0 +1,20 @@
+{
+  "requires": [
+    "1120-marker-control-notification-probe",
+    "1122-marker-zero-notification-probe",
+    "1203-zero-marker-tiny-stress",
+    "1204-zero-marker-ep-correctness",
+    "1205-zero-marker-sustained16k",
+    "1206-zero-marker-repeat1",
+    "1207-zero-marker-repeat2",
+    "1208-zero-marker-repeat3"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-marker-probe-v3",
+      "sequence": "marker-matched-v1-sequence.json",
+      "sequence_sha256": "17798949eedeed5934ddc3888622ab6d2b3c4f77451fe85242fd505dc97b63d9"
+    }
+  ]
+}

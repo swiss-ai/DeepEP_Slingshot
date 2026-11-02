@@ -1,0 +1,13 @@
+{
+  "requires": [
+    "1803-retire-refresh-tiny-stress"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-local-io-v1",
+      "sequence": "local-io-jit-diagnostic-v1-sequence.json",
+      "sequence_sha256": "a1ed04bb2d87a35aabda68c888d9dfd7a7fc2be056329ee1d8db308a88e5d150"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "status": "PASS",
+  "checks": ["Python and shell syntax", "three repeats of eight exact token sizes", "tracing disabled", "same routing seed and configuration", "DeepEP archive and transport sources unchanged", "synthetic known-intercept/throughput fit", "complete-matrix CSV/PDF/PNG report generation"],
+  "new_hardware_results": false,
+  "job": 3806153
+}

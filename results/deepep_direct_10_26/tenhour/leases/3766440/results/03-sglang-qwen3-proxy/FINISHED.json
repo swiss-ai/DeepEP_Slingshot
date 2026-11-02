@@ -1,0 +1,55 @@
+{
+  "request": "03-sglang-qwen3-proxy.json",
+  "start_utc": "2026-10-27T13:37:05.172054+00:00",
+  "allocation": {
+    "checked_epoch": 1793108225.174058,
+    "exported_end_epoch": "1793108615",
+    "source": "scontrol current job record",
+    "job_state": [
+      "RUNNING"
+    ],
+    "end_epoch": 1793109575.0,
+    "remaining_seconds": 1349.8259420394897
+  },
+  "spec": {
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/gate-20261027-1120",
+    "node_script": "backend/tools/direct_node.sh",
+    "timeout_seconds": 300,
+    "qualification": "sglang",
+    "environment": {
+      "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TEST_KIND": "sglang",
+      "CXI_SGLANG_IMPORT_AFTER_INIT": "1",
+      "CXI_SGLANG_EXACT_REFERENCE": "1",
+      "CXI_SGLANG_PERMUTE": "1",
+      "CXI_SGLANG_DTYPES": "fp8,bf16",
+      "CXI_SGLANG_TOKENS": "4096",
+      "CXI_SGLANG_ROUNDS": "50",
+      "CXI_SGLANG_WARMUP": "10",
+      "CXI_SGLANG_MODEL": "qwen3",
+      "CXI_TEST_TIMEOUT": "270",
+      "CXI_TRANSPORT": "proxy"
+    },
+    "requires": [
+      "02-sglang-qwen3-direct"
+    ],
+    "stop_after": false
+  },
+  "node_script_sha256": "dd454dc3446ee6c459668a0a52d598c37527c8dfa50c591a29bd9abb8558657a",
+  "returncode": 0,
+  "qualification": {
+    "status": "PASS",
+    "kind": "sglang",
+    "ranks": 8,
+    "cases_per_rank": 120,
+    "model_geometry": "qwen3",
+    "actual_expert_kernels": false,
+    "actual_scatter_gather": true,
+    "transport": "proxy",
+    "gin_type": "2"
+  },
+  "end_utc": "2026-10-27T13:38:15.376373+00:00"
+}

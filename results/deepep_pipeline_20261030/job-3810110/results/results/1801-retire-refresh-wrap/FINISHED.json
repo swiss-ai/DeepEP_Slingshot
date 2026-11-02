@@ -1,0 +1,36 @@
+{
+  "spec": {
+    "name": "1801-retire-refresh-wrap",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-retire-refresh-v2",
+    "node_script": "runner/node.sh",
+    "qualification": "burst",
+    "timeout_seconds": 600,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "marker-zero",
+      "CXI_TEST_KIND": "burst",
+      "CXI_TEST_TIMEOUT": "540"
+    },
+    "requires": [
+      "1800-retire-refresh-public-gin"
+    ]
+  },
+  "start_utc": "2026-10-31T03:21:23.456632Z",
+  "executor_sha256": "e062105803afbe6d4b163bd31e8aacd8ee31e60faf8127cefa852e8d2d8975d0",
+  "sequence_sha256": "ee154670a79d00dbc5847464a02018fba0491d97be8e0e883900106b9c4dc0c5",
+  "scheduled_between_gates": true,
+  "returncode": 0,
+  "qualification": {
+    "status": "PASS",
+    "kind": "burst_wrap_source_reuse",
+    "ranks": 8,
+    "payload_commands_per_rank": 16384
+  },
+  "end_utc": "2026-10-31T03:21:58.517545Z"
+}

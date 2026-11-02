@@ -1,0 +1,340 @@
+[
+  {
+    "name": "01-baseline-negative-recovery",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/credit-with-ct-reuse-20261027",
+      "node_script": "backend/tools/direct_node.sh",
+      "qualification": "gin",
+      "timeout_seconds": 300,
+      "environment": {
+        "CXI_NCCL_PREFIX": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/releases/cxi-20261026-201823",
+        "CXI_NCCL_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/nccl-cxi-src",
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0",
+        "CXI_TEST_KIND": "smoke",
+        "CXI_SMOKE_CONTEXTS": "1,4,129",
+        "CXI_SMOKE_RESET": "1",
+        "CXI_SMOKE_NEGATIVE": "1",
+        "CXI_SMOKE_SELF": "1",
+        "CXI_TEST_TIMEOUT": "270"
+      },
+      "requires": [],
+      "stop_after": false
+    }
+  },
+  {
+    "name": "02-baseline-bounds",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/credit-with-ct-reuse-20261027",
+      "node_script": "backend/tools/direct_node.sh",
+      "qualification": "gin",
+      "timeout_seconds": 300,
+      "environment": {
+        "CXI_NCCL_PREFIX": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/releases/cxi-20261026-201823",
+        "CXI_NCCL_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/nccl-cxi-src",
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0",
+        "CXI_TEST_KIND": "bounds",
+        "CXI_SMOKE_CONTEXTS": "1,4,129",
+        "CXI_SMOKE_RESET": "1",
+        "CXI_SMOKE_NEGATIVE": "1",
+        "CXI_SMOKE_SELF": "1",
+        "CXI_TEST_TIMEOUT": "270"
+      },
+      "requires": [
+        "01-baseline-negative-recovery"
+      ],
+      "stop_after": false
+    }
+  },
+  {
+    "name": "03-credit-raw",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/credit-with-ct-reuse-20261027",
+      "node_script": "backend/tools/dynamic_node.sh",
+      "qualification": "dynamic",
+      "timeout_seconds": 240,
+      "environment": {
+        "CXI_NCCL_PREFIX": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/experiments/credit-v1/runtime-with-ct-reuse",
+        "CXI_NCCL_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/nccl-cxi-src",
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0"
+      },
+      "requires": [
+        "02-baseline-bounds"
+      ],
+      "stop_after": false
+    }
+  },
+  {
+    "name": "04-credit-public-gin",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/credit-with-ct-reuse-20261027",
+      "node_script": "backend/tools/direct_node.sh",
+      "qualification": "gin",
+      "timeout_seconds": 240,
+      "environment": {
+        "CXI_NCCL_PREFIX": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/experiments/credit-v1/runtime-with-ct-reuse",
+        "CXI_NCCL_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/nccl-cxi-src",
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0",
+        "CXI_TEST_KIND": "smoke",
+        "CXI_SMOKE_CONTEXTS": "1,4,129",
+        "CXI_SMOKE_RESET": "1",
+        "CXI_SMOKE_NEGATIVE": "1",
+        "CXI_SMOKE_SELF": "1",
+        "CXI_TEST_TIMEOUT": "210"
+      },
+      "requires": [
+        "03-credit-raw"
+      ],
+      "stop_after": false
+    }
+  },
+  {
+    "name": "05-credit-bounds",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/credit-with-ct-reuse-20261027",
+      "node_script": "backend/tools/direct_node.sh",
+      "qualification": "gin",
+      "timeout_seconds": 240,
+      "environment": {
+        "CXI_NCCL_PREFIX": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/experiments/credit-v1/runtime-with-ct-reuse",
+        "CXI_NCCL_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/nccl-cxi-src",
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0",
+        "CXI_TEST_KIND": "bounds",
+        "CXI_SMOKE_CONTEXTS": "1,4,129",
+        "CXI_SMOKE_RESET": "1",
+        "CXI_SMOKE_NEGATIVE": "1",
+        "CXI_SMOKE_SELF": "1",
+        "CXI_TEST_TIMEOUT": "210"
+      },
+      "requires": [
+        "04-credit-public-gin"
+      ],
+      "stop_after": false
+    }
+  },
+  {
+    "name": "06-credit-producers",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/credit-with-ct-reuse-20261027",
+      "node_script": "backend/tools/direct_node.sh",
+      "qualification": "gin",
+      "timeout_seconds": 240,
+      "environment": {
+        "CXI_NCCL_PREFIX": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/experiments/credit-v1/runtime-with-ct-reuse",
+        "CXI_NCCL_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/nccl-cxi-src",
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0",
+        "CXI_TEST_KIND": "producer",
+        "CXI_PRODUCER_BLOCKS": "1,2,8",
+        "CXI_PRODUCER_ROUNDS": "128",
+        "CXI_TEST_TIMEOUT": "210"
+      },
+      "requires": [
+        "05-credit-bounds"
+      ],
+      "stop_after": false
+    }
+  },
+  {
+    "name": "07-credit-ep-small",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/credit-with-ct-reuse-20261027",
+      "node_script": "backend/tools/direct_node.sh",
+      "qualification": "ep",
+      "timeout_seconds": 360,
+      "environment": {
+        "CXI_NCCL_PREFIX": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/experiments/credit-v1/runtime-with-ct-reuse",
+        "CXI_NCCL_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/nccl-cxi-src",
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0",
+        "CXI_TEST_KIND": "ep",
+        "CXI_EP_MODELS": "v4flash",
+        "CXI_EP_TOKENS": "128 512",
+        "CXI_EP_DTYPES": "bf16 fp8",
+        "CXI_EP_ROUTING": "mixed",
+        "CXI_EP_SEEDS": "1",
+        "CXI_EP_WARMUP": "2",
+        "CXI_EP_ITERS": "5",
+        "CXI_EP_NIC_ITERS": "0",
+        "CXI_EP_PROFILE_STEPS": "0",
+        "CXI_TEST_TIMEOUT": "330"
+      },
+      "requires": [
+        "06-credit-producers"
+      ],
+      "stop_after": false
+    }
+  },
+  {
+    "name": "08-credit-ep-full",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/credit-with-ct-reuse-20261027",
+      "node_script": "backend/tools/direct_node.sh",
+      "qualification": "ep",
+      "timeout_seconds": 600,
+      "environment": {
+        "CXI_NCCL_PREFIX": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/experiments/credit-v1/runtime-with-ct-reuse",
+        "CXI_NCCL_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/nccl-cxi-src",
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0",
+        "CXI_TEST_KIND": "ep",
+        "CXI_EP_MODELS": "v4flash qwen3 minimax",
+        "CXI_EP_TOKENS": "4096",
+        "CXI_EP_DTYPES": "fp8",
+        "CXI_EP_ROUTING": "uniform",
+        "CXI_EP_SEEDS": "1 2 3",
+        "CXI_EP_WARMUP": "10",
+        "CXI_EP_ITERS": "50",
+        "CXI_EP_NIC_ITERS": "50",
+        "CXI_EP_PROFILE_STEPS": "0",
+        "CXI_TEST_TIMEOUT": "570"
+      },
+      "requires": [
+        "07-credit-ep-small"
+      ],
+      "stop_after": false
+    }
+  },
+  {
+    "name": "09-baseline-direct-control",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/credit-with-ct-reuse-20261027",
+      "node_script": "backend/tools/direct_node.sh",
+      "qualification": "ep",
+      "timeout_seconds": 600,
+      "environment": {
+        "CXI_NCCL_PREFIX": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/releases/cxi-20261026-201823",
+        "CXI_NCCL_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/nccl-cxi-src",
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0",
+        "CXI_TEST_KIND": "ep",
+        "CXI_EP_MODELS": "v4flash qwen3 minimax",
+        "CXI_EP_TOKENS": "4096",
+        "CXI_EP_DTYPES": "fp8",
+        "CXI_EP_ROUTING": "uniform",
+        "CXI_EP_SEEDS": "1 2 3",
+        "CXI_EP_WARMUP": "10",
+        "CXI_EP_ITERS": "50",
+        "CXI_EP_NIC_ITERS": "50",
+        "CXI_EP_PROFILE_STEPS": "0",
+        "CXI_TEST_TIMEOUT": "570"
+      },
+      "requires": [
+        "08-credit-ep-full"
+      ],
+      "stop_after": false
+    }
+  },
+  {
+    "name": "10-credit-sglang-qwen3-direct",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/credit-with-ct-reuse-20261027",
+      "node_script": "backend/tools/direct_node.sh",
+      "timeout_seconds": 300,
+      "qualification": "sglang",
+      "environment": {
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0",
+        "CXI_TEST_KIND": "sglang",
+        "CXI_SGLANG_IMPORT_AFTER_INIT": "1",
+        "CXI_SGLANG_EXACT_REFERENCE": "1",
+        "CXI_SGLANG_PERMUTE": "1",
+        "CXI_SGLANG_DTYPES": "fp8,bf16",
+        "CXI_SGLANG_TOKENS": "4096",
+        "CXI_SGLANG_ROUNDS": "50",
+        "CXI_SGLANG_WARMUP": "10",
+        "CXI_SGLANG_MODEL": "qwen3",
+        "CXI_TEST_TIMEOUT": "270",
+        "CXI_NCCL_PREFIX": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/experiments/credit-v1/runtime-with-ct-reuse"
+      },
+      "requires": [
+        "09-baseline-direct-control"
+      ],
+      "stop_after": false
+    }
+  },
+  {
+    "name": "11-credit-sglang-minimax-direct",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/credit-with-ct-reuse-20261027",
+      "node_script": "backend/tools/direct_node.sh",
+      "timeout_seconds": 300,
+      "qualification": "sglang",
+      "environment": {
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0",
+        "CXI_TEST_KIND": "sglang",
+        "CXI_SGLANG_IMPORT_AFTER_INIT": "1",
+        "CXI_SGLANG_EXACT_REFERENCE": "1",
+        "CXI_SGLANG_PERMUTE": "1",
+        "CXI_SGLANG_DTYPES": "fp8,bf16",
+        "CXI_SGLANG_TOKENS": "4096",
+        "CXI_SGLANG_ROUNDS": "50",
+        "CXI_SGLANG_WARMUP": "10",
+        "CXI_SGLANG_MODEL": "minimax",
+        "CXI_TEST_TIMEOUT": "270",
+        "CXI_NCCL_PREFIX": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/experiments/credit-v1/runtime-with-ct-reuse"
+      },
+      "requires": [
+        "10-credit-sglang-qwen3-direct"
+      ],
+      "stop_after": false
+    }
+  },
+  {
+    "name": "12-credit-sglang-v4flash-direct",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/credit-with-ct-reuse-20261027",
+      "node_script": "backend/tools/direct_node.sh",
+      "timeout_seconds": 300,
+      "qualification": "sglang",
+      "environment": {
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0",
+        "CXI_TEST_KIND": "sglang",
+        "CXI_SGLANG_IMPORT_AFTER_INIT": "1",
+        "CXI_SGLANG_EXACT_REFERENCE": "1",
+        "CXI_SGLANG_PERMUTE": "1",
+        "CXI_SGLANG_DTYPES": "fp8,bf16",
+        "CXI_SGLANG_TOKENS": "4096",
+        "CXI_SGLANG_ROUNDS": "50",
+        "CXI_SGLANG_WARMUP": "10",
+        "CXI_SGLANG_MODEL": "v4flash",
+        "CXI_TEST_TIMEOUT": "270",
+        "CXI_NCCL_PREFIX": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/experiments/credit-v1/runtime-with-ct-reuse"
+      },
+      "requires": [
+        "11-credit-sglang-minimax-direct"
+      ],
+      "stop_after": true
+    }
+  }
+]

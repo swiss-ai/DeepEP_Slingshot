@@ -1,0 +1,12 @@
+{
+  "reason": "Positional selection picked queue-wrap/producers/GIN instead of intended types. Use explicit named templates. GPU source and compilation unchanged.",
+  "actual_1100_1102": "raw queue-wrap checks only; no notification-mutation result",
+  "retired": [
+    "ready-plan-v11.json",
+    "ready-plan-v12.json"
+  ],
+  "corrected": [
+    "ready-plan-v13.json",
+    "ready-plan-v14.json"
+  ]
+}

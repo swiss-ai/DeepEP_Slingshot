@@ -1,0 +1,5 @@
+{
+  "reason": "Validator context filter also selected mutation-probe rounds; fixed and tested in v2 before any GPU submission",
+  "gpu_run": false,
+  "unused_plan": "ready-plan-v9.json"
+}

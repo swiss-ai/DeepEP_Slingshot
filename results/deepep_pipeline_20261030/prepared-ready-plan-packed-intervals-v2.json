@@ -1,0 +1,25 @@
+{
+  "requires": [
+    "3000-zero-rows-irregular-stress",
+    "3001-zero-rows-4k-correctness",
+    "3002-zero-rows-dropped-correctness",
+    "3003-zero-packed-irregular-stress",
+    "3004-zero-packed-4k-correctness",
+    "3005-zero-packed-dropped-correctness",
+    "3006-zero-rows-repeat1",
+    "3007-zero-packed-repeat1",
+    "3008-zero-packed-repeat2",
+    "3009-zero-rows-repeat2",
+    "3010-zero-rows-repeat3",
+    "3011-zero-packed-repeat3"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-zero-packed-v6",
+      "sequence": "prepared-packed-intervals-v2-sequence.json",
+      "sequence_sha256": "7f39443b89fd21af46ae8d3db31288b936228c36e3036f9ec1f7e312a704d57c"
+    }
+  ],
+  "scope": "Prepared only; requires successful interval3 packed/control qualification, performance review and interval8/16 compile evidence before launch; forward chunk3 unchanged"
+}

@@ -1,0 +1,112 @@
+[
+  {
+    "name": "01-ct-persistent-window",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/gate-20261028-ep8-profile-v1",
+      "node_script": "backend/tools/direct_node.sh",
+      "timeout_seconds": 180,
+      "qualification": "gin",
+      "environment": {
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_TEST_KIND": "smoke",
+        "CXI_SMOKE_CONTEXTS": "129,129,129,129,129,129,129,129,129,129,129,129,129,129,129,129,129,129,129,129",
+        "CXI_SMOKE_ROUNDS": "14",
+        "CXI_SMOKE_RESET": "1",
+        "CXI_LIFECYCLE_HOLD_WINDOW": "1",
+        "CXI_TEST_TIMEOUT": "150"
+      },
+      "requires": [],
+      "stop_after": false
+    }
+  },
+  {
+    "name": "02-ep4k-profile",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/gate-20261028-ep8-profile-v1",
+      "node_script": "backend/tools/direct_node.sh",
+      "timeout_seconds": 600,
+      "qualification": "ep",
+      "environment": {
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0",
+        "CXI_TEST_KIND": "ep",
+        "CXI_EP_MODELS": "v4flash qwen3 minimax",
+        "CXI_EP_TOKENS": "4096",
+        "CXI_EP_DTYPES": "fp8",
+        "CXI_EP_SEEDS": "1",
+        "CXI_EP_ROUTING": "uniform",
+        "CXI_EP_WARMUP": "10",
+        "CXI_EP_ITERS": "50",
+        "CXI_EP_NIC_ITERS": "100",
+        "CXI_EP_PROFILE_STEPS": "5",
+        "CXI_TEST_TIMEOUT": "570"
+      },
+      "requires": [
+        "01-ct-persistent-window"
+      ],
+      "stop_after": false
+    }
+  },
+  {
+    "name": "03-ep4k-bf16",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/gate-20261028-ep8-profile-v1",
+      "node_script": "backend/tools/direct_node.sh",
+      "timeout_seconds": 420,
+      "qualification": "ep",
+      "environment": {
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0",
+        "CXI_TEST_KIND": "ep",
+        "CXI_EP_MODELS": "v4flash qwen3 minimax",
+        "CXI_EP_TOKENS": "4096",
+        "CXI_EP_DTYPES": "bf16",
+        "CXI_EP_SEEDS": "1",
+        "CXI_EP_ROUTING": "uniform",
+        "CXI_EP_WARMUP": "10",
+        "CXI_EP_ITERS": "50",
+        "CXI_EP_NIC_ITERS": "100",
+        "CXI_EP_PROFILE_STEPS": "0",
+        "CXI_TEST_TIMEOUT": "390"
+      },
+      "requires": [
+        "02-ep4k-profile"
+      ],
+      "stop_after": false
+    }
+  },
+  {
+    "name": "04-local-remote-profile",
+    "spec": {
+      "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/gate-20261028-ep8-profile-v1",
+      "node_script": "backend/tools/direct_node.sh",
+      "timeout_seconds": 480,
+      "qualification": "ep",
+      "environment": {
+        "CXI_DEEPEP_SOURCE": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/DeepEP-runtimeguard-20261027",
+        "CXI_EP_SMS": "64",
+        "CXI_EP_CONTEXTS": "129",
+        "CXI_EP_DEBUG": "0",
+        "CXI_TEST_KIND": "ep",
+        "CXI_EP_MODELS": "v4flash qwen3 minimax",
+        "CXI_EP_TOKENS": "4096",
+        "CXI_EP_DTYPES": "fp8",
+        "CXI_EP_SEEDS": "1",
+        "CXI_EP_ROUTING": "local remote",
+        "CXI_EP_WARMUP": "10",
+        "CXI_EP_ITERS": "50",
+        "CXI_EP_NIC_ITERS": "100",
+        "CXI_EP_PROFILE_STEPS": "5",
+        "CXI_TEST_TIMEOUT": "450"
+      },
+      "requires": [
+        "03-ep4k-bf16"
+      ],
+      "stop_after": true
+    }
+  }
+]

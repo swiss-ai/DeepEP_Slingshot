@@ -1,0 +1,392 @@
+[
+  {
+    "name": "200-delivery-control-gin",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "gin",
+    "timeout_seconds": 1500,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TEST_KIND": "smoke",
+      "CXI_TEST_TIMEOUT": "1440",
+      "CXI_SMOKE_CONTEXTS": "1,4,129",
+      "CXI_SMOKE_ROUNDS": "28",
+      "CXI_SMOKE_RESET": "1",
+      "CXI_SMOKE_SELF": "1",
+      "CXI_SMOKE_NEGATIVE": "1"
+    },
+    "requires": []
+  },
+  {
+    "name": "201-delivery-control-wrap",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "burst",
+    "timeout_seconds": 420,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TEST_KIND": "burst",
+      "CXI_TEST_TIMEOUT": "360"
+    },
+    "requires": [
+      "200-delivery-control-gin"
+    ]
+  },
+  {
+    "name": "202-delivery-control-producers",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "gin",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TEST_KIND": "producer",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_PRODUCER_BLOCKS": "1,2,8",
+      "CXI_PRODUCER_ROUNDS": "256"
+    },
+    "requires": [
+      "201-delivery-control-wrap"
+    ]
+  },
+  {
+    "name": "203-delivery-control-ep-correctness",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1500,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1440",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "257 4096",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed uniform hot_rank local remote",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "2",
+      "CXI_EP_ITERS": "3",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "202-delivery-control-producers"
+    ]
+  },
+  {
+    "name": "204-delivery-batched-gin",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "gin",
+    "timeout_seconds": 1500,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-batched",
+      "CXI_TEST_KIND": "smoke",
+      "CXI_TEST_TIMEOUT": "1440",
+      "CXI_SMOKE_CONTEXTS": "1,4,129",
+      "CXI_SMOKE_ROUNDS": "28",
+      "CXI_SMOKE_RESET": "1",
+      "CXI_SMOKE_SELF": "1",
+      "CXI_SMOKE_NEGATIVE": "1"
+    },
+    "requires": []
+  },
+  {
+    "name": "205-delivery-batched-wrap",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "burst",
+    "timeout_seconds": 420,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-batched",
+      "CXI_TEST_KIND": "burst",
+      "CXI_TEST_TIMEOUT": "360"
+    },
+    "requires": [
+      "204-delivery-batched-gin"
+    ]
+  },
+  {
+    "name": "206-delivery-batched-producers",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "gin",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-batched",
+      "CXI_TEST_KIND": "producer",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_PRODUCER_BLOCKS": "1,2,8",
+      "CXI_PRODUCER_ROUNDS": "256"
+    },
+    "requires": [
+      "205-delivery-batched-wrap"
+    ]
+  },
+  {
+    "name": "207-delivery-batched-ep-correctness",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1500,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-batched",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1440",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "257 4096",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed uniform hot_rank local remote",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "2",
+      "CXI_EP_ITERS": "3",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "206-delivery-batched-producers"
+    ]
+  },
+  {
+    "name": "208-delivery-control-repeat1",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096 16384",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "100",
+      "CXI_EP_NIC_ITERS": "600",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "203-delivery-control-ep-correctness"
+    ]
+  },
+  {
+    "name": "209-delivery-batched-repeat1",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-batched",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096 16384",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "100",
+      "CXI_EP_NIC_ITERS": "600",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "207-delivery-batched-ep-correctness"
+    ]
+  },
+  {
+    "name": "210-delivery-batched-repeat2",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-batched",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096 16384",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "100",
+      "CXI_EP_NIC_ITERS": "600",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "207-delivery-batched-ep-correctness"
+    ]
+  },
+  {
+    "name": "211-delivery-control-repeat2",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096 16384",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "100",
+      "CXI_EP_NIC_ITERS": "600",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "203-delivery-control-ep-correctness"
+    ]
+  },
+  {
+    "name": "212-delivery-control-repeat3",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096 16384",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "100",
+      "CXI_EP_NIC_ITERS": "600",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "203-delivery-control-ep-correctness"
+    ]
+  },
+  {
+    "name": "213-delivery-batched-repeat3",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-batched",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096 16384",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "100",
+      "CXI_EP_NIC_ITERS": "600",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "207-delivery-batched-ep-correctness"
+    ]
+  }
+]

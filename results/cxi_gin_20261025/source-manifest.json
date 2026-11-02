@@ -1,0 +1,16 @@
+{
+  "clic_upstream": "https://github.com/pinxuezhao/CLIC_SwissAI",
+  "clic_commit": "e80f60c059e1e5f272fc630eb15d60b5b09d8391",
+  "scripts": {
+    "README.md": "8128ce9f47b1cffa8c1031d06ca93957966a6aa6c5e2c2242bec1984335cfa27",
+    "build.sbatch": "820eae8c10f3fa955bc5316c83b761d7273e10d15f6a65b0da12f5356eb8a4ec",
+    "build.sh": "fefd7417296fe3deffc11b66bbdc451908c67e51eee3f04947e8c684b7f67239",
+    "ki_api_probe.c": "e1b8a8c37c05a09884bb43bf5b6e94d0f23bbcea4c4359e526739271024855bf",
+    "preflight.py": "ab1aa82f09ee616293e5f27d2890cda0c80da69fb52cb952228dd2f7509b1d55",
+    "test_preflight.py": "05361844afa2af9bf4848ac04a29ea07e23aebe9728497e5d11f96a0926539ab"
+  },
+  "runtime_ki_verified": false,
+  "cpu_free_progress_verified": false,
+  "status": "dependency_missing",
+  "local_checks": "2 dependency tests, Python compilation and shell syntax passed"
+}

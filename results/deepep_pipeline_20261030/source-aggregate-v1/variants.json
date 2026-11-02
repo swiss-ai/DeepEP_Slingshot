@@ -1,0 +1,14 @@
+{
+  "batch1": {
+    "CXI_CT_THRESHOLD_FLUSH": 1,
+    "CXI_TX_BATCH_LIMIT": 1
+  },
+  "batch8": {
+    "CXI_CT_THRESHOLD_FLUSH": 1,
+    "CXI_TX_BATCH_LIMIT": 8
+  },
+  "batch32": {
+    "CXI_CT_THRESHOLD_FLUSH": 1,
+    "CXI_TX_BATCH_LIMIT": 32
+  }
+}

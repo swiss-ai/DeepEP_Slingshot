@@ -1,0 +1,11 @@
+{
+  "local_remote_match": true,
+  "sha256": {
+    "gpu_order_host.c": "1ee02fcd930b7f7340de599c98f29d765764e3e7a81b5cd79c9af4f22715f2be",
+    "inside.sh": "ae98e27cf4425dc88a5ecebd29f422863f11e67d0e06b8db4f90ee1044afbce2",
+    "run.sbatch": "e24f4beb79804f888be4da923f601e53017ac68d801b474c08dc9b63304de4a6",
+    "gpu_order.cu": "ad4e62ba7bdc8ef895361fd538d8e811d65c01d7e1c5d2c86b232e33228775c9",
+    "submit.sh": "7bdba84f00acafa0ba7c6816a4492fb60c0e9cb094a8735decab5a35099d04f2",
+    "gpu_order_contract.h": "9cb1a9c24d550dafdbeeb3c5802a47fc660a721b1ad79f8866994b873e48d0b9"
+  }
+}

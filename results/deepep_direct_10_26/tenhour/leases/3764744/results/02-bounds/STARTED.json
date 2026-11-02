@@ -1,0 +1,19 @@
+{
+  "request": "02-bounds.json",
+  "start_utc": "2026-10-27T10:29:23.832226+00:00",
+  "spec": {
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/gate-20261027-0948",
+    "node_script": "backend/tools/direct_node.sh",
+    "timeout_seconds": 90,
+    "environment": {
+      "CXI_TEST_KIND": "bounds",
+      "CXI_TEST_TIMEOUT": "60"
+    },
+    "qualification": "gin",
+    "requires": [
+      "01-recovery-self"
+    ],
+    "stop_after": false
+  },
+  "node_script_sha256": "36ece74196b9f35c624da78644ca27b506e3c4f823dcefb71089f1ad475b2ce2"
+}

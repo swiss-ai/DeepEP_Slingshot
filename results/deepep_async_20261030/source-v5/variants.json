@@ -1,0 +1,23 @@
+{
+  "baseline": {},
+  "async": {},
+  "cap1": {
+    "CXI_TX_PENDING_LIMIT": 1
+  },
+  "cap2": {
+    "CXI_TX_PENDING_LIMIT": 2
+  },
+  "cap4": {
+    "CXI_TX_PENDING_LIMIT": 4
+  },
+  "cap8": {
+    "CXI_TX_PENDING_LIMIT": 8
+  },
+  "threshold": {
+    "CXI_CT_THRESHOLD_FLUSH": 1
+  },
+  "threshold-cap4": {
+    "CXI_CT_THRESHOLD_FLUSH": 1,
+    "CXI_TX_PENDING_LIMIT": 4
+  }
+}

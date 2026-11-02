@@ -1,0 +1,117 @@
+[
+  {
+    "name": "01-threshold-gin",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-size-sweep-20261030/sources/source-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "gin",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_VARIANT": "threshold",
+      "CXI_TEST_KIND": "smoke",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_SMOKE_CONTEXTS": "1,4,129",
+      "CXI_SMOKE_RESET": "1",
+      "CXI_SMOKE_SELF": "1",
+      "CXI_SMOKE_NEGATIVE": "1"
+    },
+    "requires": []
+  },
+  {
+    "name": "02-size-sweep-repeat1",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-size-sweep-20261030/sources/source-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1500,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_VARIANT": "threshold",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1440",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "2048 4096 6144 8192 10240 12288 14336 16384",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "100",
+      "CXI_EP_NIC_ITERS": "600",
+      "CXI_EP_PROFILE_STEPS": "0",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_SWEEP_REPEAT": "1"
+    },
+    "requires": [
+      "01-threshold-gin"
+    ]
+  },
+  {
+    "name": "03-size-sweep-repeat2",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-size-sweep-20261030/sources/source-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1500,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_VARIANT": "threshold",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1440",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "16384 14336 12288 10240 8192 6144 4096 2048",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "100",
+      "CXI_EP_NIC_ITERS": "600",
+      "CXI_EP_PROFILE_STEPS": "0",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_SWEEP_REPEAT": "2"
+    },
+    "requires": [
+      "01-threshold-gin"
+    ]
+  },
+  {
+    "name": "04-size-sweep-repeat3",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-size-sweep-20261030/sources/source-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1500,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_VARIANT": "threshold",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1440",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "8192 2048 14336 6144 16384 4096 12288 10240",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "100",
+      "CXI_EP_NIC_ITERS": "600",
+      "CXI_EP_PROFILE_STEPS": "0",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_SWEEP_REPEAT": "3"
+    },
+    "requires": [
+      "01-threshold-gin"
+    ]
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "requires": [
+    "2612-local-io-jit1-results1-watch0",
+    "2613-local-io-jit1-results1-watch0"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-local-io-v2",
+      "sequence": "local-io-qualification-v2-sequence.json",
+      "sequence_sha256": "aa5778ee2a21f4a7fd5e78a06a356a0c24746b25f20fbcef2ce74d11c726df08"
+    }
+  ]
+}

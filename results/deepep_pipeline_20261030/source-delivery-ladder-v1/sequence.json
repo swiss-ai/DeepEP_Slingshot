@@ -1,0 +1,266 @@
+[
+  {
+    "name": "300-ladder-delivery-control-coalesced-4096",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "4096",
+      "CXI_LADDER_SIGNAL_INTERVAL": "0",
+      "CXI_LADDER_COALESCE": "1",
+      "CXI_LADDER_CONTEXTS": "129",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "203-delivery-control-ep-correctness"
+    ]
+  },
+  {
+    "name": "301-ladder-delivery-batched-coalesced-4096",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "delivery-batched",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "4096",
+      "CXI_LADDER_SIGNAL_INTERVAL": "0",
+      "CXI_LADDER_COALESCE": "1",
+      "CXI_LADDER_CONTEXTS": "129",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "207-delivery-batched-ep-correctness"
+    ]
+  },
+  {
+    "name": "302-ladder-delivery-control-rows-final-4096",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "4096",
+      "CXI_LADDER_SIGNAL_INTERVAL": "0",
+      "CXI_LADDER_COALESCE": "0",
+      "CXI_LADDER_CONTEXTS": "129",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "203-delivery-control-ep-correctness"
+    ]
+  },
+  {
+    "name": "303-ladder-delivery-batched-rows-final-4096",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "delivery-batched",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "4096",
+      "CXI_LADDER_SIGNAL_INTERVAL": "0",
+      "CXI_LADDER_COALESCE": "0",
+      "CXI_LADDER_CONTEXTS": "129",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "207-delivery-batched-ep-correctness"
+    ]
+  },
+  {
+    "name": "304-ladder-delivery-control-signals3-4096",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "4096",
+      "CXI_LADDER_SIGNAL_INTERVAL": "3",
+      "CXI_LADDER_COALESCE": "0",
+      "CXI_LADDER_CONTEXTS": "129",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "203-delivery-control-ep-correctness"
+    ]
+  },
+  {
+    "name": "305-ladder-delivery-batched-signals3-4096",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "delivery-batched",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "4096",
+      "CXI_LADDER_SIGNAL_INTERVAL": "3",
+      "CXI_LADDER_COALESCE": "0",
+      "CXI_LADDER_CONTEXTS": "129",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "207-delivery-batched-ep-correctness"
+    ]
+  },
+  {
+    "name": "306-ladder-delivery-control-coalesced-16384",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "16384",
+      "CXI_LADDER_SIGNAL_INTERVAL": "0",
+      "CXI_LADDER_COALESCE": "1",
+      "CXI_LADDER_CONTEXTS": "129",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "203-delivery-control-ep-correctness"
+    ]
+  },
+  {
+    "name": "307-ladder-delivery-batched-coalesced-16384",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "delivery-batched",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "16384",
+      "CXI_LADDER_SIGNAL_INTERVAL": "0",
+      "CXI_LADDER_COALESCE": "1",
+      "CXI_LADDER_CONTEXTS": "129",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "207-delivery-batched-ep-correctness"
+    ]
+  },
+  {
+    "name": "308-ladder-delivery-control-rows-final-16384",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "16384",
+      "CXI_LADDER_SIGNAL_INTERVAL": "0",
+      "CXI_LADDER_COALESCE": "0",
+      "CXI_LADDER_CONTEXTS": "129",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "203-delivery-control-ep-correctness"
+    ]
+  },
+  {
+    "name": "309-ladder-delivery-batched-rows-final-16384",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "delivery-batched",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "16384",
+      "CXI_LADDER_SIGNAL_INTERVAL": "0",
+      "CXI_LADDER_COALESCE": "0",
+      "CXI_LADDER_CONTEXTS": "129",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "207-delivery-batched-ep-correctness"
+    ]
+  },
+  {
+    "name": "310-ladder-delivery-control-signals3-16384",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "16384",
+      "CXI_LADDER_SIGNAL_INTERVAL": "3",
+      "CXI_LADDER_COALESCE": "0",
+      "CXI_LADDER_CONTEXTS": "129",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "203-delivery-control-ep-correctness"
+    ]
+  },
+  {
+    "name": "311-ladder-delivery-batched-signals3-16384",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-ladder-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "delivery-batched",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "16384",
+      "CXI_LADDER_SIGNAL_INTERVAL": "3",
+      "CXI_LADDER_COALESCE": "0",
+      "CXI_LADDER_CONTEXTS": "129",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "207-delivery-batched-ep-correctness"
+    ]
+  }
+]

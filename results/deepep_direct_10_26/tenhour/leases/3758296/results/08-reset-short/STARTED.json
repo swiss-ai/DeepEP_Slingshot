@@ -1,0 +1,14 @@
+{
+  "request": "08-reset-short.json",
+  "start_utc": "2026-10-26T20:44:15.282054+00:00",
+  "spec": {
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-direct-20261026/tenhour/sources/gate-20261026-2043",
+    "node_script": "backend/tools/direct_node.sh",
+    "timeout_seconds": 60,
+    "environment": {
+      "CXI_SMOKE_CONTEXTS": "1,4",
+      "CXI_SMOKE_RESET": "1"
+    }
+  },
+  "node_script_sha256": "09e5196ed4866ca895bd8d997e606a20ffc53e64fe84687fa76690365d194f21"
+}

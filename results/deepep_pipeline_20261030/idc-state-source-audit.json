@@ -1,0 +1,27 @@
+{
+  "parent": "source-hw-fence-v3",
+  "candidate": "source-idc-state-v1",
+  "changed": [
+    "backend/device/cxi_primitives.cuh",
+    "backend/include/cxi_gin_abi.h",
+    "backend/tests/gin_smoke.py",
+    "backend/tools/direct_node.sh",
+    "runner/install.py",
+    "runner/preflight.sh",
+    "runner/validate_gate.py",
+    "sequence.json",
+    "variants.json"
+  ],
+  "added": [
+    "backend/device/cxi_idc_state.h",
+    "backend/tests/gin_stage_ladder.cu",
+    "runner/test_idc_state.cc"
+  ],
+  "unchanged": [
+    "DeepEP.tar.gz",
+    "DeepEP-trace.tar.gz",
+    "backend/host/cxi_resources.cc",
+    "backend/device/cxi_queue_credit.h"
+  ],
+  "gpu_qualified": false
+}

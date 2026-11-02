@@ -1,0 +1,9 @@
+{
+  "marker-zero-trace": {
+    "CXI_HW_SIGNAL_FENCE": 1,
+    "CXI_BATCH_DELIVERY": 1,
+    "CXI_ZERO_DELIVERY_MARKER": 1,
+    "CXI_CT_THRESHOLD_FLUSH": 1,
+    "CXI_TX_BATCH_LIMIT": 8
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "requires": [
+    "4000-rows-i16-irregular-correctness",
+    "4001-rows-i16-4k-correctness",
+    "4002-rows-i16-dropped-token-correctness",
+    "4003-packed-i16-irregular-correctness",
+    "4004-packed-i16-4k-correctness",
+    "4005-packed-i16-dropped-token-correctness",
+    "4006-rows-i16-repeat1",
+    "4007-packed-i16-repeat1",
+    "4008-packed-i16-repeat2",
+    "4009-rows-i16-repeat2",
+    "4010-rows-i16-repeat3",
+    "4011-packed-i16-repeat3"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-zero-packed-v7",
+      "sequence": "prepared-packed-i16-q257-v2-sequence.json",
+      "sequence_sha256": "5a5794f9be41dba675deb46cf7e8e655591e9e259e2ff997b587c4936320b310"
+    }
+  ],
+  "scope": "Same context comparison as unlaunchedv1; timing timeout300s after correctness/JIT qualification. Six current matched repeats completed in95.8\u201399.7s; retains180s allocation guard. Correctness timeouts unchanged."
+}

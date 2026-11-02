@@ -1,0 +1,4 @@
+{
+  "reason": "Static audit: no-destination tokens need an explicit remote-mask guard before a packed source write. Replaced by source-packed-rows-v2 before any GPU run; v2 also adds dropped-token correctness gates.",
+  "gpu_executed": false
+}

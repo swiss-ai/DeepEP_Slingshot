@@ -1,0 +1,23 @@
+{
+  "requires": [
+    "4100-packed-i16-q257-irregular-stress",
+    "4101-packed-i16-q257-4k-correctness",
+    "4102-packed-i16-q257-dropped-correctness",
+    "4103-packed-i16-q257-sustained16k",
+    "4104-packed-i16-q129-repeat1",
+    "4105-packed-i16-q257-repeat1",
+    "4106-packed-i16-q257-repeat2",
+    "4107-packed-i16-q129-repeat2",
+    "4108-packed-i16-q129-repeat3",
+    "4109-packed-i16-q257-repeat3"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-packed-trace-v2",
+      "sequence": "prepared-packed-i16-context-trace-v1-sequence.json",
+      "sequence_sha256": "33898ea58b7b9d0ac8ab86684199821ea8837f8f2085f6ad267ba9fd19c08211"
+    }
+  ],
+  "scope": "Prepared only; after full ordinary129/257 comparison in same allocation. Likely deferred to fresh allocation with renamed/requalified prerequisites."
+}

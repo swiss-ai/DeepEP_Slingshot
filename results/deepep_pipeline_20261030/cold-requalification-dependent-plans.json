@@ -1,0 +1,16 @@
+{
+  "scope": "Prepared only. New external scheduling sequences; source/runtime/compiled inputs unchanged. Both cold matrices2210/2211 must pass before these dependencies can pass.",
+  "dependency_map": {
+    "1804-retire-refresh-ep-correctness": "2211-retire-refresh-cold-ep-correctness",
+    "1805-retire-refresh-sustained16k": "2212-retire-refresh-cold-sustained16k",
+    "1806-retire-refresh-repeat1": "2213-retire-refresh-cold-repeat1",
+    "1807-retire-refresh-repeat2": "2214-retire-refresh-cold-repeat2",
+    "1808-retire-refresh-repeat3": "2215-retire-refresh-cold-repeat3"
+  },
+  "plans": [
+    "ready-plan-marker-matched-v3.json",
+    "ready-plan-zero-packed-v4.json",
+    "ready-plan-cstate-defer-v3.json",
+    "ready-plan-marker-then-packed-v2.json"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "job": 3810110,
+  "submitted_epoch": 1793409066.1394227,
+  "dependency": "afterany:3809401",
+  "source": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/controllers/controller-followup-v1",
+  "command": [
+    "sbatch",
+    "--parsable",
+    "--dependency=afterany:3809401",
+    "--export=ALL,CAMPAIGN=/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030,INITIAL_SNAPSHOT=/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/controllers/controller-followup-v1",
+    "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/controllers/controller-followup-v1/runner/run.sbatch"
+  ],
+  "scope": "Two GH200 nodes, 4h, baseline requalification then held debug window; no overlap with current allocation",
+  "monitor_pid": 570847
+}

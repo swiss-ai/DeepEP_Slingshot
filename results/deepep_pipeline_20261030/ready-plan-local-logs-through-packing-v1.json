@@ -1,0 +1,31 @@
+{
+  "requires": [
+    "1803-retire-refresh-tiny-stress",
+    "2610-local-io-jit1-results0-watch1",
+    "2611-local-io-jit1-results1-watch1"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-local-logs-v1",
+      "sequence": "local-logs-ordinary-v1-sequence.json",
+      "sequence_sha256": "1a964f7a52b475e555e68d082c233fdbfd3271789cb1181f34cb7f4a1e1c62a1"
+    },
+    {
+      "snapshot": "source-local-logs-v1",
+      "sequence": "local-logs-qualification-v1-sequence.json",
+      "sequence_sha256": "2d466a493e1bef6bc0d7235a5408479ae4fad217f486627ca0bb0937609f5520"
+    },
+    {
+      "snapshot": "source-local-logs-v1",
+      "sequence": "marker-matched-local-logs-v1-sequence.json",
+      "sequence_sha256": "d1537f04b62687d40437bff0505c76fe0f4a9c35392cb6c41ae2c9f2329d9e65"
+    },
+    {
+      "snapshot": "source-zero-packed-v6",
+      "sequence": "packed-local-logs-v1-sequence.json",
+      "sequence_sha256": "799e73d2a9ce456a2a3b86b2764c6e117128cf5849510ffff992403233ad0409"
+    }
+  ],
+  "scope": "Host runtime logs in tmpfs; ordinary qualification then matched markers and packing; stop failure, hold allocation; identical GPU inputs per parent"
+}

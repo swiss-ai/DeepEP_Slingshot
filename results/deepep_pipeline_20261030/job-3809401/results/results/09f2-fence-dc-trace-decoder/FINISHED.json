@@ -1,0 +1,42 @@
+{
+  "spec": {
+    "name": "09f2-fence-dc-trace-decoder",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-hw-fence-trace-v2",
+    "node_script": "runner/node.sh",
+    "qualification": "ep_trace",
+    "timeout_seconds": 1800,
+    "environment": {
+      "CXI_VARIANT": "fence-dc-trace",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1740",
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "1",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "30",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "2",
+      "CXI_TRACE_CAPTURES": "3"
+    },
+    "requires": [
+      "407-fence-dc-ep-correctness"
+    ]
+  },
+  "start_utc": "2026-10-31T01:19:48.543329Z",
+  "returncode": 0,
+  "qualification": {
+    "status": "FAIL",
+    "reason": "('missing queue/completion trace', {200, 201, 202, 204, 205, 206, 209, 211, 100, 101, 102, 103, 104, 105, 106, 108, 109, 110, 111, 112, 120, 121})"
+  },
+  "error": "('missing queue/completion trace', {200, 201, 202, 204, 205, 206, 209, 211, 100, 101, 102, 103, 104, 105, 106, 108, 109, 110, 111, 112, 120, 121})",
+  "end_utc": "2026-10-31T01:23:32.460689Z"
+}

@@ -1,0 +1,22 @@
+{
+  "requires": [
+    "2920-local-logs-sustained16k",
+    "2921-local-logs-repeat1",
+    "2922-local-logs-repeat2",
+    "2923-local-logs-repeat3"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-local-reports-v1",
+      "sequence": "marker-matched-local-reports-v1-sequence.json",
+      "sequence_sha256": "d906f8387bb0be14bf9c3aee16794de8fa1a30bc592c9a26576eeefd4910aba5"
+    },
+    {
+      "snapshot": "source-zero-packed-v7",
+      "sequence": "packed-local-reports-v1-sequence.json",
+      "sequence_sha256": "863004d1ae2d73ff56cf8c07c4d866f7757f4670a5914b051ccf0feb81cc2744"
+    }
+  ],
+  "scope": "Post-GPU report-copy repair only; inherit ordinary GPU qualifications; run new same-source matched controls and packing; halt on any failure and hold allocation"
+}

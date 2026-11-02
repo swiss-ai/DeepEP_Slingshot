@@ -1,0 +1,10 @@
+/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/runtime/source-1101-combine-pack-v1/marker-zero
+Traceback (most recent call last):
+  File "/home/yu/CSCS/Load_Balance_Cross_Node/tools/cxi_gin/experiments/pipeline_1101/launch_1101.py", line 28, in <module>
+    remote(['python3', CAMPAIGN + '/preflight_combine_templates_1101.py', source, a.variant], stdout=f, stderr=subprocess.STDOUT, timeout=2400)
+  File "/home/yu/CSCS/Load_Balance_Cross_Node/tools/cxi_gin/experiments/pipeline_1101/launch_1101.py", line 11, in remote
+    return subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15', 'clariden', shlex.join(argv)], check=True, **kw)
+  File "/home/yu/anaconda3/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15', 'clariden', 'python3 /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/preflight_combine_templates_1101.py /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1101-combine-pack-v1 marker-zero']' returned non-zero exit status 1.
+launch rc=1

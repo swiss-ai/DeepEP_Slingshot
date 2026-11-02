@@ -1,0 +1,43 @@
+{
+  "spec": {
+    "name": "103-delivery-control-ep-correctness",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-delivery-v2",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1500,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "delivery-control",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1440",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "257 4096",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed uniform hot_rank local remote",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "2",
+      "CXI_EP_ITERS": "3",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "102-delivery-control-producers"
+    ]
+  },
+  "start_utc": "2026-10-30T23:06:57.984423Z",
+  "executor_sha256": "63b757edc41112341207c2bec112f385286b086259b2a865a45d18cb1af977c8",
+  "sequence_sha256": "668ec4edc719d47ca8b644bb17d752faef19fb710a196d3ef2475626e94cfe97",
+  "scheduled_between_gates": true,
+  "returncode": 143,
+  "qualification": {
+    "status": "FAIL",
+    "reason": "Slurm step failed"
+  },
+  "end_utc": "2026-10-30T23:08:07.540053Z"
+}

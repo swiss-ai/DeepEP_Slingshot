@@ -1,0 +1,5 @@
+{
+  "status": "REJECTED_BEFORE_REMOTE_STAGING",
+  "reason": "Scratch signal_window uses a different CXI PID/domain from application payload windows; a cross-endpoint flush does not establish the required payload visibility proof.",
+  "gpu_executed": false
+}

@@ -1,0 +1,51 @@
+{
+  "spec": {
+    "name": "5011-allocation2-packed-i16-q129-repeat2",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-zero-packed-v7",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 600,
+    "environment": {
+      "CXI_VARIANT": "marker-zero",
+      "CXI_TRANSPORT": "direct",
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_UPDATE_INTERVAL": "16",
+      "CXI_EP_DEBUG": "0",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_DROP_EVERY": "0",
+      "CXI_TEST_KIND": "ep",
+      "CXI_EP_PACK_ROWS": "1",
+      "CXI_TEST_TIMEOUT": "540",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096 16384",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "100",
+      "CXI_EP_NIC_ITERS": "600",
+      "CXI_EP_PROFILE_STEPS": "0",
+      "CXI_LOCAL_JIT": "1",
+      "CXI_LOCAL_RESULTS": "1",
+      "CXI_DIAGNOSTIC_WATCHDOG": "0",
+      "CXI_LOCAL_LOGS": "1",
+      "CXI_EP_FORWARD_CHUNK": "3"
+    },
+    "requires": [
+      "5000-allocation2-packed-i16-q129-irregular-stress",
+      "5001-allocation2-packed-i16-q129-4k-correctness",
+      "5002-allocation2-packed-i16-q129-dropped-correctness",
+      "5003-allocation2-packed-i16-q129-sustained16k",
+      "5004-allocation2-packed-i16-q257-irregular-stress",
+      "5005-allocation2-packed-i16-q257-4k-correctness",
+      "5006-allocation2-packed-i16-q257-dropped-correctness",
+      "5007-allocation2-packed-i16-q257-sustained16k"
+    ]
+  },
+  "start_utc": "2026-10-31T06:58:07.703199Z",
+  "executor_sha256": "e062105803afbe6d4b163bd31e8aacd8ee31e60faf8127cefa852e8d2d8975d0",
+  "sequence_sha256": "595198f253fe8d0601a3329d8bf25fabd09541675687f0b05d5e323002a8defc",
+  "scheduled_between_gates": true
+}

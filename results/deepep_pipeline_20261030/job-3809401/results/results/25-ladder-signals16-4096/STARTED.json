@@ -1,0 +1,27 @@
+{
+  "spec": {
+    "name": "25-ladder-signals16-4096",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-ladder-v2",
+    "node_script": "runner/node.sh",
+    "qualification": "ladder",
+    "timeout_seconds": 1200,
+    "environment": {
+      "CXI_VARIANT": "threshold",
+      "CXI_TRANSPORT": "direct",
+      "CXI_TEST_KIND": "ladder",
+      "CXI_TEST_TIMEOUT": "1140",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_LADDER_ROWS": "4096",
+      "CXI_LADDER_SIGNAL_INTERVAL": "16",
+      "CXI_LADDER_COALESCE": "0",
+      "CXI_LADDER_CONTEXTS": "129,257",
+      "CXI_LADDER_ROUNDS": "30"
+    },
+    "requires": [
+      "01-threshold-gin"
+    ]
+  },
+  "start_utc": "2026-10-30T22:51:49.742113Z",
+  "executor_sha256": "1b25cb326ea1d1ba3d5aab1bf28a9d85159f66b8e729375bf28dd2f884ad04aa",
+  "scheduled_between_gates": true
+}

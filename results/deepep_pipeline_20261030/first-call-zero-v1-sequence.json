@@ -1,0 +1,35 @@
+[
+  {
+    "name": "2200-marker-zero-first257-diagnostic",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-first-call-debug-v1",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_QUEUE_INVENTORY": "1",
+      "CXI_EP_UPDATE_INTERVAL": "3",
+      "CXI_DEVICE_TRACE": "0",
+      "CXI_VARIANT": "marker-zero",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "257",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "20",
+      "CXI_EP_ITERS": "100",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0",
+      "CXI_REQUIRE_REUSE": "0",
+      "CXI_DIAGNOSTIC_WATCHDOG": "1"
+    },
+    "requires": [
+      "1803-retire-refresh-tiny-stress"
+    ]
+  }
+]

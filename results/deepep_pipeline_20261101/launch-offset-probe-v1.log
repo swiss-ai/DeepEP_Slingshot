@@ -1,0 +1,14 @@
+/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/runtime/source-1101-offset-probe-v1/marker-zero
+             JOBID      STATE                           NAME       TIME     NODELIST(REASON)
+           3830643    PENDING            deepep-cxi-pipeline       0:00          (Resources)
+{
+  "job": 3830643,
+  "utc": "2026-11-02T04:23:56.826253+00:00",
+  "campaign": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030",
+  "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1101-offset-probe-v1",
+  "local_snapshot": "/home/yu/CSCS/Load_Balance_Cross_Node/results/deepep_pipeline_20261101/source-1101-offset-probe-v1",
+  "state": "SUBMITTED",
+  "time": "00:45:00",
+  "monitor_pid": 1883862
+}
+launch rc=0

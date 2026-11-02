@@ -1,0 +1,19 @@
+{
+  "status": "SOURCE_GENERATION_PASS_ONLY",
+  "ordinary_archive_sha256": "4b723077287b8babaeb76ab64bd565b6740d9f3806f8570477a4e2c74df4d762",
+  "events": {
+    "113": "packed_payload_submission",
+    "114": "tail_notification_submission",
+    "115": "receiver_tail_observation",
+    "209": "TX_publication",
+    "210": "delivery_marker_enqueue",
+    "211": "NIC_fence_enqueue",
+    "212": "CSTATE_submission",
+    "213": "atomic_notification_submission"
+  },
+  "generated_inputs": {
+    "ep/deep_ep/include/deep_ep/impls/hybrid_dispatch.cuh": "927e3a4e55de46a85d7dbd37d486aaeb3f5b362dacaa5a5956e49c1a2d21d65d",
+    "headers/cxi_primitives.cuh": "0a61e1f8ed85444d6a98189d715ac1dbf8f021b333996c4f883072b74b41b178"
+  },
+  "scope": "No GPU compilation or execution; separate snapshot and validation required"
+}

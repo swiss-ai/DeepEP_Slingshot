@@ -1,0 +1,410 @@
+[
+  {
+    "name": "01-baseline-public-gin",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "gin",
+    "timeout_seconds": 1500,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "baseline",
+      "CXI_TEST_KIND": "smoke",
+      "CXI_TEST_TIMEOUT": "1440",
+      "CXI_SMOKE_CONTEXTS": "1,4,129",
+      "CXI_SMOKE_RESET": "1",
+      "CXI_SMOKE_SELF": "1"
+    },
+    "requires": []
+  },
+  {
+    "name": "02-async-burst-wrap",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "burst",
+    "timeout_seconds": 420,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "async",
+      "CXI_TEST_KIND": "burst",
+      "CXI_TEST_TIMEOUT": "360"
+    },
+    "requires": [
+      "01-baseline-public-gin"
+    ]
+  },
+  {
+    "name": "03-async-public-gin",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "gin",
+    "timeout_seconds": 1500,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "async",
+      "CXI_TEST_KIND": "smoke",
+      "CXI_TEST_TIMEOUT": "1440",
+      "CXI_SMOKE_CONTEXTS": "1,4,129",
+      "CXI_SMOKE_RESET": "1",
+      "CXI_SMOKE_SELF": "1",
+      "CXI_SMOKE_NEGATIVE": "1"
+    },
+    "requires": [
+      "02-async-burst-wrap"
+    ]
+  },
+  {
+    "name": "04-async-bounds",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "gin",
+    "timeout_seconds": 420,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "async",
+      "CXI_TEST_KIND": "bounds",
+      "CXI_TEST_TIMEOUT": "360"
+    },
+    "requires": [
+      "03-async-public-gin"
+    ]
+  },
+  {
+    "name": "05-async-producers",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "gin",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "async",
+      "CXI_TEST_KIND": "producer",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_PRODUCER_BLOCKS": "1,2,8",
+      "CXI_PRODUCER_ROUNDS": "512"
+    },
+    "requires": [
+      "04-async-bounds"
+    ]
+  },
+  {
+    "name": "06-async-ep-small",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "async",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "128 512",
+      "CXI_EP_DTYPES": "bf16 fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "5",
+      "CXI_EP_ITERS": "30",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "05-async-producers"
+    ]
+  },
+  {
+    "name": "07-baseline-v4flash-trial0",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "baseline",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "5",
+      "CXI_EP_ITERS": "30",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "06-async-ep-small"
+    ]
+  },
+  {
+    "name": "08-async-v4flash-trial0",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "async",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "5",
+      "CXI_EP_ITERS": "30",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "07-baseline-v4flash-trial0"
+    ]
+  },
+  {
+    "name": "09-async-v4flash-trial1",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "async",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "5",
+      "CXI_EP_ITERS": "30",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "08-async-v4flash-trial0"
+    ]
+  },
+  {
+    "name": "10-baseline-v4flash-trial1",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "baseline",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "5",
+      "CXI_EP_ITERS": "30",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "09-async-v4flash-trial1"
+    ]
+  },
+  {
+    "name": "11-baseline-v4flash-trial2",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "baseline",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "5",
+      "CXI_EP_ITERS": "30",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "10-baseline-v4flash-trial1"
+    ]
+  },
+  {
+    "name": "12-async-v4flash-trial2",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "async",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "4096",
+      "CXI_EP_DTYPES": "fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "5",
+      "CXI_EP_ITERS": "30",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "11-baseline-v4flash-trial2"
+    ]
+  },
+  {
+    "name": "13-baseline-three-geometries",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1500,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "baseline",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1440",
+      "CXI_EP_MODELS": "v4flash qwen3 minimax",
+      "CXI_EP_TOKENS": "4096",
+      "CXI_EP_DTYPES": "bf16 fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "5",
+      "CXI_EP_ITERS": "30",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "12-async-v4flash-trial2"
+    ]
+  },
+  {
+    "name": "14-async-three-geometries",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 1500,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "async",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "1440",
+      "CXI_EP_MODELS": "v4flash qwen3 minimax",
+      "CXI_EP_TOKENS": "4096",
+      "CXI_EP_DTYPES": "bf16 fp8",
+      "CXI_EP_ROUTING": "mixed",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "5",
+      "CXI_EP_ITERS": "30",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "13-baseline-three-geometries"
+    ]
+  },
+  {
+    "name": "15-async-empty-receivers",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "ep",
+    "timeout_seconds": 900,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "async",
+      "CXI_TEST_KIND": "ep",
+      "CXI_TEST_TIMEOUT": "840",
+      "CXI_EP_MODELS": "v4flash",
+      "CXI_EP_TOKENS": "512",
+      "CXI_EP_DTYPES": "bf16 fp8",
+      "CXI_EP_ROUTING": "hot_rank",
+      "CXI_EP_SEEDS": "1",
+      "CXI_EP_WARMUP": "5",
+      "CXI_EP_ITERS": "5",
+      "CXI_EP_NIC_ITERS": "0",
+      "CXI_EP_PROFILE_STEPS": "0"
+    },
+    "requires": [
+      "14-async-three-geometries"
+    ]
+  },
+  {
+    "name": "16-async-sglang-dispatcher",
+    "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-async-20261029/sources/source-v3",
+    "node_script": "runner/node.sh",
+    "qualification": "sglang",
+    "timeout_seconds": 1500,
+    "environment": {
+      "CXI_EP_SMS": "64",
+      "CXI_EP_CONTEXTS": "129",
+      "CXI_EP_DEBUG": "0",
+      "CXI_TRANSPORT": "direct",
+      "CXI_VARIANT": "async",
+      "CXI_TEST_KIND": "sglang",
+      "CXI_TEST_TIMEOUT": "1440",
+      "CXI_SGLANG_MODEL": "v4flash",
+      "CXI_SGLANG_DTYPES": "fp8",
+      "CXI_SGLANG_TOKENS": "32,4096",
+      "CXI_SGLANG_ROUNDS": "3",
+      "CXI_SGLANG_WARMUP": "1",
+      "CXI_SGLANG_EXACT_REFERENCE": "1",
+      "CXI_SGLANG_PERMUTE": "1"
+    },
+    "requires": [
+      "15-async-empty-receivers"
+    ]
+  }
+]

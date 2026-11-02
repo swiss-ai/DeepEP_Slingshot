@@ -1,0 +1,14 @@
+[
+  {
+    "exit_code": 0,
+    "copied_both_streams": true,
+    "pass_marker": true,
+    "local_file_removed": true
+  },
+  {
+    "exit_code": 7,
+    "copied_both_streams": true,
+    "pass_marker": false,
+    "local_file_removed": true
+  }
+]

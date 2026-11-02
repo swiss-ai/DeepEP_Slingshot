@@ -1,0 +1,18 @@
+{
+  "requires": [
+    "1203-zero-marker-tiny-stress",
+    "1204-zero-marker-ep-correctness",
+    "1205-zero-marker-sustained16k",
+    "1206-zero-marker-repeat1",
+    "1207-zero-marker-repeat2",
+    "1208-zero-marker-repeat3"
+  ],
+  "resume_original": false,
+  "phases": [
+    {
+      "snapshot": "source-cstate-defer-v1",
+      "sequence": "cstate-defer-v1-sequence.json",
+      "sequence_sha256": "02eb9dc7e1bb27a37eb41d10e7e9befa2e988f8f0b3e7bc96fbb06a44fe94a93"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+diff --git a/deep_ep/include/deep_ep/common/comm.cuh b/deep_ep/include/deep_ep/common/comm.cuh
+index 04a77d4..3db4df6 100644
+--- a/deep_ep/include/deep_ep/common/comm.cuh
++++ b/deep_ep/include/deep_ep/common/comm.cuh
+@@ -157,25 +157,23 @@ __forceinline__ __device__ void gin_barrier_wo_local_sync(
+         for (int i = thread_idx; i < kNumRanks; i += kNumThreads)
+             gin.signal(team, i, ncclGin_SignalInc{static_cast<ncclGinSignal_t>(rank_idx)});
+ 
+-        // TODO(NCCL): Using the official NCCL wait signal API, after they added timeout check.
++        // NCCL 2.32.3 provides a bounded, backend-independent signal wait.
+         for (int i = thread_idx; i < kNumRanks; i += kNumThreads) {
+             const auto signal_idx = static_cast<ncclGinSignal_t>(i);
+             const auto shadow_ptr = gin.getSignalShadowPtr(signal_idx);
+             const auto target = ++(*shadow_ptr);
+ 
+-            const auto gdaki = static_cast<struct ncclGinGdakiGPUContext*>(gin._ginHandle) + gin.contextId;
+-            const auto signal_ptr = reinterpret_cast<uint64_t*>(__ldg(reinterpret_cast<uint64_t*>(&gdaki->signals_table.buffer))) + signal_idx;
+-            timeout_while<kNumTimeoutCycles>([=](const bool& is_last_check) {
+-                const auto signal = ptx::ld_acquire_sys<uint64_t>(signal_ptr);
+-                if (signal >= target)
+-                    return true;
+-
+-                if (is_last_check) {
+-                    printf("DeepEP Gin barrier timeout, tag: %d, scaleout: %d, scaleup: %d, thread: %d, "
+-                           "signal: %lu, target: %lu\n", kTag, scaleout_rank_idx, scaleup_rank_idx, thread_idx, signal, target);
+-                }
+-                return false;
+-            });
++            const auto result = gin.waitSignal(
++                ncclCoopThread(), signal_idx, target, sizeof(*shadow_ptr) * 8,
++                cuda::memory_order_acquire, kNumTimeoutCycles);
++            if (result != ncclSuccess) {
++                const auto signal = gin.readSignal(
++                    signal_idx, sizeof(*shadow_ptr) * 8, cuda::memory_order_acquire);
++                printf("DeepEP Gin barrier wait failed, result: %d, tag: %d, scaleout: %d, scaleup: %d, thread: %d, "
++                       "signal: %lu, target: %lu\n", static_cast<int>(result), kTag,
++                       scaleout_rank_idx, scaleup_rank_idx, thread_idx, signal, target);
++                ptx::trap();
++            }
+         }
+     }
+ }
