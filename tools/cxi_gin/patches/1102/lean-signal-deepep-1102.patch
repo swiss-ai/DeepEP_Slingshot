@@ -1,0 +1,59 @@
+--- a/deep_ep/include/deep_ep/common/comm.cuh
++++ b/deep_ep/include/deep_ep/common/comm.cuh
+@@ -8,6 +8,11 @@
+ #include <deep_ep/common/ptx.cuh>
+ #include <deep_ep/common/layout.cuh>
+ 
++#ifndef CXI_EP_LOCAL_SELF_SIGNAL
++#define CXI_EP_LOCAL_SELF_SIGNAL 0
++#endif
++static_assert(CXI_EP_LOCAL_SELF_SIGNAL == 0 || CXI_EP_LOCAL_SELF_SIGNAL == 1);
++
+ namespace deep_ep::elastic::comm {
+ 
+ static constexpr int64_t kNumOneSecCycles = 2000000000;  // An approximation of the GPU clock at 2000 MHz
+@@ -154,11 +159,16 @@
+         const auto team = (std::is_same_v<team_t, ncclTeamTagWorld>) ?
+             ncclTeamWorld(nccl_dev_comm) : ncclTeamRail(nccl_dev_comm);
+         const ncclGin gin(nccl_dev_comm, 0, NCCL_GIN_RESOURCE_SHARING_CTA);
++        // CXI_EP_LOCAL_SELF_SIGNAL: this rank's own arrival needs no NIC round trip; skip both the
++        // self-signal (a full fenced signal sequence on context 0) and the wait on its own slot.
+         for (int i = thread_idx; i < kNumRanks; i += kNumThreads)
+-            gin.signal(team, i, ncclGin_SignalInc{static_cast<ncclGinSignal_t>(rank_idx)});
++            if (not CXI_EP_LOCAL_SELF_SIGNAL or i != rank_idx)
++                gin.signal(team, i, ncclGin_SignalInc{static_cast<ncclGinSignal_t>(rank_idx)});
+ 
+         // NCCL 2.32.3 provides a bounded, backend-independent signal wait.
+         for (int i = thread_idx; i < kNumRanks; i += kNumThreads) {
++            if (CXI_EP_LOCAL_SELF_SIGNAL and i == rank_idx)
++                continue;
+             const auto signal_idx = static_cast<ncclGinSignal_t>(i);
+             const auto shadow_ptr = gin.getSignalShadowPtr(signal_idx);
+             const auto target = ++(*shadow_ptr);
+--- a/deep_ep/include/deep_ep/impls/hybrid_combine.cuh
++++ b/deep_ep/include/deep_ep/impls/hybrid_combine.cuh
+@@ -14,6 +14,10 @@
+ #define CXI_EP_COMBINE_FIRST_BATCH CXI_EP_COMBINE_BATCH
+ #endif
+ static_assert(CXI_EP_COMBINE_FIRST_BATCH >= 1 && CXI_EP_COMBINE_FIRST_BATCH <= CXI_EP_COMBINE_BATCH);
++#ifndef CXI_EP_SKIP_COMBINE_FLUSH
++#define CXI_EP_SKIP_COMBINE_FLUSH 0
++#endif
++static_assert(CXI_EP_SKIP_COMBINE_FLUSH == 0 || CXI_EP_SKIP_COMBINE_FLUSH == 1);
+ #include <deep_ep/common/cxi_packed_combine.cuh>
+ 
+ #include <deep_ep/common/comm.cuh>
+@@ -669,7 +673,12 @@
+         // Update, wait and clean
+         EP_STATIC_ASSERT(kNumScaleoutRanks <= 32, "Invalid ranks");
+         const auto expected_signal = math::pack2<int, int64_t>(1, 0);
+-        gin.flush<ncclCoopWarp>();
++        // CXI_EP_SKIP_COMBINE_FLUSH: on the direct-CXI backend the end signal is ordered after this
++        // context's PUTs by the NIC (delivery marker with flush bit, then CQ fence). The GPU-side
++        // counting-event wait is redundant for ordering and holds the context lock against the
++        // sibling channel for the whole drain.
++        if constexpr (!CXI_EP_SKIP_COMBINE_FLUSH)
++            gin.flush<ncclCoopWarp>();
+         if (lane_idx < kNumScaleoutRanks) {
+             // Update remote tails
+             gin.red_add_rel<ncclTeamTagRail>(

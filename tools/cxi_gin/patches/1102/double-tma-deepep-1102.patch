@@ -1,0 +1,149 @@
+--- a/deep_ep/include/deep_ep/impls/hybrid_combine.cuh
++++ b/deep_ep/include/deep_ep/impls/hybrid_combine.cuh
+@@ -18,6 +18,10 @@
+ #define CXI_EP_SKIP_COMBINE_FLUSH 0
+ #endif
+ static_assert(CXI_EP_SKIP_COMBINE_FLUSH == 0 || CXI_EP_SKIP_COMBINE_FLUSH == 1);
++#ifndef CXI_EP_COMBINE_DOUBLE_TMA
++#define CXI_EP_COMBINE_DOUBLE_TMA 0
++#endif
++static_assert(CXI_EP_COMBINE_DOUBLE_TMA == 0 || CXI_EP_COMBINE_DOUBLE_TMA == 1);
+ #include <deep_ep/common/cxi_packed_combine.cuh>
+ 
+ #include <deep_ep/common/comm.cuh>
+@@ -90,8 +94,17 @@
+ 
+     // TMA buffers
+     extern __shared__ __align__(ptx::kNumTMAAlignBytes) int8_t smem[];
+-    const auto tma_buffer = layout::BufferLayout<true>(
+-        token_layout, kNumWarps, 1, smem).get_rank_buffer(warp_idx).get_token_buffer(0);
++    const auto tma_buffers = layout::BufferLayout<true>(token_layout, kNumWarps, 1, smem);
++    const auto tma_buffer = tma_buffers.get_rank_buffer(warp_idx).get_token_buffer(0);
++#if CXI_EP_COMBINE_DOUBLE_TMA
++    // CXI_EP_COMBINE_DOUBLE_TMA: a second staging buffer per scale-up warp, placed after all first-stage
++    // buffers, so a token's NVLink store overlaps the next token's load or reduction. The launcher
++    // always passes the device's maximum dynamic shared memory; this bound keeps us inside it.
++    static_assert((kNumWarps + kNumScaleupWarps) * (kNumHiddenBytes + 1024) <= 220 * 1024,
++                  "double-buffered staging must fit in shared memory");
++    const auto tma_buffer_alt = layout::BufferLayout<true>(token_layout, kNumScaleupWarps, 1, tma_buffers.get_buffer_end_ptr())
++        .get_rank_buffer(warp_idx < kNumScaleupWarps ? warp_idx : 0).get_token_buffer(0);
++#endif
+ 
+     // All the buffer layouts
+     auto scaleup_buffer = layout::BufferLayout<false>(
+@@ -110,6 +123,13 @@
+     if (ptx::elect_one_sync())
+         ptx::mbarrier_init_with_fence(mbarrier_ptr, 1);
+     __syncwarp();
++#if CXI_EP_COMBINE_DOUBLE_TMA
++    ptx::arrival_phase phase_alt = 0;
++    const auto mbarrier_alt_ptr = tma_buffer_alt.get_mbarrier_ptr();
++    if (warp_idx < kNumScaleupWarps and ptx::elect_one_sync())
++        ptx::mbarrier_init_with_fence(mbarrier_alt_ptr, 1);
++    __syncwarp();
++#endif
+ 
+     // NCCL Gin handle
+     // Each warp is a channel
+@@ -177,6 +197,7 @@
+         // Shape of `channel_linked_list`: `[kNumChannels, kNumMaxTokensPerChannel + 1, kNumScaleupRanks]`
+         // Iterate until all scale-up peers finish
+         int dst_scaleup_rank_idx = channel_idx;
++        [[maybe_unused]] int scaleup_token_counter = 0;
+         int stored_ll_idx[kNumScaleupRanksPerLane] = {}, stored_token_idx[kNumScaleupRanksPerLane] = {};
+         #pragma unroll
+         for (int i = 0; i < kNumScaleupRanksPerLane; ++ i)
+@@ -224,6 +245,18 @@
+                 }
+                 token_idx = ptx::exchange(token_idx, dst_scaleup_rank_idx % 32);
+ 
++                // Staging buffer for this token (alternates when double-buffered)
++#if CXI_EP_COMBINE_DOUBLE_TMA
++                const bool use_alt = (scaleup_token_counter ++) & 1;
++                const auto stage = use_alt ? tma_buffer_alt : tma_buffer;
++                const auto stage_mbarrier = use_alt ? mbarrier_alt_ptr : mbarrier_ptr;
++                auto& stage_phase = use_alt ? phase_alt : phase;
++#else
++                const auto& stage = tma_buffer;
++                const auto stage_mbarrier = mbarrier_ptr;
++                auto& stage_phase = phase;
++#endif
++
+                 // Get source metadata and decide the destination buffer
+                 constexpr int kMetadataStride = 2 + kNumTopk;
+                 const auto src_global_token_idx = __ldg(src_metadata + token_idx * kMetadataStride + 0);
+@@ -268,8 +301,9 @@
+                     if (ptx::elect_one_sync()) {
+                         const auto load_ptr =
+                             math::advance_ptr(x, static_cast<int64_t>(token_idx_in_tensor) * kNumHiddenBytes);
+-                        ptx::tma_store_wait();
+-                        ptx::tma_load_1d(tma_buffer.get_base_ptr(), load_ptr, mbarrier_ptr, kNumHiddenBytes);
++                        // Double-buffered: only the store that used this buffer (two tokens ago) must be done
++                        ptx::tma_store_wait<CXI_EP_COMBINE_DOUBLE_TMA>();
++                        ptx::tma_load_1d(stage.get_base_ptr(), load_ptr, stage_mbarrier, kNumHiddenBytes);
+                     }
+                     __syncwarp();
+                 } else if constexpr (kAllowMultipleReduction) {
+@@ -286,13 +320,13 @@
+                     // Reduce into shared memory
+                     constexpr int kUnrollFactor = get_max_unroll_factor<kHiddenVec, 4>();
+                     combine_reduce<kHiddenVec, kUnrollFactor, math::constexpr_ceil_div(kNumTopk, kNumRanks)>(
+-                        lane_idx, topk_slot_idx, static_cast<combine_vec_t*>(tma_buffer.get_base_ptr()),
++                        lane_idx, topk_slot_idx, static_cast<combine_vec_t*>(stage.get_base_ptr()),
+                         /* Get source base */ [=](const int& slot_idx) {
+                             return math::advance_ptr<combine_vec_t>(
+                                 x, slot_idx * static_cast<int64_t>(kNumHiddenBytes));
+                         },
+                         /* Wait buffer release */ [=]() {
+-                            ptx::tma_store_wait();
++                            ptx::tma_store_wait<CXI_EP_COMBINE_DOUBLE_TMA>();
+                             __syncwarp();
+                         }
+                     );
+@@ -331,7 +365,7 @@
+                 // Write top-k weights
+                 if (not kUseExpandedLayout and topk_weights != nullptr and lane_idx < kNumTopk) {
+                     const float value = __ldg(topk_weights + (token_idx * kNumTopk + lane_idx));
+-                    tma_buffer.get_topk_weights_ptr()[lane_idx] = value;
++                    stage.get_topk_weights_ptr()[lane_idx] = value;
+                     ptx::tma_store_fence();
+                 }
+                 __syncwarp();
+@@ -341,13 +375,13 @@
+                 if (not kDoExpandedSend and ptx::elect_one_sync()) {
+                     // Wait TMA arrival (only for non-reduced cases)
+                     if (no_local_reduce) {
+-                        ptx::mbarrier_arrive_and_set_tx(mbarrier_ptr, kNumHiddenBytes);
+-                        ptx::mbarrier_wait_and_flip_phase(mbarrier_ptr, phase);
++                        ptx::mbarrier_arrive_and_set_tx(stage_mbarrier, kNumHiddenBytes);
++                        ptx::mbarrier_wait_and_flip_phase(stage_mbarrier, stage_phase);
+                     }
+ 
+                     // Issue stores
+                     ptx::tma_store_1d(
+-                        token_buffer.get_base_ptr(), tma_buffer.get_base_ptr(),
++                        token_buffer.get_base_ptr(), stage.get_base_ptr(),
+                         token_layout.get_num_bytes<false>());
+                     ptx::tma_store_commit();
+                 }
+--- a/backend/tests/nvcc_wrapper.py
++++ b/backend/tests/nvcc_wrapper.py
+@@ -15,6 +15,8 @@
+     skip_flush=int(os.environ.get('CXI_EP_SKIP_COMBINE_FLUSH','0')); self_signal=int(os.environ.get('CXI_EP_LOCAL_SELF_SIGNAL','0'))
+     assert skip_flush in (0,1) and self_signal in (0,1)
+     args=['-DCXI_EP_SKIP_COMBINE_FLUSH='+str(skip_flush),'-DCXI_EP_LOCAL_SELF_SIGNAL='+str(self_signal)]+args
++    double_tma=int(os.environ.get('CXI_EP_COMBINE_DOUBLE_TMA','0')); assert double_tma in (0,1)
++    args=['-DCXI_EP_COMBINE_DOUBLE_TMA='+str(double_tma)]+args
+     assert packc in (0,1) and 1 <= batch <= 64
+     channels=4*int(os.environ.get('CXI_EP_SMS','64'))
+     args=['-DCXI_EP_PACK_COMBINE='+str(packc),'-DCXI_EP_COMBINE_BATCH='+str(batch),'-DCXI_EP_PACK_COMBINE_CHANNELS='+str(channels)]+args
+--- a/backend/tests/ep_benchmark.py
++++ b/backend/tests/ep_benchmark.py
+@@ -207,6 +207,7 @@
+         equal(a[:count][order],z,'cached payload/scales')
+     diagnostic_watch.mark('correctness_cached_validated')
+     case['merged_final_tail']=bool(int(os.environ.get('CXI_EP_MERGE_FINAL_TAIL','0')))
++    case['combine_double_tma']=int(os.environ.get('CXI_EP_COMBINE_DOUBLE_TMA','0'))
+     case['skip_combine_flush']=int(os.environ.get('CXI_EP_SKIP_COMBINE_FLUSH','0'))
+     case['local_self_signal']=int(os.environ.get('CXI_EP_LOCAL_SELF_SIGNAL','0'))
+     case['variant']=os.environ.get('CXI_VARIANT','')

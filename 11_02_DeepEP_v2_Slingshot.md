@@ -1,8 +1,8 @@
 # DeepEP v2 direct GIN over Slingshot — 2026-11-02
 
-Continuation of `11_01_DeepEP_v2_Slingshot.md`. Two items: an improvement plan for the dispatch
-and combine data paths derived from the code and the 4K traces of the final candidate, and the
-`cxi_write_bw` link-rate measurement (job 3832897, results appended below when available).
+Continuation of `11_01_DeepEP_v2_Slingshot.md`. Three items: an improvement plan for the dispatch
+and combine data paths derived from the code and the 4K traces of the final candidate (§2), the
+`cxi_write_bw` link-rate measurement (§3), and the first implementation round of the plan (§4).
 
 Reference state: `source-1101-first-batch-v1` (marker-zero transport, packed rows, interval 16,
 first interval 4, forward chunk 3, merged final tail, packed combine batch 16 / first batch 4,
@@ -310,3 +310,100 @@ before anyone relies on multi-megabyte GPU PUTs.
    node for GPU buffers (copy `libcudart.so.13` from the container image; the host driver's
    `libcuda.so.1` is enough for the rest); concurrent `srun` steps on one node need `--overlap`;
    the tool prints bidirectional bandwidth as the sum of both directions.
+
+## 4. Implementation round 1: lean signal path and kernel-side signal changes (allocation J)
+
+**Target set by the user (15:00 CET):** 20 GB/s effective for both operations at 4K tokens/rank,
+i.e. with the 22.5 GB/s bound 4K dispatch ≤ 0.884 ms (now 0.949) and 4K combine ≤ 1.691 ms
+(now 1.814). Plan items 2.1–2.4 are the levers; this round implements 2.1, 2.2 and 2.3 and runs
+2.4's zero-code arm (128 SMs / 257 contexts).
+
+### 4.1 What was built (snapshot `source-1102-lean-v1`, parent `source-1101-first-batch-v1`)
+
+Scripts: `tools/cxi_gin/experiments/pipeline_1102/{prepare_lean_1102.py,package_lean_1102.py,
+package_hold_1102.py,package_lean_dbg_1102.py}`. Every change is knob-guarded; the parent's
+behaviour is the default.
+
+Transport (`backend/device/cxi_primitives.cuh`, selected per runtime variant in `variants.json`):
+
+- `CXI_LEAN_FENCE` — `signal_fence_locked` emits the `C_CMD_CQ_FENCE` only when a transfer that
+  must precede the signal (payload PUT, delivery marker, inline value PUT) was posted since the
+  last fence or since a completed flush (`flush_locked` clears the flag once `completed ==
+  posted`). The entry barrier's signal and a signal that follows another signal therefore lose
+  the fence; a signal after a PUT keeps it. Safe under either reading of the fence semantics,
+  because the elided fence would only repeat an earlier one.
+- `CXI_LEAN_CSTATE` — `state_locked` re-emits the CSTATE command only when its `(index_ext,
+  write_lac)` pair differs from the cached one. CSTATE is command-queue state consumed by later
+  IDC commands (AMO, inline PUT); DMA commands carry their own fields. Per context the pair is
+  constant for a given destination window, so after the first signal every later one skips it.
+- `CXI_LEAN_FOLD_MARKER` — `delivery_flush_locked` closes the epoch by rewriting the pending payload
+  PUT's descriptor in the ring (`event_ct_send=0, event_ct_ack=1, flush=1`) when that PUT is still
+  the newest, un-doorbelled entry, instead of appending a zero-byte marker command. Delivery
+  semantics and the CT accounting (`posted`, one event per command) are unchanged; one command
+  and one NIC round trip per signal are saved. Tracking: `publish_locked` and every `emit` clear
+  the "newest entry is the pending PUT" bit, `put_locked` sets it when the PUT stayed unpublished.
+- State lives in a new 32-bit `CxiGpuContext::lean_state` inside the former trailing padding
+  (`sizeof` stays 192, ABI version unchanged); the host sets it to "fence due" at channel open and
+  recycle (`cxi_resources.cc`).
+
+Variants: `marker-zero` (parent), `lean-a` (fence elision + CSTATE cache), `lean-b` (lean-a +
+marker fold). Signal cost: parent 4 commands (marker, fence, CSTATE, AMO); lean-a 3 after the
+first signal on a context (2 when nothing was posted since the last fence); lean-b 2 (patched
+PUT counts as payload) after a PUT, 1 for a bare signal.
+
+Kernels (DeepEP archive, selected per gate through the nvcc wrapper environment):
+
+- `CXI_EP_SKIP_COMBINE_FLUSH` (plan 2.1) — `hybrid_combine.cuh` forward-warp epilogue: the
+  `gin.flush<ncclCoopWarp>()` before `red_add_rel(expected_signal)` is compiled out. Ordering of
+  the signal after the channel's PUTs is the NIC's (marker/flush bit then CQ fence), the same chain
+  dispatch already relies on; the removed call held the context lock for the whole drain.
+- `CXI_EP_LOCAL_SELF_SIGNAL` (plan 2.3) — `comm.cuh` `gin_barrier_wo_local_sync`: the rank neither
+  signals itself through the NIC nor waits on its own slot. With two rail ranks the barrier
+  becomes one signal and one wait.
+
+Gate records carry the knobs (`skip_combine_flush`, `local_self_signal`, `variant` in each case
+record; the compiler reports carry the `-D` flags).
+
+### 4.2 Arms and gates
+
+| arm | runtime variant | kernel knobs | SMs / contexts |
+|---|---|---|---|
+| cand | marker-zero | none (reference) | 64 / 129 |
+| kern | marker-zero | skip combine flush, local self-signal | 64 / 129 |
+| leana | lean-a | both | 64 / 129 |
+| leanb | lean-b | both | 64 / 129 |
+| leanb128 | lean-b | both | 128 / 257 |
+
+Full matrix (`source-1102-lean-v1`, 31 gates): per non-reference arm the correctness ladder
+(irregular stress 32/257 tokens × 5 routings × 3 seeds, 4K FP8+BF16 × 5 routings, dropped
+tokens, sustained 16K), then three counterbalanced 4K/16K repeat gates per arm (9200–9224).
+Debug companion (`source-1102-lean-dbg-v1`, identical code, 9 gates with shortened timeouts for
+the 25-minute two-node debug allocation): leanb ladder, cand and leanb repeats, leanb128 stress
+and repeat, kern stress.
+
+Jobs: 3835100 (normal partition, 4 h, holder snapshot `source-1102-hold-v1` = candidate
+reference gates 9000–9003; Slurm's start estimate 20:55 CET; the 31 lean gates are pushed into it
+once it runs), 3835147 (debug partition, 25 min, companion). Preflight of the lean snapshot on
+the login node PASS (all three variants compile the device tests, the lean burst probe compiles).
+
+Kernel-template preflight of the lean snapshot on the login node (all 24 EP8 instantiations with
+`CXI_EP_SKIP_COMBINE_FLUSH=1 CXI_EP_LOCAL_SELF_SIGNAL=1`, lean-b runtime): PASS, combine 216
+registers / 0 spills as before, dispatch 144 (fresh) and 128 (cached) registers, 0 spills.
+
+### 4.3 Round 2 prepared: double-buffered TMA staging in the combine scale-up warps (plan 2.4b)
+
+Snapshot `source-1102-dbuf-v1` (parent `source-1102-lean-v1`; `prepare_dbuf_1102.py`,
+`package_dbuf_1102.py`, debug companion `source-1102-dbuf-dbg-v1`). Knob
+`CXI_EP_COMBINE_DOUBLE_TMA`: each scale-up warp gets a second shared-memory token buffer (placed
+after all first-stage buffers; the launcher already passes the device's maximum dynamic shared
+memory, and a static assert bounds `(warps + scale-up warps) × (hidden bytes + 1 KB) ≤ 220 KB`),
+tokens alternate between the two buffers with their own mbarrier/phase, and the wait before
+refilling a buffer becomes `cp.async.bulk.wait_group 1`, so the NVLink store of token n overlaps
+the load or reduction of token n+1. `update_tails` still drains all stores before publishing a
+tail. Arms: leanb, dbuf (= leanb + knob), leanb128, dbuf128; dbuf ladders plus three
+counterbalanced repeats (21 gates); the debug companion runs the dbuf ladder, one repeat per arm
+and the dbuf128 stress gate.
+
+### 4.4 Results
+
+(pending)
