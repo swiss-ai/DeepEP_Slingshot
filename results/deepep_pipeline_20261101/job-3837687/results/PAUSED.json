@@ -1,0 +1,4 @@
+{
+  "request": "9901-trace-kern-4k",
+  "reason": "('missing configuration-required events', [203, 207], (1, 'combine', 1))"
+}

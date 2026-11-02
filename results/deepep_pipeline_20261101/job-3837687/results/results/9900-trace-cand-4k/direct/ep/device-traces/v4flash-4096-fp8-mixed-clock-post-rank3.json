@@ -1,0 +1,12 @@
+{
+  "host": {
+    "rank": 3,
+    "offset_lower_ns": -54079,
+    "offset_upper_ns": 47679
+  },
+  "gpu": {
+    "gpu_ns": 1793650734016504736,
+    "host_lower_ns": 338866202380966,
+    "host_upper_ns": 338866202395269
+  }
+}

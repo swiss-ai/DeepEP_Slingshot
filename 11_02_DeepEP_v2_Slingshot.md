@@ -1,8 +1,10 @@
 # DeepEP v2 direct GIN over Slingshot — 2026-11-02
 
-Continuation of `11_01_DeepEP_v2_Slingshot.md`. Three items: an improvement plan for the dispatch
+Continuation of `11_01_DeepEP_v2_Slingshot.md`. Four items: an improvement plan for the dispatch
 and combine data paths derived from the code and the 4K traces of the final candidate (§2), the
-`cxi_write_bw` link-rate measurement (§3), and the first implementation round of the plan (§4).
+`cxi_write_bw` link-rate measurement (§3), the first implementation round of the plan (§4), and the
+evening's debug-partition slices with the trace decomposition of the lean path, which locate the
+dispatch loss in a first-PUT submission convoy and queue the cached-credit transport (§5).
 
 Reference state: `source-1101-first-batch-v1` (marker-zero transport, packed rows, interval 16,
 first interval 4, forward chunk 3, merged final tail, packed combine batch 16 / first batch 4,
@@ -534,3 +536,103 @@ Results land in `jobs/3835100/results/` on Clariden; `pipeline_1102/effective_ra
 
 Jobs used this afternoon: 3835147 (debug, lean companion), 3835199 (debug, double-buffer companion),
 3835540 (debug, isolation), 3835100 (normal, holder, pending). None of the user's own jobs were touched.
+
+## 5. Evening: debug-partition slices, trace decomposition of the lean path, the first-PUT convoy
+
+Certificate refreshed at 21:00 CET; the normal-partition holder 3835100 had slipped to 07:33 CET 11-03, so
+the pending matrix was cut into 25-minute debug slices (2 nodes each; `pipeline_1102/launch_debug_1102.py`
+installs, preflights and submits with the partition override; `package_trace_dbg*_1102.py`,
+`package_sms32_dbg_1102.py`, `package_credit_dbg_1102.py` size the gates so that `timeout + 180 s` fits
+the remaining allocation at every start).
+
+### 5.1 Slices and jobs
+
+| Job | Snapshot | Pair | Gates | Outcome |
+|---|---|---|---|---|
+| 3837687 | `source-1102-trace-dbg-v1` (= lean-trace code) | nid006286/006298 | 9900 trace cand, 9901 trace kern, then repeats | 9900 PASS; 9901 **FAIL in the trace validator**: it required the combine flush scopes (203/207) that `CXI_EP_SKIP_COMBINE_FLUSH` removes. Controller paused; the poller watched `jobs/<id>/results/PAUSED.json` instead of `jobs/<id>/PAUSED.json` and missed it, 17 minutes idle. Correctness of 9901 itself PASS; its traces are complete and used below. |
+| 3837809 | `source-1102-trace-dbg-v2` (validator follows the knobs: 203/207 not required without the flush, 212 not required with `CXI_LEAN_CSTATE`, 211 not required with `CXI_LEAN_FENCE`; counts reported) | nid006286/006298 | 9901 trace kern, 9902 trace leanb, 9903–9910 cand/kern/leanb repeats | all 10 PASS (18.6 min) |
+| 3837850 | `source-1102-sms32-dbg-v1` (= dbuf code) | — | leanb at 32 SMs ladder + repeats, cand/leanb references | queued, start 22:15 CET |
+| 3837957 | `source-1102-credit-dbg-v1` (cached credits, ABI 4) | — | leanc ladder incl. sustained 16K, cand/leanb/leanc repeats | queued |
+
+The patched validator was checked offline against the 9900 and 9901 traces before the second submission
+(`combine_flush_scopes` 6144 for cand, 0 for kern; CSTATE and fence submissions 18 528 / 18 480).
+
+### 5.2 Third node pair (job 3837809, wall per iteration, slowest rank; cand 3 gates, kern 2, leanb 3)
+
+| | cand | kern | leanb |
+|---|---:|---:|---:|
+| 4K dispatch | 0.947 ms (18.7 GB/s) | 0.934 (−1.3 %) | 0.934 (−1.3 %, 18.9 GB/s) |
+| 4K combine | 1.803 (18.8) | 1.764 (−2.2 %) | 1.755 (−2.7 %, 19.3 GB/s) |
+| 4K cycle | 2.747 | 2.699 (−1.8 %) | 2.690 (−2.1 %) |
+| 16K dispatch | 3.427 (20.7) | 3.414 (−0.4 %) | 3.412 (−0.4 %) |
+| 16K combine | 6.913 (19.6) | 6.879 (−0.5 %) | 6.866 (−0.7 %) |
+
+Same picture as the two pairs of the afternoon (§4.4). The headline metric again shows combine +0.5…+3 %
+for the flush-less arms (end-skew inflation, §4.4); the wall time is the throughput figure.
+
+### 5.3 Where the lean path's time goes (4K, traced builds, medians over 24 captures)
+
+Dispatch (kernel-relative ms; `trace_timeline.py`, `wire_curve.py`, `receiver_duty.py`):
+
+| Milestone | cand (9900) | kern (9901) | leanb (9902) |
+|---|---:|---:|---:|
+| Entry barrier end / roles start | 0.118 | 0.093 | 0.094 |
+| First packed PUT: scope start → **emitted** | 0.133 → 0.248 | 0.108 → 0.217 | 0.110 → 0.21 |
+| 50 % of remote bytes emitted / last PUT emitted | 0.344 / 0.405 | 0.313 / 0.371 | 0.29 / 0.33 |
+| Receivers: first remote tail observed | 0.378 | 0.377 | 0.401 |
+| Receivers: last remote tail observed | 1.036 | 1.043 | 1.060 |
+| Kernel end / CUDA event (incl. copy epilogue) | 1.129 / 1.260 | 1.124 / 1.244 | 1.152 / 1.243 |
+| Doorbells / status reads per rank | 1031 / 2444 | 1029 / 2441 | 516 / 1304 |
+| CSTATE / fence / combine-flush scopes per gate | 18 528 / 18 528 / 6144 | 18 480 / 18 480 / 0 | 0 / 10 500 / 0 |
+
+- The **receivers are idle 86 % of their role** (256 receiver warps per rank; median wait 0.75 ms of a
+  0.87 ms role, processing 0.11 ms): the receive side is not the limit.
+- From the first emission to the last observation the NIC delivers 17.7 MB in 0.79–0.84 ms, i.e.
+  **21–22.5 GB/s, at the ceiling**. Measured from the first PUT *attempt* the same phase reads 19 GB/s. The
+  dispatch wire phase therefore loses nothing to the link; it starts ~0.1 ms late.
+- **First-PUT convoy.** Every channel's first PUT (4 rows, 17 KB) spends 102 µs in the transport on every
+  block (p90 110): the lock wait is 47 µs median / 97 p90, and for the lock holders the credit check
+  (`emit`'s status read of the NIC-written read pointer, event 202) is 86 µs at p90 against 1–3 µs later in
+  the kernel. 128 contexts read the status at the same instant after the barrier. The 12-row PUTs later cost
+  25 µs (kern) and 15 µs (leanb: no marker, no CSTATE, fence halved); the convoy is identical in all arms.
+  Barrier savings (−25 µs) do not reach the end of the kernel because the convoy, not the barrier, sets the
+  first emission.
+
+Combine (`combine_prewire.py`):
+
+| Milestone | cand | kern | leanb |
+|---|---:|---:|---:|
+| Barrier end | 0.108 | 0.086 | 0.076 |
+| First local (scale-up) token at a forward warp | 0.227 | 0.203 | 0.205 |
+| First packed PUT emitted / 50 % / last | 0.304 / 0.371 / **1.787** | 0.284 / 0.355 / 0.484 | 0.282 / 0.348 / 0.464 |
+| First / last channel's remote rows complete (138) | 1.624 / 1.974 | 1.388 / 1.884 | 1.344 / 1.878 |
+| Kernel end / CUDA event | 1.976 / 2.062 | 1.886 / 1.966 | 1.880 / 1.963 |
+
+Without the flush the forward warps submit all 512 PUTs by 0.48 ms (cand: 1.79 ms, lock waits 115 ms
+summed per capture against 8 ms). The wire phase then runs 0.28 → 1.88 ms: 33.8 MB in 1.60 ms =
+**21.1 GB/s**, 0.1 ms over the 1.503 ms bound. What remains is the 0.28 ms before the first PUT: barrier
+(0.08, skew up to 0.1 ms between ranks), the first local token at 0.20 (the forward warp waits for the
+slowest local peer's scale-up warp), the first 4-row batch at 0.28; plus the 0.08 ms reduce epilogue.
+
+### 5.4 Consequences and the two slices queued on them
+
+1. **Dispatch**: remove the convoy and the first emission moves from 0.21–0.25 to ~0.12 ms; with the NIC
+   draining at the ceiling that is −0.1 ms of 0.934 → ≈0.84 ms = 21 GB/s effective, above the target.
+   Two candidates:
+   - *Fewer channels* (`source-1102-sms32-dbg-v1`, job 3837850): the elastic buffer takes 4 channels per
+     SM, so 32 SMs give 128 channels, one per context (no lock sibling), 32 rows per channel (PUTs of 4,
+     16 and 12 rows). Zero code. Risk: fewer scale-up/forward warps for the NVLink part.
+   - *Cached credits* (`prepare_credit_1102.py`, `source-1102-credit-dbg-v1`, job 3837957): `emit` keeps
+     the last NIC read pointer in the context (`tx_rp32_cache`, ABI 4, context 256 bytes) and reads the
+     status only when the cached, conservative free count is below 2 + 2·8 units; a stale pointer
+     under-counts free slots and never over-counts them (CPU ring model in `test_queue_credit.cc`: slow
+     and fast NIC, delayed write-back, wraps, margins 0–16). Host sets `CXI_RP32_UNKNOWN` at open and
+     recycle; the queue inventory prints cumulative status reads. Variants `cache-a` (marker-zero + cache)
+     and `lean-c` (lean-b + cache). The 10/30 cached-credit candidate stalled at 16K on the delivery-v3
+     base without attribution (gate 521), so the ladder includes sustained 16K before any repeat.
+     At kernel start the cache still holds the previous kernel's last read, taken when the ring was nearly
+     drained, so the first PUTs should emit without any status read.
+2. **Combine**: the wire runs at 21 GB/s; the target (1.691 ms) needs −65 µs from the 0.28 ms pre-wire
+   phase, which is skew + barrier + the scale-up handoff, i.e. DeepEP-level (start the scale-up copies
+   before the barrier completes, or overlap the previous kernel's tail). The credit cache also removes the
+   status reads from the forward warps' 512 PUTs (currently 25 µs each under the lock).

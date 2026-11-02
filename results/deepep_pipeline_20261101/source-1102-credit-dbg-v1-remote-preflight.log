@@ -1,0 +1,6 @@
+PASS cached-credit model: slow NIC writes=2393856 refreshes=3009617, fast NIC writes=3549026 refreshes=649568
+PASS states=1044160 writes=478906 backpressure=321094 wraps=33620; CPU ring model only
+PASS GPU CQ_FENCE descriptor builder matches installed libcxi helper; no NIC semantics tested
+PASS GPU CQ_FENCE descriptor builder matches installed libcxi helper; no NIC semantics tested
+PASS packed channel layout/source lifetime model: cases=6020400 rows=10156230 batches=4811071; GPU untested
+PASS packed combine model: cases=3584 rows=170862 batches=18693; GPU untested
