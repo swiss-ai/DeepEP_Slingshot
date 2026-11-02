@@ -25,7 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'pipeline_v1'))
 from package import replace  # noqa: E402
 
-def prepare(snapshot):
+def prepare(snapshot, variants=True, preflight=True):
     out = Path(snapshot)
     abi = out / 'backend/include/cxi_gin_abi.h'
     replace(abi, '#define CXI_GIN_ABI_VERSION 3\n', '#define CXI_GIN_ABI_VERSION 4\n#define CXI_RP32_UNKNOWN 0xffffffffu\n')
@@ -148,10 +148,13 @@ def prepare(snapshot):
   std::printf("PASS cached-credit model: slow NIC writes=%llu refreshes=%llu, fast NIC writes=%llu refreshes=%llu\\n",
               (unsigned long long)cached_writes[0],(unsigned long long)cached_refreshes[0],(unsigned long long)cached_writes[1],(unsigned long long)cached_refreshes[1]);
   std::printf("PASS states=%llu writes=%llu backpressure=%llu wraps=%llu; CPU ring model only\\n",''')
-    variants = json.loads((out / 'variants.json').read_text())
-    variants['cache-a'] = dict(variants['marker-zero'], CXI_CREDIT_CACHE=1)
-    variants['lean-c'] = dict(variants['lean-b'], CXI_CREDIT_CACHE=1)
-    (out / 'variants.json').write_text(json.dumps(variants, indent=2) + '\n')
+    if variants:
+        v = json.loads((out / 'variants.json').read_text())
+        v['cache-a'] = dict(v['marker-zero'], CXI_CREDIT_CACHE=1)
+        v['lean-c'] = dict(v['lean-b'], CXI_CREDIT_CACHE=1)
+        (out / 'variants.json').write_text(json.dumps(v, indent=2) + '\n')
+    if not preflight:
+        return out
     pf = out / 'runner/preflight.sh'
     replace(pf, 'for variant in marker-zero lean-a lean-b; do', 'for variant in marker-zero lean-a lean-b cache-a lean-c; do')
     replace(pf, '''  -I"$src/backend/include" -I"$src/backend/device" -c "$src/runner/burst_probe.cu" -o "$out/burst-lean.o"

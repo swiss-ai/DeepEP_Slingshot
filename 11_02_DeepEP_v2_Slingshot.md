@@ -636,3 +636,47 @@ slowest local peer's scale-up warp), the first 4-row batch at 0.28; plus the 0.0
    phase, which is skew + barrier + the scale-up handoff, i.e. DeepEP-level (start the scale-up copies
    before the barrier completes, or overlap the previous kernel's tail). The credit cache also removes the
    status reads from the forward warps' 512 PUTs (currently 25 µs each under the lock).
+
+### 5.5 32 SMs (job 3837850, nid007481/007666): correct, slower — lever closed
+
+All three ladder gates pass at 32 SMs (irregular stress, 4K FP8/BF16 on five routings, dropped tokens), so
+128 channels on 129 contexts is a legal configuration. Wall per iteration against cand and leanb (64 SMs)
+on the same pair:
+
+| 4K | cand | leanb | leanb32 |
+|---|---:|---:|---:|
+| dispatch | 0.953 ms | 0.944 (−0.9 %) | 0.975 (+2.3 %) |
+| combine | 1.813 | 1.769 (−2.4 %) | 1.828 (+0.8 %) |
+| cycle | 2.763 | 2.707 (−2.0 %) | 2.810 (+1.7 %) |
+| 16K combine | 6.931 | 6.886 (−0.7 %) | 7.132 (+2.9 %) |
+
+Halving the channels does not shorten the convoy enough to pay for the halved scale-up/forward
+parallelism (the NVLink side of both kernels loses more than the NIC side gains). Together with the 128-SM
+and 257-context results of §4.4 this closes the channel-count axis in both directions; the first-PUT cost
+has to come out of the transport (cached credits, job 3837957) rather than out of the kernel geometry.
+
+### 5.6 Cached credits (job 3837957, nid006799/006815): correct, status reads gone, time unchanged
+
+Every lean-c gate passes: irregular stress, 4K FP8/BF16 on five routings, dropped tokens and the sustained
+16K that stalled the 10/30 candidate, then the 4K/16K repeats. The queue inventory confirms the mechanism:
+4 634–4 652 status reads per rank for 4.6 M commands (one per ~1 000 commands, i.e. only when the
+conservative count ran below the margin) where the uncached variants read the status for every command.
+
+| 4K, wall per iteration | cand | leanb | leanc |
+|---|---:|---:|---:|
+| dispatch | 0.947 ms | 0.931 (−1.8 %) | 0.930 (−1.9 %) |
+| combine | 1.800 | 1.755 (−2.5 %) | 1.754 (−2.6 %) |
+| cycle | 2.748 | 2.687 (−2.2 %) | 2.683 (−2.4 %) |
+| 16K dispatch / combine | 3.423 / 6.931 | 3.408 / 6.870 | 3.401 / 6.876 |
+
+So the NIC status read was not what the first PUT waited for: with the read removed the first PUT's
+100 µs (and the end-to-end time) stay the same. Either the convoy is in the remaining GPU→host/NIC path
+of the first emission (ring stores, system fence, doorbell, under 128 simultaneous first emissions) or it is
+off the critical path and the wire itself, or the peer's skew, sets the end. The traced lean-c snapshot
+(`source-1102-credit-trace-v1`: lean-c-trace, cache-a-trace, lean-b-trace on one pair) is queued to settle
+this: if the first emission moves to ~0.12 ms and the receive end does not, the convoy is irrelevant and
+the remaining dispatch loss is the wire rate under this traffic; if the first emission stays at ~0.21 ms,
+the 100 µs is in the ring write, fence or doorbell and the trace's 201/209 scopes will say which.
+
+Cached credits are kept as a qualified-by-ladder transport option (`cache-a`, `lean-c`): no measurable
+gain at 4K/16K, 99.9 % fewer status reads, ABI 4. They do not go into the candidate until a gain is shown.
