@@ -736,3 +736,37 @@ system fence needs (then the first PUT still shows ~100 µs in the trace), or th
 to ~0.12 ms and the receive end does not follow, in which case the convoy was never on the critical path
 and the dispatch's remaining 0.15 ms over the bound is the wire under this traffic (bidirectional
 22.5 GB/s ceiling, 17 KB first PUTs, 2 KB packets) plus the peer's skew, not the sender.
+
+### 5.9 Traced prewarm (job 3838613, nid007656/007659): the cost is per access, not per translation
+
+All three gates pass. With the prewarm the first PUT still costs 97–107 µs (`put_split.py`, median / p90):
+lock wait 44–49 / 91–102 µs, credit status load 3.5–3.8 / 80–90 µs, emit 3.1 / 3.7 µs; first emission at
+0.21 ms, receivers' last observation 1.11–1.12 ms, CUDA event 1.23–1.25 ms — identical to lean-b on the
+same pair (A001). The status word of every context had been loaded 20–50 µs earlier during the barrier,
+so a warmed translation does not make the next access cheap: **the ~80 µs is paid per access while 128
+contexts access the host-mapped rings at the same instant**, i.e. a serialisation of system-scope
+accesses to the command rings (`ld.acquire.sys` / `st.release.sys` on memory the host registered with
+`cudaHostRegisterMapped`, falling back to `cudaHostRegisterIoMemory` when the plain registration is
+refused; `cxi_resources.cc` `map()`, the doorbell pages are IO memory by design). Spread over the kernel
+the same accesses cost 1–3 µs, which is why only the first interval shows it.
+
+What this closes and what it leaves:
+- Closed tonight: cached credits (removes the load, the store pays instead), barrier-time prewarm
+  (translation is not the cost), 32 SMs (fewer channels do not shorten the convoy enough), and, from the
+  afternoon, every cadence, SM-count and context-count knob.
+- Open: (a) whether the ring registration takes the plain or the IO-memory path on these nodes (the
+  fallback is silent; a diagnostic line is a one-line change) and whether a plain pinned mapping would
+  make the accesses cacheable/weakly ordered; (b) fewer system-scope transactions per first command
+  (one 64-byte command is written as eight 8-byte stores plus a system fence; vector stores would
+  quarter the transactions); (c) whether the convoy is on the critical path at all — no lever moved the
+  first emission, so the 0.79–0.9 ms from first emission to last observation (this pair 0.9 ms, the
+  nid006286 pair 0.79–0.84 ms) may already be the wire for this traffic. Items (a)/(b) are transport
+  changes of a few lines each and are the first thing to try tomorrow; the NIC/driver question 7 in
+  `docs/limitations.md` records (a).
+
+Position at the end of 2026-11-02: lean-b + kernel knobs, 4K dispatch 0.930–0.934 ms (18.9–19.0 GB/s
+effective), combine 1.754–1.759 ms (19.2–19.3 GB/s), three node pairs, every ladder passed. The 20 GB/s
+target (0.884 / 1.691 ms) is not reached; the remaining 50 µs of dispatch is the start-of-wire convoy or
+the wire itself, the remaining 65 µs of combine is the pre-wire phase (barrier, skew, scale-up handoff).
+Jobs tonight: 3837687, 3837809, 3837850, 3837957, 3838245, 3838468, 3838613 (debug, 25 min each);
+holder 3835100 (normal) still pending, estimate 07:33 CET 11-03. None of the user's own jobs touched.

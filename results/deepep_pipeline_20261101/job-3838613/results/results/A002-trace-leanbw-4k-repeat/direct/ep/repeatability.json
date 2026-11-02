@@ -1,0 +1,38 @@
+[
+  {
+    "model": "v4flash",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "combine",
+    "repeat_median_us": 1863.312005996704,
+    "repeat_cv": null
+  },
+  {
+    "model": "v4flash",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "cycle",
+    "repeat_median_us": 2854.7040224075317,
+    "repeat_cv": null
+  },
+  {
+    "model": "v4flash",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 974.8480021953583,
+    "repeat_cv": null
+  },
+  {
+    "model": "v4flash",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 1007.3919892311096,
+    "repeat_cv": null
+  }
+]
