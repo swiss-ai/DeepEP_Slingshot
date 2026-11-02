@@ -1,5 +1,0 @@
-{
-  "status": "HELD_NOT_LAUNCHED",
-  "reason": "Prerequisite1804failed; require explicit new qualification results and newly named plan before scheduling",
-  "source_plan": "ready-plan-cstate-defer-v2.json"
-}

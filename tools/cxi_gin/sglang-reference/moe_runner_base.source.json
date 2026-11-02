@@ -1,5 +1,0 @@
-{
-  "image": "lmsysorg+sglang+v0.5.13-cu130.aarch64.sqsh",
-  "path": "sgl-workspace/sglang/python/sglang/srt/layers/moe/moe_runner/base.py",
-  "sha256": "0fb94e5466ee27947f6e20a6e36efd9d11cae42c2437b08e32881af97979bf28"
-}

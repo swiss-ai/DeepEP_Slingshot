@@ -1,7 +1,0 @@
-{
-  "status": "PASS",
-  "checked_compile_input_files": 41,
-  "runtime_prefixes": 12,
-  "reuse": "source-v4 SM90 preflight; source-v5 changes JIT-cache runner only",
-  "previous_pass": "2026-10-30T11:42:43+01:00"
-}

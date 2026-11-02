@@ -1,6 +1,0 @@
-{
-  "request": "07-reset-bounded.json",
-  "start_utc": "2026-10-26T20:44:05.262505+00:00",
-  "error": "ValueError('insufficient allocation time for bounded request',)",
-  "end_utc": "2026-10-26T20:44:05.266451+00:00"
-}

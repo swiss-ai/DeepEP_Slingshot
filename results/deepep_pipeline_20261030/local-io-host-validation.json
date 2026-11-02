@@ -1,8 +1,0 @@
-{
-  "status": "PASS",
-  "records": 9600,
-  "producers": 8,
-  "ordering": "exact",
-  "persistence_error": "fails closed; producer journal retained",
-  "gpu_execution": false
-}

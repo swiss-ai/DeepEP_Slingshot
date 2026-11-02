@@ -1,6 +1,0 @@
-{
-  "request": "03-ep-small.json",
-  "start_utc": "2026-10-27T10:29:57.117176+00:00",
-  "error": "ValueError('insufficient allocation time for bounded request',)",
-  "end_utc": "2026-10-27T10:29:57.120486+00:00"
-}

@@ -1,8 +1,0 @@
-{
-  "source": "source-cq-policy-v1",
-  "source_sequence_sha256": "6bdc6d0e19058d19250543a07a86bf088d0a833f2cf1f4ffaeec14a39773ef08",
-  "execution_sequence": "prepared-cq-policy-v1-sequence.json",
-  "execution_sequence_sha256": "026579393573ebc0ff4cc289605a28b29c5d6b26f0973d38abe03478471442d2",
-  "reason": "Correct parent gate identity: batched repeat3 is 419; 420 is control repeat3. Runtime unchanged; no GPU policy test has started.",
-  "gpu_scheduled": false
-}

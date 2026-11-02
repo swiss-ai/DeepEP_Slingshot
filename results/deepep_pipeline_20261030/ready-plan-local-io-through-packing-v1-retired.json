@@ -1,4 +1,0 @@
-{
-  "status": "NOT_EXECUTED_SUPERSEDED",
-  "reason": "v2 uses the post-GPU metadata-copy fix; GPU inputs unchanged"
-}
