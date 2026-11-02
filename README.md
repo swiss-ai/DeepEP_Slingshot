@@ -22,8 +22,11 @@ bidirectional ceiling of 22.5 GB/s per rail (HPE `cxi_write_bw`, GPU memory both
 | 16K tokens/rank combine | 6.946 ms | 6.013 ms | 1.16 |
 
 Incremental bytes move at 21.5 GB/s (dispatch) and 19.8 GB/s (combine), 4 to 12% under the NIC
-ceiling; the rest is a fixed per-call cost of 0.12 to 0.15 ms. Full tables, other model
-geometries, small batches, the NIC ceiling measurement and the alignment probe:
+ceiling; the rest is a fixed per-call cost of 0.12 to 0.15 ms. The signal-path round of 2026-11-02
+(no combine flush, no barrier self-signal, lean transport; [patches/1102/](patches/1102/)) takes the
+4K wall time per iteration to 0.934 ms dispatch and 1.759 ms combine (18.9 / 19.2 GB/s effective) on
+two node pairs, release matrix pending. Full tables, other model geometries, small batches, the NIC
+ceiling measurement, the alignment probe and the metric caveat of that round:
 [docs/results.md](docs/results.md).
 
 ## Repository layout

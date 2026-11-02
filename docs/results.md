@@ -22,6 +22,36 @@ bidirectional ceiling (next section). Size-sweep fits (2K to 16K tokens): dispat
 4 to 12% under the ceiling, and on top of that there is a fixed per-call cost (cross-rank entry
 barrier about 0.11 ms, notify exchange, signal tails, epilogue).
 
+## Signal-path round (2026-11-02 afternoon, debug allocations, two node pairs)
+
+Knob-guarded changes on the final candidate ([patches/1102/](../patches/1102/)): no GPU-side flush
+before the combine end signal (`CXI_EP_SKIP_COMBINE_FLUSH`), no NIC self-signal in the GIN barrier
+(`CXI_EP_LOCAL_SELF_SIGNAL`), and the `lean-b` transport variant (CQ fence only when a transfer was
+posted since the last fence, CSTATE cached per context, delivery epoch closed on the pending PUT
+instead of a zero-byte marker). Every correctness ladder passed (irregular stress, 4K FP8/BF16 on
+five routings, dropped tokens, sustained 16K) on jobs 3835147, 3835199 and 3835540.
+
+| wall per iteration, slowest rank (V4 Flash FP8 mixed) | candidate | lean-b + kernel knobs | effective |
+|---|---:|---:|---:|
+| 4K dispatch | 0.946 ms | 0.934 ms (−1.2 %) | 18.9 GB/s |
+| 4K combine | 1.803 ms | 1.759 ms (−2.4 %) | 19.2 GB/s |
+| 4K dispatch + combine cycle | 2.750 ms | 2.692 ms (−2.1 %) | |
+| 16K dispatch | 3.451 ms | 3.412 ms (−1.1 %) | 20.7 GB/s |
+| 16K combine | 6.945 ms | 6.884 ms (−0.9 %) | 19.7 GB/s |
+
+The kernel knobs alone give almost all of it (kern: −1.1 % / −2.0 % at 4K); the lean transport adds
+0.1–0.5 %. **Metric note:** removing the combine flush decouples the two rail peers' kernel ends, so
+the harness headline (median over iterations of the per-iteration maximum across the eight ranks)
+reads +1 % at 4K and +3.5 % at 16K for the same gates although throughput improves; it is inflated by
+the end skew (per-rank histograms become bi- or trimodal with steps of ≈80 µs at 4K / ≈330 µs at 16K).
+`harness/pipeline_1102/effective_rate.py --wall` reports the wall time per iteration of the slowest
+rank, which is the throughput a serving loop sees. The release matrix of these arms (job 3835100) is
+pending; until it passes, the table above is the "final candidate" table's reference.
+
+Measured and closed as losses at 4K in the same allocations: 128 SMs / 257 contexts (+14 % dispatch,
++8 % combine), one context per channel with 64 SMs (+7.7 % / +2.6 %), dispatch interval 8 (+3.1 %),
+combine batch 8 (+1.5 %); double-buffered TMA staging in the scale-up warps is neutral.
+
 ## NIC ceiling measured with `cxi_write_bw`
 
 HPE's host-side RDMA write benchmark (`cray-libcxi-utils` 1.0.2), 256 writes per doorbell, one

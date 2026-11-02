@@ -1,8 +1,8 @@
 # DeepEP v2 direct GIN over Slingshot — 2026-11-02
 
-Continuation of `11_01_DeepEP_v2_Slingshot.md`. Two items: an improvement plan for the dispatch
-and combine data paths derived from the code and the 4K traces of the final candidate, and the
-`cxi_write_bw` link-rate measurement (job 3832897, results appended below when available).
+Continuation of `11_01_DeepEP_v2_Slingshot.md`. Three items: an improvement plan for the dispatch
+and combine data paths derived from the code and the 4K traces of the final candidate (§2), the
+`cxi_write_bw` link-rate measurement (§3), and the first implementation round of the plan (§4).
 
 Reference state: `source-1101-first-batch-v1` (marker-zero transport, packed rows, interval 16,
 first interval 4, forward chunk 3, merged final tail, packed combine batch 16 / first batch 4,
@@ -310,3 +310,227 @@ before anyone relies on multi-megabyte GPU PUTs.
    node for GPU buffers (copy `libcudart.so.13` from the container image; the host driver's
    `libcuda.so.1` is enough for the rest); concurrent `srun` steps on one node need `--overlap`;
    the tool prints bidirectional bandwidth as the sum of both directions.
+
+## 4. Implementation round 1: lean signal path and kernel-side signal changes (allocation J)
+
+**Target set by the user (15:00 CET):** 20 GB/s effective for both operations at 4K tokens/rank,
+i.e. with the 22.5 GB/s bound 4K dispatch ≤ 0.884 ms (now 0.949) and 4K combine ≤ 1.691 ms
+(now 1.814). Plan items 2.1–2.4 are the levers; this round implements 2.1, 2.2 and 2.3 and runs
+2.4's zero-code arm (128 SMs / 257 contexts).
+
+### 4.1 What was built (snapshot `source-1102-lean-v1`, parent `source-1101-first-batch-v1`)
+
+Scripts: `tools/cxi_gin/experiments/pipeline_1102/{prepare_lean_1102.py,package_lean_1102.py,
+package_hold_1102.py,package_lean_dbg_1102.py}`. Every change is knob-guarded; the parent's
+behaviour is the default.
+
+Transport (`backend/device/cxi_primitives.cuh`, selected per runtime variant in `variants.json`):
+
+- `CXI_LEAN_FENCE` — `signal_fence_locked` emits the `C_CMD_CQ_FENCE` only when a transfer that
+  must precede the signal (payload PUT, delivery marker, inline value PUT) was posted since the
+  last fence or since a completed flush (`flush_locked` clears the flag once `completed ==
+  posted`). The entry barrier's signal and a signal that follows another signal therefore lose
+  the fence; a signal after a PUT keeps it. Safe under either reading of the fence semantics,
+  because the elided fence would only repeat an earlier one.
+- `CXI_LEAN_CSTATE` — `state_locked` re-emits the CSTATE command only when its `(index_ext,
+  write_lac)` pair differs from the cached one. CSTATE is command-queue state consumed by later
+  IDC commands (AMO, inline PUT); DMA commands carry their own fields. Per context the pair is
+  constant for a given destination window, so after the first signal every later one skips it.
+- `CXI_LEAN_FOLD_MARKER` — `delivery_flush_locked` closes the epoch by rewriting the pending payload
+  PUT's descriptor in the ring (`event_ct_send=0, event_ct_ack=1, flush=1`) when that PUT is still
+  the newest, un-doorbelled entry, instead of appending a zero-byte marker command. Delivery
+  semantics and the CT accounting (`posted`, one event per command) are unchanged; one command
+  and one NIC round trip per signal are saved. Tracking: `publish_locked` and every `emit` clear
+  the "newest entry is the pending PUT" bit, `put_locked` sets it when the PUT stayed unpublished.
+- State lives in a new 32-bit `CxiGpuContext::lean_state` inside the former trailing padding
+  (`sizeof` stays 192, ABI version unchanged); the host sets it to "fence due" at channel open and
+  recycle (`cxi_resources.cc`).
+
+Variants: `marker-zero` (parent), `lean-a` (fence elision + CSTATE cache), `lean-b` (lean-a +
+marker fold). Signal cost: parent 4 commands (marker, fence, CSTATE, AMO); lean-a 3 after the
+first signal on a context (2 when nothing was posted since the last fence); lean-b 2 (patched
+PUT counts as payload) after a PUT, 1 for a bare signal.
+
+Kernels (DeepEP archive, selected per gate through the nvcc wrapper environment):
+
+- `CXI_EP_SKIP_COMBINE_FLUSH` (plan 2.1) — `hybrid_combine.cuh` forward-warp epilogue: the
+  `gin.flush<ncclCoopWarp>()` before `red_add_rel(expected_signal)` is compiled out. Ordering of
+  the signal after the channel's PUTs is the NIC's (marker/flush bit then CQ fence), the same chain
+  dispatch already relies on; the removed call held the context lock for the whole drain.
+- `CXI_EP_LOCAL_SELF_SIGNAL` (plan 2.3) — `comm.cuh` `gin_barrier_wo_local_sync`: the rank neither
+  signals itself through the NIC nor waits on its own slot. With two rail ranks the barrier
+  becomes one signal and one wait.
+
+Gate records carry the knobs (`skip_combine_flush`, `local_self_signal`, `variant` in each case
+record; the compiler reports carry the `-D` flags).
+
+### 4.2 Arms and gates
+
+| arm | runtime variant | kernel knobs | SMs / contexts |
+|---|---|---|---|
+| cand | marker-zero | none (reference) | 64 / 129 |
+| kern | marker-zero | skip combine flush, local self-signal | 64 / 129 |
+| leana | lean-a | both | 64 / 129 |
+| leanb | lean-b | both | 64 / 129 |
+| leanb128 | lean-b | both | 128 / 257 |
+
+Full matrix (`source-1102-lean-v1`, 31 gates): per non-reference arm the correctness ladder
+(irregular stress 32/257 tokens × 5 routings × 3 seeds, 4K FP8+BF16 × 5 routings, dropped
+tokens, sustained 16K), then three counterbalanced 4K/16K repeat gates per arm (9200–9224).
+Debug companion (`source-1102-lean-dbg-v1`, identical code, 9 gates with shortened timeouts for
+the 25-minute two-node debug allocation): leanb ladder, cand and leanb repeats, leanb128 stress
+and repeat, kern stress.
+
+Jobs: 3835100 (normal partition, 4 h, holder snapshot `source-1102-hold-v1` = candidate
+reference gates 9000–9003; Slurm's start estimate 20:55 CET; the 31 lean gates are pushed into it
+once it runs), 3835147 (debug partition, 25 min, companion). Preflight of the lean snapshot on
+the login node PASS (all three variants compile the device tests, the lean burst probe compiles).
+
+Kernel-template preflight of the lean snapshot on the login node (all 24 EP8 instantiations with
+`CXI_EP_SKIP_COMBINE_FLUSH=1 CXI_EP_LOCAL_SELF_SIGNAL=1`, lean-b runtime): PASS, combine 216
+registers / 0 spills as before, dispatch 144 (fresh) and 128 (cached) registers, 0 spills.
+
+### 4.3 Round 2 prepared: double-buffered TMA staging in the combine scale-up warps (plan 2.4b)
+
+Snapshot `source-1102-dbuf-v1` (parent `source-1102-lean-v1`; `prepare_dbuf_1102.py`,
+`package_dbuf_1102.py`, debug companion `source-1102-dbuf-dbg-v1`). Knob
+`CXI_EP_COMBINE_DOUBLE_TMA`: each scale-up warp gets a second shared-memory token buffer (placed
+after all first-stage buffers; the launcher already passes the device's maximum dynamic shared
+memory, and a static assert bounds `(warps + scale-up warps) × (hidden bytes + 1 KB) ≤ 220 KB`),
+tokens alternate between the two buffers with their own mbarrier/phase, and the wait before
+refilling a buffer becomes `cp.async.bulk.wait_group 1`, so the NVLink store of token n overlaps
+the load or reduction of token n+1. `update_tails` still drains all stores before publishing a
+tail. Arms: leanb, dbuf (= leanb + knob), leanb128, dbuf128; dbuf ladders plus three
+counterbalanced repeats (21 gates); the debug companion runs the dbuf ladder, one repeat per arm
+and the dbuf128 stress gate.
+
+### 4.4 Results
+
+**Debug job 3835147 (nid007645/nid007666, 15:57–16:20 CET), `source-1102-lean-dbg-v1`.** All leanb
+correctness gates PASS (irregular stress 32/257 × 5 routings × 3 seeds; 4K FP8+BF16 × 5 routings;
+dropped tokens; sustained 16K FP8+BF16). The candidate reference in the same allocation reproduces
+the release numbers exactly (4K 0.948 / 1.813 ms, 16K 3.435 / 6.944 ms).
+
+| V4 Flash FP8, mixed | cand (9504) | leanb (9505) | leanb rank-median | leanb best iteration |
+|---|---:|---:|---:|---:|
+| 4K dispatch | 0.948 ms | 0.941 ms (−0.8 %) | 0.929 (cand 0.940) | 0.900 (cand 0.919) |
+| 4K combine | 1.813 ms | 1.822 ms (+0.5 %) | 1.756 (cand 1.801) | 1.667 (cand 1.769) |
+| 16K dispatch | 3.435 ms | 3.423 ms (−0.4 %) | 3.410 (cand 3.419) | 3.258 (cand 3.268) |
+| 16K combine | 6.944 ms | 7.176 ms (+3.4 %) | 6.887 (cand 6.927) | 6.531 (cand 6.753) |
+
+Reading (per-rank, per-iteration CUDA-event times, `pipeline_1102/rank_hist.py`): the lean arm makes
+the *typical* iteration faster in both kernels (combine rank median −2.5 % at 4K, best iterations −6 %
+at 4K and −3 % at 16K), but combine acquires a rank-to-rank spread that the headline metric (median
+over iterations of the per-iteration maximum across the eight ranks) turns into a loss. At 16K the
+per-rank values are trimodal: 6.55, 6.89 and 7.22 ms (steps of ~330 µs); the candidate is unimodal at
+6.93 ms. The slow ranks change from iteration to iteration and are not rail-paired, so the lateness
+is on the *sender* side (a peer's end signal for some channel leaves late). Dispatch shows no such
+spread. The small-batch gate (32/257 tokens) shows combine −18 to −25 % at 32 tokens, dispatch −1 to
+−4 %: the barrier and signal command savings are worth only ~10 µs per call, far less than the
+command-count estimate in §2.2–2.3; the entry barrier is dominated by inter-rank skew, not by
+command issue.
+
+**128 SMs / 257 contexts (leanb128, gate 9507) is a loss at 4K:** dispatch 1.082 ms (+14 %), combine
+1.960 ms (+8 %); at 16K it equals leanb (3.421 / 7.150 ms). With 512 channels a 4K dispatch has 8
+tokens per channel (PUTs of 4 + 4 rows, twice as many PUTs and signals), and the combine's forward
+warps have 8 rows per channel. Plan item 2.4's "more SMs" lever is closed for 4K; the scale-up stage
+has to be shortened inside the warp (double-buffered staging, round 2).
+
+**The spread comes from the kernel-side change, not the transport (gate 9512, pushed into the same
+allocation's last minutes):** the kern arm (marker-zero transport + `CXI_EP_SKIP_COMBINE_FLUSH` +
+`CXI_EP_LOCAL_SELF_SIGNAL`) shows the same picture as leanb at 4K: dispatch 0.936 ms (−1.2 %),
+combine rank median 1.763 ms (−2.1 %) and best 1.677 ms, but the per-rank distribution is bimodal
+(1.68–1.75 and 1.80–1.85 ms) so the headline is 1.831 ms (+1.0 %). In the candidate the rare slow
+iterations hit rail pairs together (patterns `S...S...`); with the flush removed each rank is slow
+independently with probability ≈0.25 per iteration (slow count 22–28 of 100 on every rank, no
+pairing), so with eight ranks almost every iteration has one slow rank. The slow rank's excess is
+≈80 µs at 4K and ≈330 µs at 16K, proportional to the token count. The lean transport on top of kern
+changes neither the typical time nor the spread (leanb ≈ kern), and buys dispatch about 1 %.
+
+**What the spread is (resolved from the records, no new gate needed).** `measure()` records a
+CUDA event pair around each call without a per-iteration synchronisation, so a rank's windows are
+contiguous and `window_i = T_i − T_{i−1}` with `T_i` the absolute end of iteration *i* on that rank. The
+headline metric takes the maximum of `window_i` across ranks, which equals the common duration plus
+`max_rank(δ_i − δ_{i−1})` when the ranks' kernel ends carry an independent skew `δ`. With the flush,
+each combine ended on both rail peers only after both had drained everything, so the ends were tightly
+aligned (the rare slow iterations hit rail pairs together). Without the flush each rank ends when its
+peer's last signal arrives, the two directions are independent, and the ends carry a per-rank skew of
+≈80 µs (4K) / ≈330 µs (16K). The skew is absorbed by the next kernel's entry barrier and costs no
+throughput: the slowest rank's host wall time per iteration over the timed loop (`host_us_per_iteration`
+= total GPU time / iterations) improves on every arm.
+
+| V4 Flash FP8 mixed, same allocation, wall per iteration (slowest rank) | cand | kern | leanb | dbuf |
+|---|---:|---:|---:|---:|
+| 4K dispatch | 0.944 ms (18.7 GB/s) | 0.935 (18.9) | 0.934 (18.9) | 0.932 (19.0) |
+| 4K combine | 1.804 ms (18.7) | 1.767 (19.1) | 1.759 (19.2) | 1.757 (19.2) |
+| 4K dispatch + combine cycle | 2.747 ms | 2.702 (−1.6 %) | 2.699 (−1.7 %) | 2.688 (−2.1 %) |
+| 16K dispatch | 3.418 ms (20.7) | — | 3.412 (20.7) | 3.414 (20.7) |
+| 16K combine | 6.915 ms (19.6) | — | 6.878 (19.7) | 6.898 (19.6) |
+
+(`pipeline_1102/effective_rate.py ... --wall`; dbuf and its leanb reference are from job 3835199 on the
+same node pair, cand/kern/leanb from job 3835147.) Conclusions: (1) dropping the combine flush and the
+NIC self-signal is worth 2.1 % of combine and 1 % of dispatch time at 4K; (2) the lean transport
+(lean-a/lean-b) adds at most 0.3 % on top; (3) the double-buffered staging adds nothing measurable at
+4K or 16K, so the scale-up stage is not on the combine's critical path (or the pipeline drains every
+three tokens at `update_tails` anyway); (4) the headline metric must be read together with the wall
+time whenever a change alters how the ranks' ends align. Position against the user's target: 19.0 GB/s
+dispatch and 19.2 GB/s combine effective at 4K, versus 20 GB/s wanted (0.884 / 1.691 ms); the
+remaining gap is 48 µs on dispatch and 66 µs on combine per call.
+
+**Cadence with cheap signals (job 3835199's idle minutes, zero-code arms on lean-b, 4K, wall per
+iteration):** dispatch regular interval 8 (first 4) 0.961 ms vs 0.933 (+3.1 %), combine batch 8 (first 4)
+1.784 ms vs 1.758 (+1.5 %). Denser notification still loses at 4K even with two-command signals; the
+cost is on the NIC/wire side (more, smaller PUTs and their flush/fence round trips), not on the GPU
+issue side. Together with the 128-SM result this closes every zero-code lever of the plan.
+
+**Second node pair (job 3835540, nid007646/nid007666, 16:42–17:07 CET, `source-1102-iso-dbg-v1`):** all
+four transport arms pass sustained 16K FP8+BF16 on the dbuf archive; the 4K/16K repeats reproduce the
+first pair within 0.3 %.
+
+| wall per iteration (slowest rank), V4 Flash FP8 mixed | cand | kern | leana | leanb |
+|---|---:|---:|---:|---:|
+| 4K dispatch | 0.946 ms | 0.936 (−1.1 %) | 0.942 (−0.4 %) | 0.934 (−1.2 %) |
+| 4K combine | 1.803 ms | 1.767 (−2.0 %) | 1.768 (−1.9 %) | 1.759 (−2.4 %) |
+| 4K cycle | 2.750 ms | 2.701 (−1.8 %) | 2.713 (−1.4 %) | 2.692 (−2.1 %) |
+| 16K dispatch | 3.451 ms | 3.419 (−0.9 %) | 3.390 (−1.8 %) | 3.412 (−1.1 %) |
+| 16K combine | 6.945 ms | 6.896 (−0.7 %) | 6.887 (−0.8 %) | 6.884 (−0.9 %) |
+
+Headline metric on the same gates: 4K combine +0.8 to +1.5 %, 16K combine +3.3 to +3.6 % (the end-skew
+inflation described above), dispatch −0.2 to −2.1 %. The lean-b transport is the best arm on every row
+but only by 0.1–0.5 % over kern. **One context per channel is a loss (gate 9714, leanb + `CXI_EP_CONTEXTS=257`, 4K):** dispatch 1.019 ms
+(+7.7 % vs cand, wall), combine 1.850 ms (+2.6 %), and the per-rank spread widens further (1.68–2.10 ms).
+With 256 queues each carrying half the commands the NIC drains worse, as the F-campaign note on "few
+PUTs per queue" already said; the sibling-channel sharing of a queue is not what limits the lean arms.
+The flush-only / self-signal-only attribution gates did not fit the allocation (kern vs cand in the
+holder job's matrix covers the pair).
+
+### 4.5 Position at the end of the day and what is queued
+
+Against the user's target of 20 GB/s effective for both operations at 4K (0.884 / 1.691 ms at the
+22.5 GB/s bound), the best arm (lean-b transport + no combine flush + no NIC self-signal) stands at
+**0.934 ms dispatch (18.9 GB/s) and 1.759 ms combine (19.2 GB/s)** wall per iteration on two node pairs,
+i.e. −1.2 % and −2.4 % against the candidate's 0.946 / 1.803; the dispatch+combine cycle is −2.1 %.
+Every zero-code lever of §2 has now been measured and closed: more SMs (+8–14 %), one context per channel
+(+3–8 %), denser dispatch cadence (+3 %), smaller combine batches (+1.5 %), double-buffered scale-up
+staging (0 %). The transport's command savings are real but small because the issue side is not the
+critical path at 4K; the entry barrier is skew-dominated; the wire phase and the two epilogues are.
+
+What would move the remaining 48 µs (dispatch) and 66 µs (combine) per call is DeepEP-level: the copy
+epilogue of dispatch (0.09 ms) and the reduce epilogue of combine (0.08 ms) as separate kernels after the
+main kernel, the entry barrier that cannot overlap the previous kernel's tail (0.11 ms), and the
+combine's late first PUT (0.40 ms) that the double buffer did not move, so it is the forward warps'
+reduction rate, not the scale-up warps, that gates the wire start. The traced gates queued for tonight
+(cand / kern / leanb at 4K) are meant to measure exactly these phases on the new code.
+
+Queued unattended in the normal-partition holder job 3835100 (start estimate 22:00 CET, after this
+session's certificate expires): the candidate reference (9000–9003), the lean matrix without the
+128-SM arm (kern / leana / leanb ladders and three counterbalanced repeats with cand; 24 gates), the
+double-buffer matrix without 128-SM arms (leanb stress, dbuf ladder, repeats; 11 gates), three extra
+leanb repeats, and the three trace gates (`source-1102-lean-trace-v1`, kind rewritten to `ep`,
+validate offline with `runner/validate_trace.py`, analyse with `pipeline_1101/trace_timeline.py`).
+Results land in `jobs/3835100/results/` on Clariden; `pipeline_1102/effective_rate.py <dir> '^92\d\d-'
+--ref cand --wall` and `summarize_arms.py` read them. A failed gate pauses the controller
+(`PAUSED.json`); resume with a `RESUME.json` carrying a reason.
+
+Jobs used this afternoon: 3835147 (debug, lean companion), 3835199 (debug, double-buffer companion),
+3835540 (debug, isolation), 3835100 (normal, holder, pending). None of the user's own jobs were touched.

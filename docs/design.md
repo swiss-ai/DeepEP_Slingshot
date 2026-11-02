@@ -53,6 +53,12 @@ Seven files against `bd1e1669`, +208/-26
   channel-major slot.
 - **Trace build** ([patches/deepep-trace-hooks.patch](../patches/deepep-trace-hooks.patch)):
   device and host events used only for attribution.
+- **Signal-path knobs (2026-11-02, [patches/1102/](../patches/1102/))**: `CXI_EP_SKIP_COMBINE_FLUSH`
+  (no GPU-side flush before the combine end signal; ordering stays with the NIC's marker + fence),
+  `CXI_EP_LOCAL_SELF_SIGNAL` (the GIN barrier skips its own rank), `CXI_EP_COMBINE_DOUBLE_TMA`
+  (second staging buffer per scale-up warp), and the transport variants `lean-a` / `lean-b`
+  (`CXI_LEAN_FENCE`, `CXI_LEAN_CSTATE`, `CXI_LEAN_FOLD_MARKER`; state in `CxiGpuContext::lean_state`,
+  ABI size unchanged). All default off; measured in [results.md](results.md).
 
 The knobs are compile-time defines injected at JIT time by
 [backend/tests/nvcc_wrapper.py](../backend/tests/nvcc_wrapper.py) and are not part of DeepEP's

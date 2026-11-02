@@ -33,9 +33,15 @@
   plus `C_CMD_CQ_FENCE`, with no GPU-observed completion, and source-buffer reuse across
   iterations relies on the same chain through the peer's barrier. Thousands of exact-checked
   iterations support it; no test yet overwrites the source immediately after a signal returns.
-- **Per-channel flush before the combine's end signal** holds the context lock for up to 0.7 ms
-  and delays sibling-channel PUTs (seen in the 4K traces). Redundant under the fenced-signal
-  semantics; removing it is the most promising remaining transport change, not yet done.
+- **Per-channel flush before the combine's end signal** held the context lock for up to 0.7 ms.
+  Removing it (`CXI_EP_SKIP_COMBINE_FLUSH`, 2026-11-02) is exact-correct on every gate and gives
+  2 % of combine time, but it also decouples the rail peers' kernel ends: read the harness headline
+  together with the wall time per iteration (see [results.md](results.md)). Release matrix pending.
+- **Fixed per-call costs that remain are DeepEP-level**: the dispatch copy epilogue (0.09 ms) and
+  combine reduce epilogue (0.08 ms) as separate kernels, the entry barrier (0.11 ms, skew-dominated),
+  and the combine's first remote PUT at 0.40 ms, which the double-buffered scale-up staging did not
+  move (the forward warps' reduction rate gates the wire start). No cadence, SM-count or context-count
+  knob improves 4K any further.
 
 ## Open questions for NIC and driver experts
 
