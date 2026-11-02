@@ -680,3 +680,40 @@ the 100 µs is in the ring write, fence or doorbell and the trace's 201/209 scop
 
 Cached credits are kept as a qualified-by-ladder transport option (`cache-a`, `lean-c`): no measurable
 gain at 4K/16K, 99.9 % fewer status reads, ABI 4. They do not go into the candidate until a gain is shown.
+
+### 5.7 Traced cached credits (job 3838245, nid007657/007658): the convoy is the first touch of the ring
+
+All four trace gates pass (lean-c, lean-b, cache-a, lean-c repeat; validator counts: lean-c 0 CSTATE /
+10 756 fences, cache-a 18 528 / 18 528). `put_split.py` splits every sender warp's first and last PUT into
+the nested transport scopes (medians over captures of per-capture medians / p90, µs):
+
+| first PUT of a channel | lean-b | lean-c (cached credits) | cache-a |
+|---|---:|---:|---:|
+| total | 101 / 109 | 95 / 102 | 94 / 100 |
+| lock wait (200) | 47 / 96 | 41 / 89 | 43 / 88 |
+| credit check (202) | 3.5 / **85** | 0.5 / 0.8 | 0.5 / 0.8 |
+| emit: ring store + system fence (201) | 3.1 / 3.7 | 4.6 / **81** | 21 / **79** |
+| remainder | 8.7 / 9.5 | 8.8 / 10.1 | 8.9 / 10.3 |
+| last PUT of a channel, total | 15.4 / 17.6 | 12.8 / 15.6 | 21.9 / 35.2 |
+| first PUT emitted (rank) | 0.20 ms | 0.20 ms | 0.22 ms |
+| status reads per capture | 1 302 scopes, 12.4 ms summed | 1 307 scopes, 0.65 ms | 2 444 scopes, 1.2 ms |
+
+With the status read gone, the same ~80 µs appears in the ring store plus `__threadfence_system()` of the
+first emission; the lock holder still takes ~90 µs and its sibling still waits ~90 µs for the lock. The
+first emission stays at 0.20 ms, the receivers' last observation at 1.11–1.12 ms, the CUDA event at
+1.23 ms for all three arms (kern/leanb on this pair: 1.233 / 1.229). Whatever touches a context's ring
+first in a kernel pays ~80 µs when 128 contexts start together; later accesses cost 1–3 µs. The cost is
+therefore the first access to the host-mapped command ring per context per kernel (address translation
+or the GPU→host path warming up under 128 simultaneous first touches), not the NIC status read and not
+the fence as such. The cache does take 2.5 µs off every later PUT (lean-c last PUT 12.8 µs against 15.4),
+which is why its wall time is marginally the best of the evening but within noise.
+
+Consequence: the first touch can be moved off the critical path. `prepare_prewarm_1102.py`
+(`CXI_EP_PREWARM_CONTEXTS`): in the GIN entry barrier, before SM 0 starts signalling, every thread of the
+grid loads one context's ring status word (read-only, no lock; `nccl::gin::cxi::prewarm(ctx)`, the
+context reached through the public handle's `_makeCtx()`), so the 129 first touches overlap the barrier's
+own skew wait. If the translation theory holds, the first PUTs then emit at ~0.12 ms and the dispatch
+loses ~0.08 ms of its 0.93; if the cost is the GPU→host write path itself, a load will not warm it and a
+traced variant will show the 80 µs still in the store. Slice `source-1102-prewarm-dbg-v1` (leanbw =
+lean-b + prewarm against leanb and cand on one pair, stress and 4K ladder first) is queued as the last
+job of the evening.

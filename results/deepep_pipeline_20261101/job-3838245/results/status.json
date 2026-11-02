@@ -1,0 +1,5 @@
+{
+  "state": "FINISHED",
+  "utc": "2026-11-02T22:32:28.000220Z",
+  "reason": "STOP, allocation deadline, health failure, or configured idle limit"
+}
