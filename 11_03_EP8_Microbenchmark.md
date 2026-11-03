@@ -173,7 +173,9 @@ counts. Job 2 was cancelled at 20:34 (the skew job was re-based on the unpadded 
 does not go through `TokenLayout::get_num_bytes` (candidates: the packed-channel capacity arithmetic, the
 notify/count path, the shared-memory staging layout with the mbarrier variant); a device-traced run of one
 small case is the next step. Until then the alignment rule (batch boundaries on multiples of four rows)
-stands, and the campaign's exposure is placements that localise traffic.
+stands, and the campaign's exposure is placements that localise traffic. A localisation job
+(`source-1103-pad128-diag-v1`, job 3845106, submitted 20:46) runs four single-case correctness gates with
+their own 300 s budgets: BF16 4K (no FP8 scale region), FP8 32 tokens, FP8 257 tokens, BF16 32 tokens.
 
 ### 4.4 Projection over a whole forward (model, not measured)
 
@@ -202,23 +204,101 @@ the copied node log). The job was cancelled at 20:40, the packager now patches t
 and `source-1103-ep8skew-v3` (same gates: skew ladder FP8, bank forwards 302/303, skew repeat, skew BF16)
 was submitted at 20:42 as job 3845070 (debug queue: 20 running, 23 pending). The earlier variant on the padded parent (job 3844958) was cancelled unrun.
 
-## 5. Position for the EP8 serving campaign (interim, after job 1; updated after jobs 2 and 3)
+### 4.7 S100: the synthetic skew ladder (job 3845070, nid007648/007658, 20:48 CET; all cases exact)
 
-1. **The transport is usable for EP8 serving experiments with real routing.** Exact results on 76 real-routing
-   cases (FP8 and BF16, three placements, two forwards, three layers, two repeats), per-layer communication
-   2.9–3.0 ms for V4 Flash at 4096 tokens per rank (dispatch 0.97–1.00, combine 1.88–1.97 ms), 1.25–1.31× the
-   wire bound. Against the 10_26 decision rule (U ≥ 0.5 and comm ≤ 2× GEMM): U = 0.78 passes; comm ≈ 3× the
-   ~1 ms expert GEMM fails the second half, i.e. the EP8 step is communication-bound by about 3× (the proxy
-   transport was 20×). Placement effects on the step will have to show through the receive side and the GEMM,
-   not through the NIC bytes, which real routing fixes at one row per token per direction.
-2. **What the per-layer time follows at EP8** (R10(d) of the EP4 requirements): destination-row imbalance,
-   not NIC rows (R² 0.7–0.8 vs ≤ 0.2 across the bank cases). The offline EP8 time model should carry the
-   communication term as a function of the busiest destination's rows (slope ≈ 0.055 ms dispatch and
-   ≈ 0.10 ms combine per unit of max/mean at 4K, from 18 cases; job 3 adds the synthetic ladder). The paper's
-   "busiest-NIC rows" metric is the right one for the NIC bytes but those are routing-invariant here.
-3. **Alignment.** No penalty on OpenSWE because nearly every row is remote and runs are gapless; the padded
-   128-byte row stride (job 2) is the guard for placements that localise traffic.
-4. **Still missing for the campaign:** the two-node SGLang boot over the adapter (never done), the recorder
-   for replay banks (disabled in the adapter), EP8 editions of the harness (two-node sbatch, collect scripts),
-   and layouts with replicas (r = 1, the paper's EPLB/swap) exported for EP8, since r = 0 placements do not
-   move the receive side.
+Two destination ranks per token; the receiver skew moves rows per destination while the pair maximum of NIC
+rows stays 4096. `local` has no NIC traffic (NVLink only), `uniform` is random top-6 (4.5 destination
+ranks per token, 2.24× the rows per destination of `mixed`, imbalance 1.01).
+
+| case | NIC rows mean (pair max) | rows per destination max (max/mean) | dispatch_fresh ms | combine ms | combine / bound |
+|---|---|---|---:|---:|---:|
+| local | 0 (0) | 8192 (1.00) | 0.300 | 0.279 | — |
+| mixed | 4096 (4096) | 8192 (1.00) | 0.934 | 1.755 | 1.17 |
+| remote | 4096 (4096) | 8192 (1.00) | 0.928 | 1.744 | 1.16 |
+| skew1.2 | 4038 (4096) | 9830 (1.20) | 0.930 | 1.757 | 1.17 |
+| skew1.6 | 3923 (4096) | 13107 (1.60) | 0.922 | 1.871 | 1.24 |
+| skew2 | 3809 (4096) | 16384 (2.00) | 0.944 | 2.102 | 1.40 |
+| skew4 | 3218 (4096) | 32768 (4.00) | 0.967 | 2.340 | 1.56 |
+| uniform | 4034 (4050) | 18356 (1.01) | 0.967 | 1.879 | 1.26 |
+
+Findings:
+1. **Dispatch follows the NIC, not the receiver.** From skew 1 to 4 the hottest GPU receives 4× the rows and
+   dispatch moves from 0.93 to 0.97 ms (+4 %); `uniform` with 2.24× the rows everywhere costs the same +4 %.
+   The dispatch period is the slowest rail pair's wire (pair maximum 4096 rows in every case) plus a small
+   receive-side term.
+2. **Combine follows the hottest rank's rows.** Combine is flat to skew 1.2, then +7 % at 1.6, +20 % at 2.0,
+   +33 % at 4.0 (1.76 → 2.34 ms) with unchanged NIC bytes. The rows a rank received in dispatch are the
+   expert outputs it must send back over NVLink in the combine's scale-up stage (0.26 ms for 8192 rows on
+   `mixed`, 11_03 §5); at 4× the rows that stage outlasts the wire's head start and the forwarders' PUTs
+   starve the NIC. `uniform` (+7 %) shows the volume part of the effect without imbalance.
+3. **The real-routing surcharge decomposes.** `uniform` costs +4 % dispatch / +7 % combine with imbalance 1.0;
+   the bank cases cost +5 % / +9 % at imbalance 1.1–1.6; so most of the surcharge is the 2.2× destination
+   volume of top-6 routing, and the imbalance adds the rest, growing steeply beyond 1.6.
+4. **NVLink-only cost.** `local` gives the intra-node floor: 0.30 ms dispatch and 0.28 ms combine for
+   8192 rows per GPU, i.e. the hybrid path's scale-up stages; the EP4 numbers of 10_22 (0.19 / 0.35 ms at
+   4096 tokens per rank) are of the same order.
+
+### 4.8 S101–S103: more bank forwards, the skew repeat, and a stress corner (same job)
+
+**S101, bank forwards 302 and 303** (18 cases, exact): dispatch median 0.982 ms (0.966–0.994), combine 1.922
+(1.895–1.999), the same surcharge as forwards 300/301; the regression on destination imbalance has the same
+slopes (+0.044 / +0.117 ms per unit) at lower R² (0.44 / 0.31) because the imbalance range of these forwards
+is narrower (1.08–1.51). Across the four forwards, 36 bank cases at FP8: dispatch 0.966–1.004 ms, combine
+1.882–1.999 ms, cycle 2.86–3.05 ms per layer.
+
+**S102, skew ladder repeated**: `mixed`, `skew1.2`, `skew1.6`, `skew2` and `local` reproduce S100 within
+5–30 µs (combine 1.752 / 1.757 / 1.860 / 2.069 ms; local 0.291 / 0.283). The three NIC-using cases that ran
+after `skew4` did not: `skew4` combine 2.893 ms (2.340 in S100), `remote` 1.610 / 3.324 ms (0.928 / 1.744),
+`uniform` dispatch 1.541 ms (0.967), all with exact results and with CUDA-event medians equal to the wall
+times (slower kernels, not stalls). **S103, the BF16 skew ladder**, passed `mixed` to `skew2` with BF16
+dispatch 1.67–1.73 ms and the same combine ladder (1.755 / 1.761 / 1.867 / 1.994 / 2.383 ms), then failed
+on `skew4` with the dispatch's host-side count wait reporting zero received rows on every rank (fail-fast
+exception, no trap). `skew4` puts 32768 rows on one destination, exactly the receive capacity
+(8 sources × 4096), so this is operation at the buffer edge, a stress corner rather than a serving pattern;
+the degradation of the cases after it in S102 suggests the transport does not fully recover from it within
+the job. The serving-relevant range (imbalance ≤ 1.6) reproduced exactly in both repeats. Job 3845070
+released at 20:59.
+
+## 5. Position for the EP8 serving campaign (21:05 CET; the padded-stride localisation job is still queued)
+
+1. **The direct-CXI path can carry EP8 serving experiments with real routing.** 72 real-routing cases
+   (four forwards, three layers, three placements, FP8 and BF16, two repeats) and 21 synthetic cases, all
+   exact. Per MoE layer for V4 Flash at 4096 tokens per rank: dispatch 0.97–1.00 ms, combine 1.88–2.00 ms,
+   2.9–3.0 ms together, 1.25–1.33× the wire bound. On the 10_26 decision rule: U = 0.78 passes; comm ≈ 3×
+   the ~1 ms expert GEMM fails the "comm ≤ 2× GEMM" half, so the EP8 step is communication-bound by about
+   3× (the proxy transport was 20×). Projected over 40 layers: ~116 ms of communication per 32K-token
+   forward.
+2. **What the communication time follows** (R10(d)): dispatch follows the slowest rail pair's NIC rows and
+   is insensitive to receiver skew up to 4× (0.93 → 0.97 ms); combine follows the hottest rank's rows
+   through its NVLink scale-up stage once they exceed ~1.3× the mean (+7 % at 1.6, +20 % at 2.0, +33 % at
+   4.0). Real OpenSWE routing sits at imbalance 1.1–1.6, where the surcharge over the synthetic reference is
+   mostly the 2.2× destination volume of top-6 routing (`uniform`: +4 % / +7 % at imbalance 1.0) plus a
+   small imbalance term. For the EP8 time model: NIC term = pair maximum of (token, remote node) rows (routing-
+   invariant for V4 Flash on OpenSWE, 4096 per forward unit); receive term ∝ max destination rows, with a
+   knee near 1.3× the mean for the combine.
+3. **Placement at r = 0 cannot move the communication term**: the greedy balanced partition and a random
+   permutation change dispatch by ≤ 1.5 % and combine by ≤ 4 % within a layer, in no consistent order, and
+   the whole-forward projection separates the placements by 0.4 %. Placement effects at EP8 must come through
+   replicas (r ≥ 1, the paper's EPLB and swap layouts) acting on the hottest destination, and through the
+   GEMM term; the r = 1 layouts need an EP8 export (the offline archives hold metrics only).
+4. **Alignment cliff**: absent on OpenSWE because nearly every row is remote (gapless runs). The padded
+   128-byte row stride that would remove the exposure hangs in its first dispatch (job 2) and is being
+   localised (job 3845106: BF16 vs FP8, 32 / 257 / 4096 tokens). Until fixed, keep the four-row rule and
+   expect the cliff only from placements that localise traffic.
+5. **Stress corner**: a destination at receive capacity (32768 rows = 8 × 4096) degrades the transport for
+   the rest of the job and failed once with BF16 rows (host count wait, zero rows). Not a serving pattern at
+   EP8 (needs 4× mean on one GPU), but a hard limit to document for the campaign's gates.
+6. **Still missing for the campaign** (unchanged): the two-node SGLang boot over the adapter, the
+   expert-distribution recorder for the replay banks (disabled in the adapter), EP8 harness editions
+   (two-node sbatch, collect scripts), r = 1 layouts for EP8.
+
+## 6. Files
+
+- Generator and bank subset: `tools/cxi_gin/experiments/pipeline_1103/bank_routing.py`,
+  `bank_v4flash_openswe_ep8.npz`; benchmark patch `prepare_ep8bank_1103.py`; packagers
+  `package_ep8bank_1103.py` (job 3844569), `package_pad128_1103.py` + `prepare_pad128_1103.py` (job
+  3844593), `package_ep8skew_1103.py` (jobs 3845018 failed on packaging, 3845070), `package_pad128diag_1103.py`
+  (job 3845106); table tool `bank_table.py`.
+- Results: `results/deepep_pipeline_20261101/job-384{4569,4593,5070,5106}/results/results/<gate>/direct/ep/`
+  (`timings-rank*.jsonl` with the `bank` / `traffic` dicts, `correctness-rank*.jsonl`); curated copies on the
+  `debug` branch of the review repository, this document in both branches.

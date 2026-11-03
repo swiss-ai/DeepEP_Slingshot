@@ -1,0 +1,7 @@
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1103-ep8skew-v3 111
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1103-ep8skew-v3 111
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/runtime/source-1103-ep8skew-v3/lean-b 77
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/runtime/source-1103-ep8skew-v3/lean-b 77
+srun: error: nid007648: task 0: Exited with exit code 1
+srun: Terminating StepId=3845070.3
+srun: error: nid007658: task 1: Exited with exit code 1
