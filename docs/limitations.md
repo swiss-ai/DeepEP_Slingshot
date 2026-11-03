@@ -68,7 +68,9 @@
   destination), not the NIC. Dispatch is insensitive to receiver skew up to 4×; combine grows with the
   hottest rank's rows beyond ~1.3× the mean (+33 % at 4×). A destination at receive capacity (32768 rows)
   degrades the transport for the rest of the job and once failed the dispatch's count wait with BF16 rows.
-  The padded 128-byte row stride (alignment fix) hangs in its first dispatch and is not usable yet.
+  The padded 128-byte row stride (alignment fix) is exact at 32 and 257 tokens per rank in both dtypes and
+  faults at 4096 (receive layout at capacity): a host-side size consumer still uses the unpadded row; an
+  audit plus the 4K correctness gate are needed before it can be used.
 
 ## Open questions for NIC and driver experts
 

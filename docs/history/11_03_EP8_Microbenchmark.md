@@ -1,6 +1,6 @@
 # EP8 microbenchmark on the direct-CXI GIN path: DeepSeek V4 Flash with OpenSWE routing (2026-11-03 evening)
 
-Status: in progress (autonomous window 19:00–23:00 CET; plan written before the first job).
+Status: complete for the evening (autonomous window 19:00–23:00 CET; plan written before the first job, results from five debug jobs, all allocations released by 21:11).
 Companion documents: `10_26_EP8_Microbenchmark.md` (question and decision rule), `11_03_DeepEP_v2_Slingshot.md`
 (the transport's state: lean-b with the two kernel knobs, release matrix passed; combine levers of the afternoon),
 `10_24_EXPERIMENT_REQUIREMENT.md` (the EP4 serving protocol an EP8 campaign would follow).
@@ -259,7 +259,21 @@ the degradation of the cases after it in S102 suggests the transport does not fu
 the job. The serving-relevant range (imbalance ≤ 1.6) reproduced exactly in both repeats. Job 3845070
 released at 20:59.
 
-## 5. Position for the EP8 serving campaign (21:05 CET; the padded-stride localisation job is still queued)
+### 4.9 Job 3845106: localising the padded-stride failure (nid007648/007666, 21:03 CET)
+
+Q100 (BF16 dispatch, 4096 tokens, one `mixed` case): the dispatch kernel faults, `CUDA error: unspecified
+launch failure` surfacing at the host's read of the received counts, on every rank, 129 s into the gate
+(build and JIT included). So the padded build is not merely slow: with BF16 rows (8320 B, no FP8 scale
+region) the dispatch writes or reads outside its buffers; the FP8 4K hang of job 2 was most likely the same
+fault turned into a wait. The job was resumed for the small-token gates: **FP8 32 tokens, FP8 257 tokens and
+BF16 32 tokens all PASS** (exact dispatch and combine, one `mixed` case each). The padded stride therefore
+works until the receive layout is filled: with 4096 tokens per rank every destination holds its full
+8 × 4096 rows and the wider rows reach past what some consumer sized with the unpadded row (the NCCL window
+or receive-layer size on the host, or a per-channel capacity in bytes). The fix is a host-side size audit of
+every place that derives bytes from hidden, scales and top-k instead of `TokenLayout::get_num_bytes`,
+followed by the 4K correctness gate; the device side needs no change. Job 3845106 released at 21:11.
+
+## 5. Position for the EP8 serving campaign (21:15 CET, all jobs finished and released)
 
 1. **The direct-CXI path can carry EP8 serving experiments with real routing.** 72 real-routing cases
    (four forwards, three layers, three placements, FP8 and BF16, two repeats) and 21 synthetic cases, all
@@ -282,8 +296,9 @@ released at 20:59.
    replicas (r ≥ 1, the paper's EPLB and swap layouts) acting on the hottest destination, and through the
    GEMM term; the r = 1 layouts need an EP8 export (the offline archives hold metrics only).
 4. **Alignment cliff**: absent on OpenSWE because nearly every row is remote (gapless runs). The padded
-   128-byte row stride that would remove the exposure hangs in its first dispatch (job 2) and is being
-   localised (job 3845106: BF16 vs FP8, 32 / 257 / 4096 tokens). Until fixed, keep the four-row rule and
+   128-byte row stride that would remove the exposure is exact at 32 and 257 tokens in both dtypes and faults
+   at 4096 tokens (receive layout at capacity) in both: a host-side size consumer still uses the unpadded
+   row. One audit plus the 4K correctness gate away from usable; until then keep the four-row rule and
    expect the cliff only from placements that localise traffic.
 5. **Stress corner**: a destination at receive capacity (32768 rows = 8 × 4096) degrades the transport for
    the rest of the job and failed once with BF16 rows (host count wait, zero rows). Not a serving pattern at
