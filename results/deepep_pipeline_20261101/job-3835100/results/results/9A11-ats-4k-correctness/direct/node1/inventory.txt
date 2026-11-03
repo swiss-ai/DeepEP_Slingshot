@@ -1,0 +1,652 @@
+CXI pool phase=idle-lni-close gpu=0 created=133 reused=2451 allocated=133 idle=133 ct_in_use=133 usage_rc=0 cuda_maps=532 iomem_fallbacks=0
+CXI pool phase=idle-lni-close gpu=1 created=133 reused=2451 allocated=133 idle=133 ct_in_use=133 usage_rc=0 cuda_maps=532 iomem_fallbacks=0
+CXI pool phase=idle-lni-close gpu=2 created=133 reused=2451 allocated=133 idle=133 ct_in_use=133 usage_rc=0 cuda_maps=532 iomem_fallbacks=0
+CXI pool phase=idle-lni-close gpu=3 created=133 reused=2451 allocated=133 idle=133 ct_in_use=133 usage_rc=0 cuda_maps=532 iomem_fallbacks=0
+CXI_GPU_ADDRESSING gpu=0 pageable_memory_access=1 uses_host_page_tables=1 direct_managed_from_host=1 host_register_supported=1 ring_access=ats
+CXI_GPU_ADDRESSING gpu=1 pageable_memory_access=1 uses_host_page_tables=1 direct_managed_from_host=1 host_register_supported=1 ring_access=ats
+CXI_GPU_ADDRESSING gpu=3 pageable_memory_access=1 uses_host_page_tables=1 direct_managed_from_host=1 host_register_supported=1 ring_access=ats
+CXI_MAP gpu=0 p=0x4003b7eb0000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x4003b7eb0000 vma=[4003b7eb0000-4003b7ec0000 rw-s 00050000 00:05 256                        /dev/cxi0]
+CXI_MAP gpu=0 p=0x4003b7ee0000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x4003b7ee0000 vma=[4003b7ee0000-4003b7ef0000 rw-s 00080000 00:05 256                        /dev/cxi0]
+CXI_MAP gpu=0 p=0x4003b7f00000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x4003b7f00000 vma=[4003b7f00000-4003b7f10000 rw-s 000a0000 00:05 256                        /dev/cxi0]
+CXI_MAP gpu=0 p=0x4003b7f30000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x4003b7f30000 vma=[4003b7f30000-4003b7f40000 rw-s 000d0000 00:05 256                        /dev/cxi0]
+CXI_MAP gpu=0 p=0x543c0000 bytes=65536 requested=Mapped registered=Mapped first_rc=0(no error) device_ptr=0x543c0000 vma=[543c0000-543d0000 rw-p 00000000 00:00 0                                  [heap]]
+CXI_MAP gpu=0 p=0x543e0000 bytes=65536 requested=Mapped registered=Mapped first_rc=0(no error) device_ptr=0x543e0000 vma=[543e0000-543f0000 rw-p 00000000 00:00 0                                  [heap]]
+CXI_MAP gpu=0 p=0x54400000 bytes=65536 requested=Mapped registered=Mapped first_rc=0(no error) device_ptr=0x54400000 vma=[54400000-54410000 rw-p 00000000 00:00 0                                  [heap]]
+CXI_MAP gpu=1 p=0x40039fe90000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x40039fe90000 vma=[40039fe90000-40039fea0000 rw-s 00050000 00:05 257                        /dev/cxi1]
+CXI_MAP gpu=1 p=0x40039fec0000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x40039fec0000 vma=[40039fec0000-40039fed0000 rw-s 00080000 00:05 257                        /dev/cxi1]
+CXI_MAP gpu=1 p=0x40039fee0000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x40039fee0000 vma=[40039fee0000-40039fef0000 rw-s 000a0000 00:05 257                        /dev/cxi1]
+CXI_MAP gpu=1 p=0x40039ff10000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x40039ff10000 vma=[40039ff10000-40039ff20000 rw-s 000d0000 00:05 257                        /dev/cxi1]
+CXI_MAP gpu=1 p=0x65b70000 bytes=65536 requested=Mapped registered=Mapped first_rc=0(no error) device_ptr=0x65b70000 vma=[65b70000-65b80000 rw-p 00000000 00:00 0                                  [heap]]
+CXI_MAP gpu=1 p=0x65b90000 bytes=65536 requested=Mapped registered=Mapped first_rc=0(no error) device_ptr=0x65b90000 vma=[65b90000-65ba0000 rw-p 00000000 00:00 0                                  [heap]]
+CXI_MAP gpu=1 p=0x65bb0000 bytes=65536 requested=Mapped registered=Mapped first_rc=0(no error) device_ptr=0x65bb0000 vma=[65bb0000-65bc0000 rw-p 00000000 00:00 0                                  [heap]]
+CXI_MAP gpu=2 p=0x368a0000 bytes=65536 requested=Mapped registered=Mapped first_rc=0(no error) device_ptr=0x368a0000 vma=[368a0000-368b0000 rw-p 00000000 00:00 0                                  [heap]]
+CXI_MAP gpu=2 p=0x368c0000 bytes=65536 requested=Mapped registered=Mapped first_rc=0(no error) device_ptr=0x368c0000 vma=[368c0000-368d0000 rw-p 00000000 00:00 0                                  [heap]]
+CXI_MAP gpu=2 p=0x36900000 bytes=65536 requested=Mapped registered=Mapped first_rc=0(no error) device_ptr=0x36900000 vma=[36900000-36910000 rw-p 00000000 00:00 0                                  [heap]]
+CXI_MAP gpu=2 p=0x40038f850000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x40038f850000 vma=[40038f850000-40038f860000 rw-s 00050000 00:05 258                        /dev/cxi2]
+CXI_MAP gpu=2 p=0x40038f880000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x40038f880000 vma=[40038f880000-40038f890000 rw-s 00080000 00:05 258                        /dev/cxi2]
+CXI_MAP gpu=2 p=0x40038f8a0000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x40038f8a0000 vma=[40038f8a0000-40038f8b0000 rw-s 000a0000 00:05 258                        /dev/cxi2]
+CXI_MAP gpu=2 p=0x40038f8d0000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x40038f8d0000 vma=[40038f8d0000-40038f8e0000 rw-s 000d0000 00:05 258                        /dev/cxi2]
+CXI_MAP gpu=3 p=0x302f0000 bytes=65536 requested=Mapped registered=Mapped first_rc=0(no error) device_ptr=0x302f0000 vma=[302f0000-543b0000 rw-p 00000000 00:00 0                                  [heap]]
+CXI_MAP gpu=3 p=0x30310000 bytes=65536 requested=Mapped registered=Mapped first_rc=0(no error) device_ptr=0x30310000 vma=[30310000-30320000 rw-p 00000000 00:00 0                                  [heap]]
+CXI_MAP gpu=3 p=0x30330000 bytes=65536 requested=Mapped registered=Mapped first_rc=0(no error) device_ptr=0x30330000 vma=[30330000-30340000 rw-p 00000000 00:00 0                                  [heap]]
+CXI_MAP gpu=3 p=0x30350000 bytes=65536 requested=Mapped registered=Mapped first_rc=0(no error) device_ptr=0x30350000 vma=[30350000-30360000 rw-p 00000000 00:00 0                                  [heap]]
+CXI_MAP gpu=3 p=0x4003cbcc0000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x4003cbcc0000 vma=[4003cbcc0000-4003cbcd0000 rw-s 00050000 00:05 259                        /dev/cxi3]
+CXI_MAP gpu=3 p=0x4003cbcf0000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x4003cbcf0000 vma=[4003cbcf0000-4003cbd00000 rw-s 00080000 00:05 259                        /dev/cxi3]
+CXI_MAP gpu=3 p=0x4003cbd10000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x4003cbd10000 vma=[4003cbd10000-4003cbd20000 rw-s 000a0000 00:05 259                        /dev/cxi3]
+CXI_MAP gpu=3 p=0x4003cbd40000 bytes=4096 requested=IoMemory registered=IoMemory first_rc=0(no error) device_ptr=0x4003cbd40000 vma=[4003cbd40000-4003cbd50000 rw-s 000d0000 00:05 259                        /dev/cxi3]
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=1 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=10 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=100 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=101 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=102 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=103 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=104 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=105 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=106 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=107 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=108 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=109 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=11 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=110 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=111 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=112 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=113 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=114 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=115 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=116 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=117 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=118 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=119 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=12 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=120 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=121 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=122 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=123 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=124 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=125 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=126 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=127 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=128 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=129 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=13 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=14 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=15 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=16 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=17 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=18 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=19 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=2 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=20 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=21 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=22 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=23 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=24 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=25 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=26 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=27 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=28 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=29 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=3 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=30 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=31 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=32 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=33 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=34 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=35 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=36 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=37 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=38 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=39 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=4 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=40 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=41 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=42 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=43 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=44 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=45 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=46 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=47 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=48 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=49 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=5 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=50 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=51 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=52 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=53 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=54 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=55 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=56 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=57 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=58 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=59 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=6 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=60 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=61 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=62 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=63 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=64 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=65 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=66 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=67 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=68 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=69 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=7 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=70 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=71 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=72 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=73 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=74 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=75 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=76 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=77 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=78 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=79 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=8 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=80 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=81 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=82 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=83 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=84 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=85 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=86 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=87 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=88 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=89 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=9 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=90 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=91 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=92 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=93 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=94 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=95 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=96 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=97 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=98 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=99 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=130 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=131 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=132 eq_id=56 ring=ats
+CXI_QUEUE gpu=0 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=133 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=1 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=10 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=100 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=101 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=102 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=103 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=104 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=105 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=106 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=107 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=108 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=109 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=11 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=110 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=111 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=112 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=113 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=114 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=115 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=116 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=117 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=118 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=119 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=12 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=120 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=121 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=122 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=123 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=124 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=125 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=126 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=127 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=128 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=129 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=13 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=14 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=15 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=16 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=17 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=18 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=19 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=2 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=20 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=21 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=22 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=23 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=24 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=25 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=26 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=27 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=28 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=29 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=3 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=30 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=31 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=32 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=33 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=34 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=35 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=36 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=37 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=38 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=39 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=4 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=40 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=41 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=42 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=43 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=44 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=45 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=46 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=47 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=48 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=49 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=5 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=50 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=51 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=52 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=53 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=54 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=55 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=56 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=57 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=58 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=59 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=6 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=60 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=61 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=62 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=63 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=64 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=65 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=66 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=67 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=68 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=69 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=7 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=70 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=71 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=72 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=73 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=74 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=75 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=76 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=77 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=78 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=79 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=8 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=80 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=81 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=82 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=83 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=84 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=85 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=86 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=87 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=88 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=89 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=9 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=90 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=91 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=92 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=93 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=94 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=95 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=96 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=97 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=98 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=99 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=130 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=131 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=132 eq_id=56 ring=ats
+CXI_QUEUE gpu=1 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=133 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=1 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=10 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=100 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=101 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=102 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=103 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=104 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=105 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=106 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=107 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=108 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=109 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=11 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=110 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=111 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=112 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=113 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=114 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=115 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=116 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=117 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=118 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=119 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=12 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=120 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=121 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=122 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=123 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=124 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=125 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=126 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=127 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=128 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=129 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=13 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=14 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=15 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=16 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=17 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=18 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=19 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=2 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=20 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=21 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=22 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=23 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=24 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=25 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=26 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=27 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=28 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=29 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=3 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=30 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=31 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=32 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=33 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=34 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=35 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=36 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=37 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=38 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=39 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=4 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=40 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=41 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=42 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=43 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=44 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=45 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=46 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=47 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=48 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=49 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=5 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=50 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=51 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=52 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=53 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=54 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=55 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=56 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=57 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=58 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=59 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=6 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=60 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=61 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=62 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=63 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=64 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=65 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=66 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=67 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=68 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=69 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=7 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=70 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=71 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=72 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=73 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=74 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=75 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=76 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=77 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=78 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=79 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=8 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=80 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=81 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=82 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=83 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=84 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=85 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=86 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=87 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=88 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=89 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=9 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=90 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=91 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=92 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=93 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=94 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=95 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=96 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=97 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=98 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=99 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=130 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=131 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=132 eq_id=56 ring=ats
+CXI_QUEUE gpu=2 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=133 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=1 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=10 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=100 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=101 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=102 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=103 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=104 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=105 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=106 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=107 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=108 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=109 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=11 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=110 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=111 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=112 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=113 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=114 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=115 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=116 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=117 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=118 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=119 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=12 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=120 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=121 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=122 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=123 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=124 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=125 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=126 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=127 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=128 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=129 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=13 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=14 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=15 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=16 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=17 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=18 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=19 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=2 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=20 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=21 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=22 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=23 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=24 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=25 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=26 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=27 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=28 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=29 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=3 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=30 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=31 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=32 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=33 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=34 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=35 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=36 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=37 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=38 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=39 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=4 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=40 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=41 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=42 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=43 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=44 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=45 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=46 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=47 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=48 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=49 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=5 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=50 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=51 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=52 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=53 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=54 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=55 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=56 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=57 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=58 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=59 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=6 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=60 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=61 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=62 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=63 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=64 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=65 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=66 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=67 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=68 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=69 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=7 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=70 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=71 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=72 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=73 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=74 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=75 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=76 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=77 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=78 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=79 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=8 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=80 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=81 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=82 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=83 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=84 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=85 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=86 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=87 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=88 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=89 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=9 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=90 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=91 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=92 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=93 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=94 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=95 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=96 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=97 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=98 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=1024 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=99 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=130 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=131 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=132 eq_id=56 ring=ats
+CXI_QUEUE gpu=3 requested=64 tx_size32=2048 tx_wp32=8 ct_size32=2048 ct_id=133 eq_id=56 ring=ats
+CXI_TX_PUBLICATION rank=4 cumulative_commands=0 cumulative_doorbells=0 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=106587 cumulative_doorbells=44913 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=114897 cumulative_doorbells=53058 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=153425 cumulative_doorbells=69138 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=193390 cumulative_doorbells=85219 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=233380 cumulative_doorbells=101300 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=261263 cumulative_doorbells=114053 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=269573 cumulative_doorbells=122198 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=308756 cumulative_doorbells=138279 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=348266 cumulative_doorbells=154360 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=387642 cumulative_doorbells=170441 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=39612 cumulative_doorbells=16080 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=415065 cumulative_doorbells=183193 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=423375 cumulative_doorbells=191338 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=462005 cumulative_doorbells=207418 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=501814 cumulative_doorbells=223499 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=541704 cumulative_doorbells=239580 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=569411 cumulative_doorbells=252332 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=577721 cumulative_doorbells=260476 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=616449 cumulative_doorbells=276557 unpublished=0
+CXI_TX_PUBLICATION rank=4 cumulative_commands=79181 cumulative_doorbells=32161 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=0 cumulative_doorbells=0 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=106145 cumulative_doorbells=44914 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=114455 cumulative_doorbells=53059 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=153000 cumulative_doorbells=69139 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=192955 cumulative_doorbells=85220 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=232684 cumulative_doorbells=101301 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=260614 cumulative_doorbells=114053 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=268924 cumulative_doorbells=122198 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=308086 cumulative_doorbells=138279 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=347606 cumulative_doorbells=154359 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=386919 cumulative_doorbells=170440 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=39354 cumulative_doorbells=16080 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=414441 cumulative_doorbells=183193 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=422751 cumulative_doorbells=191338 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=461242 cumulative_doorbells=207418 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=501177 cumulative_doorbells=223499 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=541078 cumulative_doorbells=239580 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=568978 cumulative_doorbells=252333 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=577288 cumulative_doorbells=260478 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=616088 cumulative_doorbells=276559 unpublished=0
+CXI_TX_PUBLICATION rank=5 cumulative_commands=78654 cumulative_doorbells=32161 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=0 cumulative_doorbells=0 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=106755 cumulative_doorbells=44913 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=115065 cumulative_doorbells=53057 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=153408 cumulative_doorbells=69138 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=193395 cumulative_doorbells=85219 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=233343 cumulative_doorbells=101300 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=261275 cumulative_doorbells=114053 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=269585 cumulative_doorbells=122198 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=308652 cumulative_doorbells=138279 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=348204 cumulative_doorbells=154360 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=387644 cumulative_doorbells=170441 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=39628 cumulative_doorbells=16080 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=415233 cumulative_doorbells=183192 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=423543 cumulative_doorbells=191337 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=461966 cumulative_doorbells=207417 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=501806 cumulative_doorbells=223498 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=541722 cumulative_doorbells=239579 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=569386 cumulative_doorbells=252330 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=577696 cumulative_doorbells=260475 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=616565 cumulative_doorbells=276556 unpublished=0
+CXI_TX_PUBLICATION rank=6 cumulative_commands=79150 cumulative_doorbells=32160 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=0 cumulative_doorbells=0 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=106297 cumulative_doorbells=44914 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=114607 cumulative_doorbells=53059 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=153148 cumulative_doorbells=69140 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=193040 cumulative_doorbells=85221 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=232937 cumulative_doorbells=101302 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=260778 cumulative_doorbells=114055 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=269088 cumulative_doorbells=122200 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=308253 cumulative_doorbells=138281 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=347766 cumulative_doorbells=154362 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=387231 cumulative_doorbells=170442 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=39363 cumulative_doorbells=16081 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=414688 cumulative_doorbells=183195 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=422998 cumulative_doorbells=191340 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=461634 cumulative_doorbells=207421 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=501469 cumulative_doorbells=223502 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=541567 cumulative_doorbells=239583 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=569449 cumulative_doorbells=252334 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=577759 cumulative_doorbells=260479 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=616433 cumulative_doorbells=276560 unpublished=0
+CXI_TX_PUBLICATION rank=7 cumulative_commands=78775 cumulative_doorbells=32161 unpublished=0
