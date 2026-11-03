@@ -168,10 +168,12 @@ Three conclusions:
    wire phase itself (bidirectional traffic at 92 % of the `cxi_write_bw` ceiling) plus the barrier and
    epilogue, not the convoy. Untraced timing on the same pair (A114, `source-1103-stagger-dbg-v1`, 400 ns,
    4K repeat, PASS) confirms it on the wall clock: dispatch 0.935 ms vs lean-b 0.933 (+0.2 %), cached
-   dispatch 0.920 vs 0.923, combine 1.752 vs 1.758, cycle 2.695 vs 2.689. A116 (800 ns) ran in the holder's
-   last minutes; the untraced slice (job 3841684: st400/st800 vs leanb repeats, st400 correctness, 4K/16K)
+   dispatch 0.920 vs 0.923, combine 1.752 vs 1.758, cycle 2.695 vs 2.689. A116 (800 ns, 150 s budget) was
+   killed by the harness timeout (returncode 124) during the DeepEP JIT rebuild that every new knob value
+   needs: a budgeting error of mine, not a kernel failure; the untraced slice was resubmitted with 300 s for
+   the first gate of each knob value (`source-1103-stagger-dbg-v2`, replacing the cancelled 3841684). It
    and the traced slice (job 3841611: A110–A113 on a second pair, incl. stagger + ATS) are queued on the
-   debug partition for the record.
+   debug partition for the record; their monitors mirror into `results/deepep_pipeline_20261101/job-<id>/`.
 
 ### 3.2 Position after the morning
 
