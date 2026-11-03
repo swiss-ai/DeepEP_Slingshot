@@ -34,9 +34,11 @@ def add(name, tmpl, arm, requires, timeout, expected, tokens=None):
     assert e['CXI_VARIANT'] == 'lean-b' and e['CXI_EP_SKIP_COMBINE_FLUSH'] == '1' and e['CXI_EP_LOCAL_SELF_SIGNAL'] == '1'
     assert e['CXI_EP_SMS'] == '64' and e['CXI_EP_CONTEXTS'] == '129' and e['CXI_DEVICE_TRACE'] == '0' and g['qualification'] == 'ep'
     seq.append(g); budget.append(expected); return name
-add('A114-st400-repeat2', '9A13-leanb-repeat2', 'st400', [], 300, FIRST, '4096')      # first gate of the snapshot builds DeepEP
-add('A115-leanb-repeat2', '9A13-leanb-repeat2', 'leanb', [], 150, EP_4K, '4096')
-add('A116-st800-repeat2', '9A13-leanb-repeat2', 'st800', [], 150, EP_4K, '4096')
+# The first gate of every knob value rebuilds the DeepEP kernels (the JIT keys the -D flags): 300 s each.
+# (v1 gave A115/A116 150 s; the holder's A116 was killed by that budget during its rebuild, returncode 124.)
+add('A114-st400-repeat2', '9A13-leanb-repeat2', 'st400', [], 300, FIRST, '4096')
+add('A115-leanb-repeat2', '9A13-leanb-repeat2', 'leanb', [], 300, FIRST, '4096')
+add('A116-st800-repeat2', '9A13-leanb-repeat2', 'st800', [], 300, FIRST, '4096')
 c = add('A117-st400-4k-correctness', '9A10-leanb-ringdiag-4k-correctness', 'st400', [], 300, SHORT)
 add('A118-st400-repeat1', '9A13-leanb-repeat2', 'st400', [c], 300, EP_4K16K, '4096 16384')
 add('A119-leanb-repeat3', '9A13-leanb-repeat2', 'leanb', [], 150, EP_4K, '4096')
