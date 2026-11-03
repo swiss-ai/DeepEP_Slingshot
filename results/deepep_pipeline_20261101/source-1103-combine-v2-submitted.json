@@ -1,0 +1,12 @@
+{
+  "job": 3843685,
+  "utc": "2026-11-03T15:29:38.794340+00:00",
+  "campaign": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030",
+  "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1103-combine-v2",
+  "local_snapshot": "/home/yu/CSCS/Load_Balance_Cross_Node/results/deepep_pipeline_20261101/source-1103-combine-v2",
+  "state": "SUBMITTED",
+  "time": "00:25:00",
+  "partition": "debug",
+  "preflight": "skipped: compiled sources identical to source-1103-combine-v1 (preflight passed there); differing files: ",
+  "monitor_pid": 2758196
+}

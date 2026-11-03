@@ -1,0 +1,6 @@
+ptxas info    : 1637 bytes gmem
+ptxas info    : Compiling entry function '_ZN7deep_ep7elastic19hybrid_combine_implILb0ELb1ELi64ELi4ELi4ELi2ELi4ELi4096ELi4096ELi256ELi6ELi129ELl118800000000ELi1ELi3ELi4ELi256ELi16ELi8ELi8ELi256ELi8192ELb1ELb1ELi2ELi4EEEvP13__nv_bfloat16PfPiS5_S5_S5_11ncclDevCommP17ncclWindow_vidmemPvS9_iii' for 'sm_90a'
+ptxas info    : Function properties for _ZN7deep_ep7elastic19hybrid_combine_implILb0ELb1ELi64ELi4ELi4ELi2ELi4ELi4096ELi4096ELi256ELi6ELi129ELl118800000000ELi1ELi3ELi4ELi256ELi16ELi8ELi8ELi256ELi8192ELb1ELb1ELi2ELi4EEEvP13__nv_bfloat16PfPiS5_S5_S5_11ncclDevCommP17ncclWindow_vidmemPvS9_iii
+    320 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 216 registers, used 1 barriers, 320 bytes cumulative stack size
+ptxas info    : Compile time = 887.723 ms

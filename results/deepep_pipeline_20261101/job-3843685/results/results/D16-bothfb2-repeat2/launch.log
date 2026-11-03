@@ -1,0 +1,7 @@
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1103-combine-v2 109
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1103-combine-v2 109
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/runtime/source-1103-combine-v2/lean-b 77
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/runtime/source-1103-combine-v2/lean-b 77
+srun: error: nid007646: task 0: Exited with exit code 124
+srun: Terminating StepId=3843685.6
+srun: error: nid007655: task 1: Exited with exit code 124
