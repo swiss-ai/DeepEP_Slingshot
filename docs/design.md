@@ -64,6 +64,13 @@ Seven files against `bd1e1669`, +208/-26
   free count runs short), and `CXI_EP_PREWARM_CONTEXTS` (every grid thread touches one context's ring
   during the GIN entry barrier). Both default off; both are correct through the ladders and neither is
   faster ([results.md](results.md)).
+- **2026-11-03 additions**: ring mapping diagnostics in the host plugin (`CXI_MAP`, `CXI_GPU_ADDRESSING`,
+  map/fallback counts in the pool report) and `CXI_RING_ACCESS=ats`, which skips `cudaHostRegister` for
+  the command rings and lets the kernel use their host virtual addresses through the GPU's host-page-table
+  translation (honoured only when the device reports it). The default stays the registered path; the ATS
+  path is correct and equally fast, which is how the IO-memory mapping was ruled out as the convoy's cause.
+  `CXI_EP_STAGGER_NS` (DeepEP side, default 0) staggers the dispatch channels' start for the convoy
+  diagnosis and is not a production knob ([patches/1103/](../patches/1103/)).
 
 The knobs are compile-time defines injected at JIT time by
 [backend/tests/nvcc_wrapper.py](../backend/tests/nvcc_wrapper.py) and are not part of DeepEP's

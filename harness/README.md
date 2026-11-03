@@ -17,7 +17,12 @@
   `rank_hist.py` (per-rank timing histograms); `launch_debug_1102.py` (25-minute debug-partition
   launcher), the evening slice packagers (`package_*_dbg*_1102.py`, `package_credit_trace_1102.py`),
   `prepare_credit_1102.py` / `prepare_prewarm_1102.py`, and the trace analyses `wire_curve.py`,
-  `receiver_duty.py`, `combine_prewire.py`, `put_split.py`).
+  `receiver_duty.py`, `combine_prewire.py`, `put_split.py`). The 2026-11-03 additions are
+  `prepare_ringdiag_1103.py` (ring mapping diagnostics and `CXI_RING_ACCESS=ats`, host code only) with
+  its timing and trace packagers `package_ringdiag_1103.py` / `package_ringdiag_trace_1103.py`, and
+  `prepare_stagger_1103.py` with `package_stagger_trace_1103.py` / `package_stagger_dbg_1103.py` (dispatch
+  channel start stagger, `CXI_EP_STAGGER_NS`, traced and untraced) and `stagger_split.py` (first PUT by
+  channel band).
 - `link_rate_1102/`: the `cxi_write_bw` link-rate measurement (sbatch drivers for the three
   jobs, a wrapper with connect retry and service-ID handling, node inventory, and
   `collect_write_bw.py` which fetches a job's outputs and tabulates them).

@@ -36,14 +36,21 @@
 - **Per-channel flush before the combine's end signal** held the context lock for up to 0.7 ms.
   Removing it (`CXI_EP_SKIP_COMBINE_FLUSH`, 2026-11-02) is exact-correct on every gate and gives
   2 % of combine time, but it also decouples the rail peers' kernel ends: read the harness headline
-  together with the wall time per iteration (see [results.md](results.md)). Release matrix pending.
+  together with the wall time per iteration (see [results.md](results.md)). The release matrix passed
+  on 2026-11-03 (job 3835100, 45 gates).
 - **Dispatch: first-touch convoy at the start of the wire phase.** Every channel's first PUT spends
   ~100 µs in the transport because the first access per kernel to each context's host-mapped command
   ring costs ~80 µs when 128 contexts start together (shown by moving the cost from the NIC status read
   into the ring store with cached credits, 11/02 log §5.7; a barrier-time prewarm of every ring does
   not change it, §5.9, so the cost is per access under 128-way concurrency, not per translation).
-  The NIC then drains at the ceiling. Remaining leads are transport-side: the ring's registration path
-  (plain mapped versus the IO-memory fallback) and fewer system-scope transactions per command. No
+  The NIC then drains at the ceiling. The ring's registration path is now known (2026-11-03): the
+  libcxi command queue is kernel memory mmap'd from `/dev/cxiN`, `cudaHostRegisterMapped` refuses it and
+  every ring is registered as IO memory. That attribute is not the cause: addressing the ring through the
+  host page tables instead (GH200 ATS, `CXI_RING_ACCESS=ats`, cacheable system memory, no registration)
+  is exact-correct, leaves the wall time unchanged and shows the same ~90 µs first access in the trace.
+  The cost sits in the GPU→host round trip itself when 128 contexts take it at once. What removes it is a
+  GPU-resident command queue, which the upstream Slingshot driver and libcxi gained in 2026 (user and
+  device-memory command queues, `cxil_alloc_buf_cmdq`) but the installed SHS 13.1.0 does not have. No
   cadence, SM-count (32 or 128) or context-count knob improves 4K.
 - **Fixed per-call costs that remain are DeepEP-level**: the dispatch copy epilogue (0.09 ms) and
   combine reduce epilogue (0.08 ms) as separate kernels, the entry barrier (0.08–0.11 ms,
@@ -68,8 +75,13 @@
    quarantined (10/30 log, gate 521).
 6. Can the kernel-initiated libfabric extension (`rdma/fi_cxi_gpu_ext.h`, used by HPE's CLIC) be
    made available on Clariden? It would give a vendor-backed reference on the same NIC.
-7. A system-scope load or store to a `cudaHostRegister`ed command ring costs ~80 µs when 128 GPU
-   contexts access their rings at the same instant, 1–3 µs otherwise, and a load of the same word
-   moments earlier does not help. Is this a serialisation of system-scope accesses on the C2C path
-   (or an IO-memory fallback registration of the ring)? Can the command rings be mapped so that the
-   GPU's writes are weakly ordered and coalesced, with only the doorbell strongly ordered?
+7. A system-scope load or store to the command ring costs ~80–90 µs when 128 GPU contexts access
+   their rings at the same instant, 1–3 µs otherwise, and a load of the same word moments earlier does
+   not help. The ring is libcxi's command queue (kernel pages mmap'd from `/dev/cxiN`); the GPU reaches
+   it either as IO memory (`cudaHostRegisterIoMemory`, the only registration that succeeds) or, on these
+   GH200 nodes, directly through the host page tables (ATS) as cacheable system memory, and the first
+   access costs the same either way (2026-11-03). Is this a serialisation point for GPU-issued
+   system-scope accesses on the C2C/host path? The structural fix is a command queue in GPU memory:
+   upstream shs-cxi-driver (2026-02-18, `CXI_OP_CQ_ALLOC_BUF`) and shs-libcxi (`cxil_alloc_buf_cmdq`,
+   device memory 2026-05-26, "KI") provide it; which Slingshot Host Software release will bring it to
+   Clariden?

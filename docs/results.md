@@ -45,8 +45,11 @@ the harness headline (median over iterations of the per-iteration maximum across
 reads +1 % at 4K and +3.5 % at 16K for the same gates although throughput improves; it is inflated by
 the end skew (per-rank histograms become bi- or trimodal with steps of ≈80 µs at 4K / ≈330 µs at 16K).
 `harness/pipeline_1102/effective_rate.py --wall` reports the wall time per iteration of the slowest
-rank, which is the throughput a serving loop sees. The release matrix of these arms (job 3835100) is
-pending; until it passes, the table above is the "final candidate" table's reference.
+rank, which is the throughput a serving loop sees. The release matrix of these arms passed on
+2026-11-03 (job 3835100, nid007560/007561, 45 gates: stress, 4K, dropped and sustained-16K ladders for
+kern, lean-a, lean-b and dbuf, repeats, three trace gates). Lean-b with the two kernel knobs is the
+release candidate: 4K dispatch 0.932 ms / combine 1.758 ms, 16K 3.411 / 6.877 ms (wall per iteration,
+slowest rank; 19.0 / 19.2 GB/s and 20.8 / 19.7 GB/s effective).
 
 Measured and closed as losses at 4K in the same allocations: 128 SMs / 257 contexts (+14 % dispatch,
 +8 % combine), one context per channel with 64 SMs (+7.7 % / +2.6 %), dispatch interval 8 (+3.1 %),
@@ -90,6 +93,26 @@ decompose a 4K call as follows (medians over 24 captures, kernel-relative ms; de
   registration path the ring takes (plain mapped or the IO-memory fallback), and write the 64-byte
   command with fewer system-scope transactions (11/02 log §5.9).
 
+## Command-ring memory and the convoy (2026-11-03, holder 3835100 and debug slices)
+
+The ring the GPU writes commands into is libcxi's command queue: kernel pages mapped into the process
+from `/dev/cxiN` (`remap_pfn_range`). A diagnostic build (`CXI_MAP` lines, [patches/1103/](../patches/1103/))
+shows that `cudaHostRegisterMapped` refuses it ("invalid argument") and every TX and triggered ring is
+registered as IO memory (266 of 798 mappings per rank; doorbells by design, host buffers plainly). The
+GH200 nodes report `PageableMemoryAccessUsesHostPageTables=1`, so `CXI_RING_ACCESS=ats` lets the kernel
+address the ring's host virtual address directly, as cacheable system memory with no registration.
+
+| 4K, same pair | lean-b (registered, IO memory) | ATS ring | first PUT of a channel (traced) |
+|---|---:|---:|---|
+| dispatch | 0.933 ms | 0.932 ms | 97 µs → 107 µs median; lock holder's status load 81 → 90 µs p90 |
+| combine | 1.758 ms | 1.766 ms | later PUTs 15 µs in both |
+
+Correct on every gate, no change in time, same convoy. The mapping attribute is therefore not the cause;
+the first system-scope access to host memory per context costs ~90 µs when 128 contexts take it at once,
+through either path. The structural fix is a command queue in GPU memory, the GDAKI/IBGDA arrangement:
+the upstream Slingshot driver and libcxi added user-supplied and device-memory command queues in 2026
+(`CXI_OP_CQ_ALLOC_BUF`, `cxil_alloc_buf_cmdq`), after the SHS 13.1.0 installed on Clariden.
+
 ## NIC ceiling measured with `cxi_write_bw`
 
 HPE's host-side RDMA write benchmark (`cray-libcxi-utils` 1.0.2), 256 writes per doorbell, one
@@ -121,6 +144,7 @@ repeats); BF16 rows are from correctness gates with fewer iterations.
 | Model (hidden, experts, top-k) | dispatch dtype | 4K dispatch | 4K combine | 16K dispatch | 16K combine |
 |---|---|---:|---:|---:|---:|
 | V4 Flash (4096, 256, 6) | FP8 | 0.949 ms | 1.812 ms | 3.439 ms | 6.946 ms |
+| V4 Flash, lean-b + kernel knobs (release matrix 3835100, wall per iteration) | FP8 | 0.932 ms | 1.758 ms | 3.411 ms | 6.877 ms |
 | V4 Flash | BF16 | 1.737 ms | 1.822 ms | 6.475 ms | 6.943 ms |
 | Qwen3 (4096, 128, 8) | FP8 | 0.953 ms | 1.811 ms | 3.458 ms | 6.948 ms |
 | MiniMax (3072, 256, 8) | FP8 | 0.765 ms | 1.399 ms | 2.655 ms | 5.294 ms |
