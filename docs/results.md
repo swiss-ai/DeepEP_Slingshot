@@ -144,6 +144,24 @@ slowest-pair wait, the slowest pair's wire phase (94–97 % of the bidirectional
 Trace captures are 1.4 s apart (readout pause), so only the first captured iteration is a warm start; the
 untraced repeats carry the steady-state numbers. Details: history log 11_03 §5.
 
+## EP8 with real routing (2026-11-03 evening, four debug slices)
+
+V4 Flash with the per-expert counts of real OpenSWE 4K units (forwards 300–303, layers 3/20/37, placements
+Vanilla / greedy r=0 / random), 72 cases exact, FP8 dispatch / BF16 combine, per layer at 4096 tokens per rank:
+
+| routing | dispatch ms | combine ms | combine / bound |
+|---|---:|---:|---:|
+| synthetic `mixed` (2 destinations per token) | 0.933 | 1.757 | 1.17 |
+| synthetic `uniform` (random top-6, 4.5 destinations) | 0.967 | 1.879 | 1.26 |
+| OpenSWE bank, 36 cases, median (range) | 0.982 (0.966–1.004) | 1.915 (1.882–1.999) | 1.25–1.33 |
+| receiver skew 1.6 / 2 / 4 (2 destinations) | 0.922 / 0.944 / 0.967 | 1.871 / 2.102 / 2.340 | 1.24 / 1.40 / 1.56 |
+| `local` (NVLink only) | 0.300 | 0.279 | — |
+
+NIC bytes are the same in every non-local row (one row per token per direction); dispatch follows the
+slowest rail pair's NIC rows, combine the hottest rank's rows beyond ~1.3× the mean. Placements at r = 0
+differ by ≤ 1.5 % (dispatch) and ≤ 4 % (combine) within a layer. Details and the stress corner at receive
+capacity: [history log 11_03_EP8_Microbenchmark](history/11_03_EP8_Microbenchmark.md).
+
 ## NIC ceiling measured with `cxi_write_bw`
 
 HPE's host-side RDMA write benchmark (`cray-libcxi-utils` 1.0.2), 256 writes per doorbell, one

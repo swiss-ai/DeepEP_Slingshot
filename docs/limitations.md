@@ -61,6 +61,14 @@
   between the rail pairs and every node holds one rank of each pair. The 4K combine stays at 19.2–19.4 GB/s
   against the 20 GB/s target; what is left is the slowest pair's wire phase (94–97 % of the ceiling), the
   per-iteration spread of the pairs' wire ends that the next barrier absorbs, and the epilogue kernel.
+- **Real routing at EP8 (2026-11-03 evening, history log 11_03_EP8_Microbenchmark).** With bank-consistent
+  OpenSWE routing for V4 Flash (every token reaches 4.4 ranks and crosses the node) the path is exact and
+  costs 0.97–1.00 ms dispatch and 1.88–2.00 ms combine per layer at 4096 tokens per rank, +5 % / +9 % over
+  the synthetic reference at the same NIC bytes: the surcharge is the receive side (2.2× rows per
+  destination), not the NIC. Dispatch is insensitive to receiver skew up to 4×; combine grows with the
+  hottest rank's rows beyond ~1.3× the mean (+33 % at 4×). A destination at receive capacity (32768 rows)
+  degrades the transport for the rest of the job and once failed the dispatch's count wait with BF16 rows.
+  The padded 128-byte row stride (alignment fix) hangs in its first dispatch and is not usable yet.
 
 ## Open questions for NIC and driver experts
 
