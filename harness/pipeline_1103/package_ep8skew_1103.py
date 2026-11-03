@@ -18,7 +18,15 @@ ap = argparse.ArgumentParser(); ap.add_argument('out', type=Path); ap.add_argume
 a = ap.parse_args(); out = a.out.resolve(); assert not out.exists(), out
 parent = NEW / a.parent
 shutil.copytree(parent, out, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
-shutil.copy2(HERE / 'bank_routing.py', out / 'backend/tests/bank_routing.py')  # ratio guard for all-local routings
+# Ratio guard for all-local routings (NIC rows 0), applied to the snapshot's bank_routing.py, which also
+# carries the loader and the argparse validator appended by prepare_ep8bank_1103 (v2 overwrote it, see §4.6).
+replace(out / 'backend/tests/bank_routing.py', """    return dict(dest_rows=dest_rows.tolist(), dest_rows_max_over_mean=round(float(dest_rows.max() / dest_rows.mean()), 4),
+                nic_rows=nic.tolist(), nic_rows_max_over_mean=round(float(nic.max() / nic.mean()), 4),
+                pair_rows=pairs, pair_rows_max_over_mean=round(float(max(pairs) / np.mean(pairs)), 4))""",
+        """    ratio = lambda v: round(float(np.max(v) / np.mean(v)), 4) if np.mean(v) > 0 else 0.0
+    return dict(dest_rows=dest_rows.tolist(), dest_rows_max_over_mean=ratio(dest_rows),
+                nic_rows=nic.tolist(), nic_rows_max_over_mean=ratio(nic),
+                pair_rows=pairs, pair_rows_max_over_mean=ratio(pairs))""")
 f = out / 'backend/tests/ep_benchmark.py'
 replace(f, '''    if routing.startswith('bank_'):
         rows=bank_routing.route_matrix(bank_ids,ep).tolist(); nic=bank_routing.nic_rows(bank_ids,ep,rank)

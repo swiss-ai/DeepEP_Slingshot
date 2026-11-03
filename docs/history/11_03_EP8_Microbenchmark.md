@@ -157,6 +157,51 @@ The 19 cases reproduce within 4 µs (dispatch) and 24 µs (combine) case by case
 bank medians 0.981 / 1.908 ms against 0.981 / 1.909 in X100. Job 3844569: four gates, all PASS, released at
 20:17 CET.
 
+### 4.5 Job 2, padded row stride (3844593, same pair as job 1, 20:17 CET)
+
+P100 (4K correctness, FP8+BF16, five routings, two seeds, 300 s budget) was killed by the gate budget after
+303 s. The node-local log ends with the NCCL ring set-up, with no DeepEP timeout, trap or Python error; the
+extension build had passed. A first gate carries the extension build (~100 s) and, for two dtypes, two
+kernel JIT sets (~100 s each), so 300 s is below what this gate needs even when nothing is wrong (the X100
+gate with one dtype took 293 s). Re-staged as P104 with a 600 s budget into the job's remaining 16 minutes
+(dependent gates removed; they would not have fitted). P104 settled it: six minutes in, the four ranks of
+node 0 were spinning at ~3 CPU cores each, the JIT had produced its four kernels within the first minute
+(compiler reports at 20:26), and the node log ended at the buffer creation with no case record, no DeepEP
+timeout and no trap. The padded build hangs in its first dispatch, with the host spinning on the received
+counts. Job 2 was cancelled at 20:34 (the skew job was re-based on the unpadded parent,
+`source-1103-ep8skew-v2`). The padding therefore needs a debugging session: some consumer of the row size
+does not go through `TokenLayout::get_num_bytes` (candidates: the packed-channel capacity arithmetic, the
+notify/count path, the shared-memory staging layout with the mbarrier variant); a device-traced run of one
+small case is the next step. Until then the alignment rule (batch boundaries on multiples of four rows)
+stands, and the campaign's exposure is placements that localise traffic.
+
+### 4.4 Projection over a whole forward (model, not measured)
+
+Applying the X100 regression (dispatch 0.910 + 0.055 × imbalance, combine 1.789 + 0.097 × imbalance, ms) to
+the destination-row imbalance of every one of the 40 MoE layers of the four test forwards:
+
+| forward | mean imbalance vanilla / greedy / random | communication per forward, ms (40 layers) |
+|---:|---|---|
+| 300 | 1.385 / 1.336 / 1.386 | 116.4 / 116.1 / 116.4 |
+| 301 | 1.332 / 1.261 / 1.342 | 116.1 / 115.6 / 116.1 |
+| 302 | 1.290 / 1.238 / 1.307 | 115.8 / 115.5 / 115.9 |
+| 303 | 1.251 / 1.211 / 1.250 | 115.6 / 115.3 / 115.6 |
+
+About 116 ms of dispatch+combine per 32K-token forward at EP8, of which 39 ms dispatch and 77 ms combine; the
+greedy r = 0 partition saves 0.3–0.4 % of it. For scale: the EP4 prefill step of V4 Flash is ~300 ms
+(10_23_RUNBOOK §8.10), so EP8 communication alone would be 40 % of that step time before the halved expert
+GEMM and attention are added; placement work at EP8 must target the GEMM term and replicas, as the offline
+study concluded, and the communication term is a near-constant 116 ms with a ±1 % receive-side modulation.
+
+### 4.6 Job 3, skew ladder: packaging error and resubmission
+
+`source-1103-ep8skew-v2` (job 3845018, 20:33 CET) failed at argument parsing on every rank: its packager had
+copied the workspace copy of `bank_routing.py` over the snapshot's, dropping the loader and the routing
+validator that the bank preparation appends, so the benchmark died before the first case (my error, found in
+the copied node log). The job was cancelled at 20:40, the packager now patches the snapshot's file in place,
+and `source-1103-ep8skew-v3` (same gates: skew ladder FP8, bank forwards 302/303, skew repeat, skew BF16)
+was submitted at 20:42 as job 3845070 (debug queue: 20 running, 23 pending). The earlier variant on the padded parent (job 3844958) was cancelled unrun.
+
 ## 5. Position for the EP8 serving campaign (interim, after job 1; updated after jobs 2 and 3)
 
 1. **The transport is usable for EP8 serving experiments with real routing.** Exact results on 76 real-routing
