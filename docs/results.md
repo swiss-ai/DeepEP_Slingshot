@@ -131,9 +131,9 @@ routings, two seeds, on two pairs). Wall time per iteration, slowest rank, 4K mi
 | tail1 1/0/4 | +0.3 % | nothing | first batch still needs four rows; the next tail is three rounds later |
 | split 0/1/4 | +0.1 % | nothing | per-iteration kernel time spreads 1.59–1.97 ms, period unchanged |
 | both 1/1/4 | −0.2 % | nothing | |
-| **tail1fb2 1/0/2** | **−16 µs (−0.9 %)** on the quiet pair, three gates each; −33 / +5 µs on a noisier pair | real, small | 16K unchanged (6.857 vs 6.860 ms) |
+| **tail1fb2 1/0/2** | **−16 µs (−1.0 %)** on two quiet pairs (seven gates against seven); −33 / +5 µs on a noisier pair | real, small | 16K −3 and −22 µs on the two pairs |
 | fb2 0/0/2 | −4 µs | nothing | the gain is the early tail made usable by the two-row batch |
-| tail1fb1 1/0/1 | 6.70 ms, 4× | pathological | the 128-byte alignment cliff: a row is 8256 B = 64 mod 128, a one-row first batch starts every second batch at an odd row |
+| tail1fb1 1/0/1, fb1 0/0/1 | 6.70 / 6.68 ms, 4× | pathological | the 128-byte alignment cliff: a row is 8256 B = 64 mod 128, a one-row first batch starts every second batch at an odd row; same without the early tail |
 
 Why the split barrier cannot help here: the skew the entry barrier absorbs is between the four rail pairs
 (each pair has its own two NICs and its own wire end, 35–75 µs apart per iteration on the GPU global

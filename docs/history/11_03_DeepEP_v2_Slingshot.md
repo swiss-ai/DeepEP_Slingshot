@@ -384,3 +384,24 @@ remains the qualified release (release matrix §1); `CXI_EP_COMBINE_FIRST_TAIL=1
 `CXI_EP_COMBINE_FIRST_BATCH=2` is exact on two pairs (correctness fp8+bf16, five routings, two seeds,
 twice) and 16 µs faster at 4K, but has not been through the irregular-token stress or a release matrix;
 `CXI_EP_COMBINE_SPLIT_BARRIER` is exact but useless in this topology and stays at 0.
+
+### 5.8 Round 4 (job 3844086, fifth pair nid007656/007666, 18:13–18:27 CET; ten gates, all PASS)
+
+| arm | 4K combine (gates) | vs lean-b | 4K cycle | 16K combine | 16K dispatch |
+|---|---|---:|---:|---:|---:|
+| leanb 0/0/4 | 1.757, 1.759, 1.758 (+ one gate with a stall, below) | — | 2.690 | 6.882 | 3.413 |
+| tail1fb2 1/0/2 | 1.742, 1.742, 1.739, 1.741 | **−16 µs (−1.0 %)** | 2.672 (−18 µs) | 6.860 (−22 µs, −0.3 %) | 3.412 |
+| fb1 0/0/1 | 6.677 | 4× | 7.587 | — | — |
+
+Same 16 µs as round 3, on a second quiet pair; 16K −22 µs here (−3 µs in round 3). fb1 without the early
+tail is as slow as tail1fb1, confirming that the 4× belongs to the one-row first batch (alignment cliff)
+and not to the early tail. Dispatch unchanged in every arm. Gate D34b (lean-b repeat4) had one iteration of
+1.527 s on all eight ranks at once (CUDA events 1 526 781–1 526 922 µs, medians 1.753–1.756 ms unaffected,
+host wall per iteration 17.0 ms for that gate): a single system-wide stall of the kind not seen in any other
+of today's ~90 timed gates; excluded from the arm mean, recorded here.
+
+Final position of the afternoon: `CXI_EP_COMBINE_FIRST_TAIL=1` + `CXI_EP_COMBINE_FIRST_BATCH=2` is exact
+(correctness twice at 4K with fp8+bf16, five routings, two seeds; 4K+16K repeats on three pairs) and worth
+16 µs at 4K (1.741 vs 1.757 ms, 19.4 GB/s) and 3–22 µs at 16K. It has not been through the irregular-token
+stress or a release matrix; the two-row boundary keeps every batch on an even row, so the alignment rule
+holds. The 20 GB/s combine target (1.691 ms) is 50 µs away and not reachable with pre-wire levers.
