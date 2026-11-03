@@ -1,0 +1,181 @@
+--- deepep-src/deep_ep/include/deep_ep/impls/hybrid_combine.cuh	2026-11-02 15:25:30.518926400 +0100
++++ deepep-combine-1103/deep_ep/include/deep_ep/impls/hybrid_combine.cuh	2026-11-03 15:47:51.693992100 +0100
+@@ -18,6 +18,14 @@
+ #define CXI_EP_SKIP_COMBINE_FLUSH 0
+ #endif
+ static_assert(CXI_EP_SKIP_COMBINE_FLUSH == 0 || CXI_EP_SKIP_COMBINE_FLUSH == 1);
++#ifndef CXI_EP_COMBINE_FIRST_TAIL
++#define CXI_EP_COMBINE_FIRST_TAIL 0
++#endif
++static_assert(CXI_EP_COMBINE_FIRST_TAIL >= 0 && CXI_EP_COMBINE_FIRST_TAIL <= 64, "scale-up rounds before the first tail, 0 = regular interval");
++#ifndef CXI_EP_COMBINE_SPLIT_BARRIER
++#define CXI_EP_COMBINE_SPLIT_BARRIER 0
++#endif
++static_assert(CXI_EP_COMBINE_SPLIT_BARRIER == 0 || CXI_EP_COMBINE_SPLIT_BARRIER == 1);
+ #ifndef CXI_EP_COMBINE_DOUBLE_TMA
+ #define CXI_EP_COMBINE_DOUBLE_TMA 0
+ #endif
+@@ -32,6 +40,10 @@
+ 
+ namespace deep_ep::elastic {
+ 
++// CXI_EP_COMBINE_SPLIT_BARRIER: 1 once the SM-1 forward warp has completed the rail (GIN) barrier of the
++// current launch; reset to 0 before the entry grid sync of every launch.
++__device__ int cxi_ep_combine_gin_barrier_flag = 0;
++
+ template <bool kUseExpandedLayout, bool kAllowMultipleReduction,
+           int kNumSMs,
+           int kNumScaleupWarps, int kNumForwardWarps,
+@@ -139,9 +151,42 @@
+ 
+     // Global parallel barriers for scale-out subteam and scale-up subteam
+     // NOTES: this barrier needs a grid sync, as there are channel scale-up tail cleaning before
+-    comm::gpu_barrier<true, kNumScaleoutRanks, kNumScaleupRanks,
+-                      kNumSMs, kNumThreads, kNumQPs, kNumTimeoutCycles, comm::kHybridCombineTag0, false, true, true>(
+-        gin, workspace_layout, scaleout_rank_idx, scaleup_rank_idx, sm_idx, thread_idx);
++    constexpr bool kSplitBarrier = CXI_EP_COMBINE_SPLIT_BARRIER and kNumScaleupRanks > 1 and kNumScaleoutRanks > 1 and kNumSMs >= 2;
++    [[maybe_unused]] int nvl_phase = 0;
++    [[maybe_unused]] int nvl_target = 0;
++    if constexpr (kSplitBarrier) {
++        // CXI_EP_COMBINE_SPLIT_BARRIER: the operations of comm::gpu_barrier (entry grid sync, NVLink
++        // red.add on the phase word from SM 0, GIN signal/wait on context 0 from SM 1) without the closing
++        // grid sync. The scale-up warps wait for the NVLink barrier on the phase word themselves (they write
++        // local peers only); the forward warps wait for the GIN barrier through the flag before their first
++        // remote PUT and before the end signal. The phase word is read before the grid sync so that every
++        // SM sees the same phase as SM 0, which increments the counter after the sync.
++        const int nvl_status = static_cast<int>((*workspace_layout.get_nvl_barrier_counter_ptr()) & 3);
++        nvl_phase = nvl_status & 1;
++        nvl_target = (nvl_status >> 1) ? 0 : kNumScaleupRanks;
++        if (sm_idx == 1 and thread_idx == kNumScaleupWarps * 32)
++            cxi_ep_combine_gin_barrier_flag = 0;
++        cooperative_groups::this_grid().sync();
++        if (sm_idx == 0 and warp_idx == 0) {
++            if (lane_idx < kNumScaleupRanks)
++                ptx::red_add_rel_sys(gin.get_sym_ptr<ncclTeamTagLsa>(workspace_layout.get_nvl_barrier_signal_ptr(nvl_phase), lane_idx),
++                                     (nvl_status >> 1) ? -1 : 1);
++            __syncwarp();
++            if (lane_idx == 0)
++                atomicAdd(workspace_layout.get_nvl_barrier_counter_ptr(), 1);
++        }
++        if (sm_idx == 1 and warp_idx == kNumScaleupWarps) {
++            comm::gin_barrier_wo_local_sync<kNumScaleoutRanks, 1, 32, kNumQPs, kNumTimeoutCycles, ncclTeamTagRail, comm::kHybridCombineTag0, false>(
++                gin.nccl_dev_comm, scaleout_rank_idx, scaleup_rank_idx, 0, lane_idx);
++            __syncwarp();
++            if (lane_idx == 0)
++                ptx::st_release_sys(&cxi_ep_combine_gin_barrier_flag, 1);
++        }
++    } else {
++        comm::gpu_barrier<true, kNumScaleoutRanks, kNumScaleupRanks,
++                          kNumSMs, kNumThreads, kNumQPs, kNumTimeoutCycles, comm::kHybridCombineTag0, false, true, true>(
++            gin, workspace_layout, scaleout_rank_idx, scaleup_rank_idx, sm_idx, thread_idx);
++    }
+ 
+     // Adjust register count at certain cases
+     // TODO: support more cases, or try to make channel count more aligned
+@@ -156,6 +201,21 @@
+         // Adjust registers
+         if constexpr (kAdjustRegisters)
+             ptx::warpgroup_reg_dealloc<kNumRegistersForScaleupWarps>();
++        if constexpr (kSplitBarrier) {
++            // Wait for the NVLink barrier only: this role writes the local peers only.
++            if (lane_idx == 0) {
++                const int* nvl_signal_ptr = workspace_layout.get_nvl_barrier_signal_ptr(nvl_phase);
++                comm::timeout_while<kNumTimeoutCycles>([=](const bool& is_last_check) {
++                    if (ptx::ld_acquire_sys<int>(nvl_signal_ptr) == nvl_target)
++                        return true;
++                    if (is_last_check)
++                        printf("DeepEP combine (split NVLink barrier) timeout, scale-out: %d, scale-up: %d, channel: %d, phase: %d, target: %d, signal: %d\n",
++                               scaleout_rank_idx, scaleup_rank_idx, channel_idx, nvl_phase, nvl_target, ptx::ld_acquire_sys<int>(nvl_signal_ptr));
++                    return false;
++                });
++            }
++            __syncwarp();
++        }
+ 
+         // Shift into the right buffer if using rank layout
+         if constexpr (kUseScaleupRankLayout)
+@@ -168,12 +228,14 @@
+         // Tail issuer
+         // `st.release.sys` is pretty slow, so do it by an interval
+         int update_counter = 0;
++        static_assert(CXI_EP_COMBINE_FIRST_TAIL <= kNumScaleupUpdateInterval, "the first tail comes no later than the regular interval");
++        [[maybe_unused]] bool first_tail_pending = CXI_EP_COMBINE_FIRST_TAIL > 0;
+         int stored_num_tokens_sent[kNumScaleupRanksPerLane] = {};
+         int stored_old_num_tokens_sent[kNumScaleupRanksPerLane] = {};
+         const auto tail_ptr = workspace_layout.get_channel_scaleup_tail_ptr(channel_idx, scaleup_rank_idx);
+         const auto update_tails = [&](const bool& finish = false) {
+             ++ update_counter;
+-            if (finish or update_counter == kNumScaleupUpdateInterval) {
++            if (finish or update_counter == (first_tail_pending ? CXI_EP_COMBINE_FIRST_TAIL : kNumScaleupUpdateInterval)) {
+                 // Wait all TMA stores to finish
+                 ptx::tma_store_wait();
+                 __syncwarp();
+@@ -190,6 +252,7 @@
+                     }
+                 }
+                 update_counter = 0;
++                first_tail_pending = false;
+             }
+             __syncwarp();
+         };
+@@ -410,6 +473,25 @@
+         // Adjust registers
+         if constexpr (kAdjustRegisters)
+             ptx::warpgroup_reg_alloc<kNumRegistersForForwardWarps>();
++        [[maybe_unused]] bool gin_barrier_seen = not kSplitBarrier;
++        const auto wait_gin_barrier = [&]() {
++            if constexpr (kSplitBarrier) {
++                if (gin_barrier_seen)
++                    return;
++                if (lane_idx == 0) {
++                    comm::timeout_while<kNumTimeoutCycles>([=](const bool& is_last_check) {
++                        if (ptx::ld_acquire_sys<int>(&cxi_ep_combine_gin_barrier_flag) == 1)
++                            return true;
++                        if (is_last_check)
++                            printf("DeepEP combine (split GIN barrier) timeout, scale-out: %d, scale-up: %d, channel: %d\n",
++                                   scaleout_rank_idx, scaleup_rank_idx, channel_idx);
++                        return false;
++                    });
++                }
++                __syncwarp();
++                gin_barrier_seen = true;
++            }
++        };
+ 
+         // Shift into the right buffer
+         scaleout_send_buffer = scaleout_send_buffer.get_channel_buffer<kNumScaleoutRanks * kNumMaxTokensPerChannel>(channel_idx);
+@@ -431,6 +513,8 @@
+         void* packed_dst_base = nullptr; void* packed_src_base = nullptr;
+         const auto flush_packed_batch = [&](const bool& final_batch) {
+             if constexpr (CXI_EP_PACK_COMBINE) {
++                if (packed_first_j >= 0)
++                    wait_gin_barrier();
+                 if (packed_first_j >= 0 and ptx::elect_one_sync()) {
+                     ptx::tma_store_wait();
+                     gin.put<ncclTeamTagRail>(
+@@ -452,6 +536,8 @@
+                 __syncwarp();
+                 return;
+             }
++            if (last_src_scaleout_rank_idx >= 0 and last_src_scaleout_rank_idx != scaleout_rank_idx)
++                wait_gin_barrier();
+             if (last_src_scaleout_rank_idx >= 0 and ptx::elect_one_sync()) {
+                 ptx::tma_store_wait();
+ 
+@@ -540,6 +626,8 @@
+                 auto topk_valid_mask = kUseExpandedLayout ?
+                     ptx::gather(stored_src_scaleup_rank_idx >= 0) :
+                     ptx::gather(ptx::deduplicate(stored_src_scaleup_rank_idx, lane_idx) and stored_src_scaleup_rank_idx >= 0);  // Deduplicate w.r.t. scaleup rank index if expanded mode is disabled
++                if (src_scaleout_rank_idx != scaleout_rank_idx)
++                    wait_gin_barrier();
+                 if (ptx::elect_one_sync()) {
+                     #pragma unroll
+                     for (int k = 0; k < kNumTopk; ++ k) {
+@@ -713,6 +801,7 @@
+         // sibling channel for the whole drain.
+         if constexpr (!CXI_EP_SKIP_COMBINE_FLUSH)
+             gin.flush<ncclCoopWarp>();
++        wait_gin_barrier();
+         if (lane_idx < kNumScaleoutRanks) {
+             // Update remote tails
+             gin.red_add_rel<ncclTeamTagRail>(

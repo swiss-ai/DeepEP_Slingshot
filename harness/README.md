@@ -23,6 +23,10 @@
   `prepare_stagger_1103.py` with `package_stagger_trace_1103.py` / `package_stagger_dbg_1103.py` (dispatch
   channel start stagger, `CXI_EP_STAGGER_NS`, traced and untraced) and `stagger_split.py` (first PUT by
   channel band).
+  The afternoon's combine round adds `prepare_combine_1103.py` (kernel knobs `CXI_EP_COMBINE_FIRST_TAIL`
+  and `CXI_EP_COMBINE_SPLIT_BARRIER`), its packagers `package_combine_1103.py` / `package_combine_trace_1103.py`
+  / `package_combine2..4_1103.py` (rounds 1–4), and `combine_captures.py` (per-capture combine timeline from
+  the device traces: barrier end, first local token, first/last PUT, tail arrivals, kernel end, wire phase).
 - `link_rate_1102/`: the `cxi_write_bw` link-rate measurement (sbatch drivers for the three
   jobs, a wrapper with connect retry and service-ID handling, node inventory, and
   `collect_write_bw.py` which fetches a job's outputs and tabulates them).

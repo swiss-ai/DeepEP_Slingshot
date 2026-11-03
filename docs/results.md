@@ -113,6 +113,37 @@ through either path. The structural fix is a command queue in GPU memory, the GD
 the upstream Slingshot driver and libcxi added user-supplied and device-memory command queues in 2026
 (`CXI_OP_CQ_ALLOC_BUF`, `cxil_alloc_buf_cmdq`), after the SHS 13.1.0 installed on Clariden.
 
+## Combine pre-wire levers (2026-11-03 afternoon, four debug slices on three node pairs)
+
+The 4K combine at 1.756 ms (19.2 GB/s) needs 65 µs for 20 GB/s. Its first remote PUT is emitted 0.28 ms
+after the kernel starts (traced lean-b: entry barrier end 0.07–0.09 ms, first local token 0.20, first PUT
+0.28), and the kernel is wire-bound from that emission on. Two DeepEP-level kernel knobs were built for
+this stretch ([patches/1103/combine-levers-1103.patch](../patches/1103/combine-levers-1103.patch)):
+`CXI_EP_COMBINE_FIRST_TAIL` (the scale-up warps publish their first tail after one round of the
+linked-list loop instead of three) and `CXI_EP_COMBINE_SPLIT_BARRIER` (the scale-up warps wait for the
+NVLink half of the entry barrier only, the forward warps for the rail half only, through a flag), combined
+with the existing `CXI_EP_COMBINE_FIRST_BATCH`. All variants are exact-correct (FP8 and BF16, five
+routings, two seeds, on two pairs). Wall time per iteration, slowest rank, 4K mixed FP8:
+
+| arm (FIRST_TAIL / SPLIT_BARRIER / FIRST_BATCH) | combine ms | vs lean-b | note |
+|---|---:|---:|---|
+| lean-b 0/0/4 (release candidate) | 1.754–1.775 by pair | — | |
+| tail1 1/0/4 | +0.3 % | nothing | first batch still needs four rows; the next tail is three rounds later |
+| split 0/1/4 | +0.1 % | nothing | per-iteration kernel time spreads 1.59–1.97 ms, period unchanged |
+| both 1/1/4 | −0.2 % | nothing | |
+| **tail1fb2 1/0/2** | **−16 µs (−0.9 %)** on the quiet pair, three gates each; −33 / +5 µs on a noisier pair | real, small | 16K unchanged (6.857 vs 6.860 ms) |
+| fb2 0/0/2 | −4 µs | nothing | the gain is the early tail made usable by the two-row batch |
+| tail1fb1 1/0/1 | 6.70 ms, 4× | pathological | the 128-byte alignment cliff: a row is 8256 B = 64 mod 128, a one-row first batch starts every second batch at an odd row |
+
+Why the split barrier cannot help here: the skew the entry barrier absorbs is between the four rail pairs
+(each pair has its own two NICs and its own wire end, 35–75 µs apart per iteration on the GPU global
+timer), and every node holds one rank of every pair, so the node-local NVLink barrier waits for the
+slowest pair exactly as the global barrier did. The traced tail1fb2 build emits its first PUT 40 µs after
+the barrier instead of 194; the period moves 16 µs because the rest of it is the barrier latency and
+slowest-pair wait, the slowest pair's wire phase (94–97 % of the bidirectional ceiling) and the epilogue.
+Trace captures are 1.4 s apart (readout pause), so only the first captured iteration is a warm start; the
+untraced repeats carry the steady-state numbers. Details: history log 11_03 §5.
+
 ## NIC ceiling measured with `cxi_write_bw`
 
 HPE's host-side RDMA write benchmark (`cray-libcxi-utils` 1.0.2), 256 writes per doorbell, one
@@ -200,4 +231,6 @@ stands.
 ## Knobs that did not help
 
 257 contexts; combine batch 8 or 64; forward chunk 16; dispatch interval 32; interval 4 (+8 %);
-interval 8 (-1.4 % at 16K, +3.3 % at 4K); combine first batch at 4K (within noise).
+interval 8 (-1.4 % at 16K, +3.3 % at 4K); combine first batch at 4K (within noise); split entry barrier
+for the combine (exact, no change: the skew is between rail pairs); early scale-up tail alone (no change);
+one-row first batch (4× slower: alignment cliff).

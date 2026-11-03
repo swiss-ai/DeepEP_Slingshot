@@ -70,7 +70,13 @@ Seven files against `bd1e1669`, +208/-26
   translation (honoured only when the device reports it). The default stays the registered path; the ATS
   path is correct and equally fast, which is how the IO-memory mapping was ruled out as the convoy's cause.
   `CXI_EP_STAGGER_NS` (DeepEP side, default 0) staggers the dispatch channels' start for the convoy
-  diagnosis and is not a production knob ([patches/1103/](../patches/1103/)).
+  diagnosis and is not a production knob ([patches/1103/](../patches/1103/)). Afternoon, combine side
+  (`combine-levers-1103.patch`): `CXI_EP_COMBINE_FIRST_TAIL` (rounds before the scale-up warps' first tail
+  publication, 0 = the regular three) and `CXI_EP_COMBINE_SPLIT_BARRIER` (scale-up warps wait on the NVLink
+  phase word only, forward warps on a module-level flag set after the rail barrier, no closing grid sync;
+  exact, no gain in a topology where every node holds one rank of every rail pair, default 0). The early
+  tail with `CXI_EP_COMBINE_FIRST_BATCH=2` is exact and 16 µs faster at 4K; a one-row first batch hits the
+  alignment cliff (a combine row is 8256 bytes) and must not be used.
 
 The knobs are compile-time defines injected at JIT time by
 [backend/tests/nvcc_wrapper.py](../backend/tests/nvcc_wrapper.py) and are not part of DeepEP's

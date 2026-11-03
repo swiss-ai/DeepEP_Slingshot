@@ -55,7 +55,12 @@
 - **Fixed per-call costs that remain are DeepEP-level**: the dispatch copy epilogue (0.09 ms) and
   combine reduce epilogue (0.08 ms) as separate kernels, the entry barrier (0.08–0.11 ms,
   skew-dominated), and the combine's 0.28 ms before its first remote PUT (barrier, inter-rank skew,
-  scale-up handoff), which the double-buffered scale-up staging did not move.
+  scale-up handoff), which the double-buffered scale-up staging did not move. The 2026-11-03 combine
+  round ([results.md](results.md)) moved the first PUT to 40 µs after the barrier (early scale-up tail,
+  two-row first batch) for a 16 µs gain at 4K; a split entry barrier cannot help because the skew is
+  between the rail pairs and every node holds one rank of each pair. The 4K combine stays at 19.2–19.4 GB/s
+  against the 20 GB/s target; what is left is the slowest pair's wire phase (94–97 % of the ceiling), the
+  per-iteration spread of the pairs' wire ends that the next barrier absorbs, and the epilogue kernel.
 
 ## Open questions for NIC and driver experts
 
