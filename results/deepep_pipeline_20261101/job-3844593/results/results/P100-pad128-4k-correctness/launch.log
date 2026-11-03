@@ -1,0 +1,15 @@
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1103-pad128-v1 111
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/runtime/source-1103-pad128-v1/lean-b 77
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1103-pad128-v1 111
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/runtime/source-1103-pad128-v1/lean-b 77
+/usr/local/lib/python3.12/dist-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+/usr/local/lib/python3.12/dist-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+srun: forcing job termination
+srun: got SIGCONT
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+[2026-11-03T20:22:42.059] error: *** STEP 3844593.0 ON nid007649 CANCELLED AT 2026-11-03T20:22:42 DUE to SIGNAL Killed ***
+srun: error: nid007656: task 1: Killed
+srun: Terminating StepId=3844593.0
+srun: error: nid007649: task 0: Killed

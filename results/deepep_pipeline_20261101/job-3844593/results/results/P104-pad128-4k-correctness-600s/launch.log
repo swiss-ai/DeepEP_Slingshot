@@ -1,0 +1,6 @@
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1103-pad128-v1 111
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1103-pad128-v1 111
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/runtime/source-1103-pad128-v1/lean-b 77
+manifest PASS /iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/runtime/source-1103-pad128-v1/lean-b 77
+[2026-11-03T20:33:15.800] error: *** STEP 3844593.3 ON nid007649 CANCELLED AT 2026-11-03T20:33:15 DUE to SIGNAL Terminated ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.

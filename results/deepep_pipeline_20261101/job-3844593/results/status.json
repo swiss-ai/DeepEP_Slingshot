@@ -1,0 +1,6 @@
+{
+  "state": "RUNNING_STEP",
+  "utc": "2026-11-03T19:26:13.338692Z",
+  "request": "P104-pad128-4k-correctness-600s",
+  "remaining_seconds": 976.6048929691315
+}

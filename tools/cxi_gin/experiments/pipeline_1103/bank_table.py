@@ -21,7 +21,7 @@ for gate in args[1:]:
         for line in open(p):
             r = json.loads(line)
             if r['dispatch_dtype'] != dtype or r['operation'] not in ('dispatch_fresh', 'dispatch_cached', 'combine'): continue
-            d = rows.setdefault(r['routing'], {'bank': r.get('bank'), 'wall': {}, 'cuda_med': {}})
+            d = rows.setdefault(r['routing'], {'bank': r.get('bank') or r.get('traffic'), 'wall': {}, 'cuda_med': {}})
             d['wall'][r['operation']] = max(d['wall'].get(r['operation'], 0), r['host_us_per_iteration'])
             d['cuda_med'].setdefault(r['operation'], []).append(statistics.median(r['cuda_event_us']))
     print('## %s (%s dispatch)' % (gate, dtype))
@@ -30,7 +30,7 @@ for gate in args[1:]:
     for name in sorted(rows, key=lambda n: (n.startswith('bank'), n)):
         d = rows[name]; b = d.get('bank'); w = d['wall']
         if b:
-            nic = b['nic_rows']; pair = max(b['pair_rows']); nic_s = '%.0f / %d' % (sum(nic) / len(nic), max(nic)); dest = '%.2f' % b['dest_rows_max_over_mean']
+            nic = b['nic_rows']; pair = max(max(b['pair_rows']), 1); nic_s = '%.0f / %d' % (sum(nic) / len(nic), max(nic)); dest = '%.2f (max %d)' % (b['dest_rows_max_over_mean'], max(b['dest_rows']))
         else:
             pair = 4096; nic_s = '4096 / 4096 (synthetic)'; dest = '1.00'
         bd = pair * ROW[(dtype, 'dispatch')] / GBPS * 1e3; bc = pair * ROW[(dtype, 'combine')] / GBPS * 1e3
