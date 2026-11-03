@@ -1,0 +1,12 @@
+{
+  "job": 3844569,
+  "utc": "2026-11-03T18:08:25.155584+00:00",
+  "campaign": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030",
+  "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1103-ep8bank-v1",
+  "local_snapshot": "/home/yu/CSCS/Load_Balance_Cross_Node/results/deepep_pipeline_20261101/source-1103-ep8bank-v1",
+  "state": "SUBMITTED",
+  "time": "00:25:00",
+  "partition": "debug",
+  "preflight": "TRANSPORT_PREFLIGHT_PASS",
+  "monitor_pid": 2825530
+}
