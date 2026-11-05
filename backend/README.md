@@ -3,7 +3,17 @@
 This is a private development backend for Clariden GH200/Cassini nodes. It is
 not an upstream-supported NCCL plugin or a generally qualified transport.
 The authoritative qualification logs are under
-[`docs/history/`](../docs/history/).
+[`docs/history/`](../docs/history/); build and run instructions are in
+[`docs/usage.md`](../docs/usage.md).
+
+Code state: this directory is byte-identical to the backend of snapshot
+`source-1103-ep8skew-v3` (2026-11-03; manifest in `../evidence/snapshots/`), the
+latest code that ran on hardware, apart from this README and the added
+`variants.json`. Relative to the 2026-11-01 release it adds the lean signal
+path (variant defines `CXI_LEAN_FENCE`, `CXI_LEAN_CSTATE`, `CXI_LEAN_FOLD_MARKER`,
+all 0 by default in the header), the ring-mapping diagnostics and the
+`CXI_RING_ACCESS=ats` host knob, and knob plumbing for every `CXI_EP_*` define
+in `tests/nvcc_wrapper.py`.
 
 ## Components
 
@@ -14,9 +24,13 @@ The authoritative qualification logs are under
 | `host/gin_plugin.cc` | NCCL GIN v14 host callbacks; GPU descriptors; no progress callback |
 | `device/cxi_primitives.cuh` | GPU command posting, doorbells, completion-counter polling and remote atomics |
 | `device/gin_cxi.cuh` | Public NCCL GIN operations implemented using CXI primitives |
-| `../nccl-cxi-dev` | Matching NCCL host/device integration, based on `12df1a11afad322be5a204a2db890161cbf8131d` |
-| `../DeepEP-cxi-dev` | DeepEP `bd1e1669` with the backend-independent barrier and runtime-library guard patches |
-| `sglang/deepep_v2_cxi.py` | Opt-in SGLang normal-mode adapter using `ElasticBuffer`; see dated qualification log |
+| `include/cxi_gin_abi.h`, `include/cassini_user_defs.h` | GPU/host context ABI (version 3, 192-byte context) and HPE's generated Cassini command definitions |
+| `device/cxi_queue_credit.h`, `device/cxi_fence_command.h` | Host-testable TX credit arithmetic and the native CQ fence descriptor |
+| `variants.json` | Transport variants as `#define` sets prepended to the installed `cxi_primitives.cuh` (`marker-zero` = 2026-11-01 candidate, `lean-a`, `lean-b` = release) |
+| `sglang/deepep_v2_cxi.py` | Opt-in SGLang normal-mode adapter using `ElasticBuffer` (`SGLANG_CXI_DEEPEP_V2=1` through `tools/prepare_sglang_overlay.py`) |
+| `tests/` | GIN smoke/producer/bounds tests, the EP8 benchmark with exact reference (`ep_benchmark.py`, `routing.py`, `bank_routing.py` + OpenSWE bank subset), SGLang smokes, `nvcc_wrapper.py` (JIT knob injection), host unit tests |
+| `tools/` | Node scripts (`direct_node.sh`), build scripts, Slurm launchers, validators and analysis |
+| `../patches/` | The matching NCCL (`12df1a11`) and DeepEP (`bd1e1669`) patches; `../scripts/` applies them |
 
 Private backend **type 6** identifies this implementation. Type 3 remains
 NCCL's GDAKI backend. Stock NCCL does not understand this private type: the
@@ -107,8 +121,8 @@ Build/import success alone is not a clean GPU rerun pass.
 ## Current limitations
 
 See the dated log for what has actually run. Compilation does not imply a pass.
-The initial GPU implementation deliberately waits for queue consumption and
-uses conservative completion ordering; it has not been optimized for line rate.
+Measured position (2026-11-03): 19.0 / 19.2 GB/s effective at 4K tokens per rank
+against a 22.5 GB/s bidirectional ceiling, see [`docs/results.md`](../docs/results.md).
 GET/Engram is unsupported and traps explicitly. General mixed-memory transfers,
 arbitrary topology, automatic backend selection, full serving lifecycle, SGLang
 LL/AUTO/overlap/EPLB recording, and transparent fault recovery are not qualified.

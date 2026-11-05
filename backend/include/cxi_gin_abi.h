@@ -41,11 +41,15 @@ struct alignas(64) CxiGpuContext {
   uint64_t signal_offset;
   uint64_t* diagnostic;  // mapped host memory; GPU writes, host only observes
   uint32_t tx_unpublished; // descriptors reserved/written but not yet doorbelled
+  // Lean signal bookkeeping (device-owned; constants in cxi_primitives.cuh): bit 0 a transfer that
+  // must precede the next signal was posted since the last CQ fence, bit 1 the newest ring entry is
+  // the still-unpublished pending payload PUT, bits 8..16 cached CSTATE key. Host sets it to 1.
+  uint32_t lean_state;
   uint64_t tx_doorbells, tx_commands; // cumulative diagnostics, updated under lock
   CxiWindow* pending_dst;
   uint64_t pending_local_addr, pending_remote_offset;
   uint32_t pending_lac, pending_peer;
-  // Remains inside the previous trailing padding; sizeof stays 192 bytes.
+  // pending_* and lean_state live inside the previous trailing padding; sizeof stays 192 bytes.
 };
 
 static_assert(sizeof(CxiPeerAddress) == 24, "peer ABI");

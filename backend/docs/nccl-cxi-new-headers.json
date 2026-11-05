@@ -1,6 +1,8 @@
 {
   "cassini_user_defs.h": "6533e0e46f13f4957b3cd920a7f402da952c12c9cf512385700b4476bb0b23fe",
-  "cxi_gin_abi.h": "beecf200328ebee0844ed7ccc4fab5d298efde7ac4864e2ada53afd98eced7f6",
-  "cxi_primitives.cuh": "93bdce1609a1c1126c1a134552e9a76d15fb9a7d0723d62b8242d152fcb9a736",
-  "gin_cxi.cuh": "a9186db3be2c4c7a97e48d1e1bcb8c97cdd9a0ec06fd244d0c91aee5375735e1"
+  "cxi_fence_command.h": "6c48c366e1db6cdbae90019b40e9c763221c0784f8455fba1b80f945e801ccbc",
+  "cxi_gin_abi.h": "3c77a0f3e4919c5dbf72c3a3c0e6686d762fe4ffa08469b184f235d3b8895113",
+  "cxi_primitives.cuh": "ab23bbbe4278f6ae8c3b3e7ff4f7a4c4424bdde03c096c3551ce1dd3849ee5b9",
+  "cxi_queue_credit.h": "6c873e894a7d79a82d9dc6b927b03603033c9aa43fc8c560a42af24e02c0eb38",
+  "gin_cxi.cuh": "750897fafba9c8b6f2bafa6635c4d8d72c8d82eddbe0fefc84c69adcd9aefc39"
 }

@@ -1,0 +1,8 @@
+image = "lmsysorg/sglang:v0.5.13-cu130"
+mounts = ["/capstor", "/iopsstor", "/users", "/usr:/host_usr:ro", "/opt/cray:/opt/cray:ro", "/dev/cxi0", "/dev/cxi1", "/dev/cxi2", "/dev/cxi3", "/dev/gdrdrv"]
+workdir = "/iopsstor/scratch/cscs/zyu/deepep-v2-20261022"
+entrypoint = false
+
+[env]
+PYTHONUNBUFFERED = "1"
+PYTHONNOUSERSITE = "1"

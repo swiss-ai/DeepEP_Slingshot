@@ -1,36 +1,33 @@
 # Qualification harness
 
-- `pipeline_v1/`: snapshot packaging (`package.py`), launcher, the Slurm controller and node
-  scripts (`runner/`), gate validation and analysis scripts. A snapshot is an immutable copy of
-  the backend plus the DeepEP archive, a `sequence.json` of gates and a hashed `manifest.json`.
-  The controller runs gates serially inside one allocation, validates exact correctness before any
-  timing, and writes `STARTED.json` / `FINISHED.json` per gate.
-- `pipeline_1101/`: packagers for the final campaign's snapshots (`package_*_1101.py`), the knob
-  preparation scripts (`prepare_packed_combine.py`, `prepare_first_batch.py`), the raw NIC probe
-  (`offset_probe.cu`) and analysis entry points: `summarize_arms.py` (per-arm medians across
-  repeat gates), `fit_size_sweep.py` (bound ratios and least-squares fits), `trace_timeline.py`
-  (device-trace milestones).
+The harness runs immutable **snapshots** (backend + DeepEP archives + `sequence.json` of gates +
+hashed `manifest.json`) inside one Slurm allocation: a serial controller validates exact correctness
+before any timing, writes `STARTED.json` / `FINISHED.json` per gate, pauses on failure and resumes
+only on an explicit `RESUME.json`. It produced every number in [docs/results.md](../docs/results.md).
 
-- `pipeline_1102/`: the signal-path round (prepare/package scripts for the lean, double-buffer, debug,
-  isolation and trace snapshots; `prestage_requests.py` to queue gates into an allocation before it
-  starts; `effective_rate.py` (headline and `--wall` throughput metrics against the 22.5 GB/s bound);
-  `rank_hist.py` (per-rank timing histograms); `launch_debug_1102.py` (25-minute debug-partition
-  launcher), the evening slice packagers (`package_*_dbg*_1102.py`, `package_credit_trace_1102.py`),
-  `prepare_credit_1102.py` / `prepare_prewarm_1102.py`, and the trace analyses `wire_curve.py`,
-  `receiver_duty.py`, `combine_prewire.py`, `put_split.py`). The 2026-11-03 additions are
-  `prepare_ringdiag_1103.py` (ring mapping diagnostics and `CXI_RING_ACCESS=ats`, host code only) with
-  its timing and trace packagers `package_ringdiag_1103.py` / `package_ringdiag_trace_1103.py`, and
-  `prepare_stagger_1103.py` with `package_stagger_trace_1103.py` / `package_stagger_dbg_1103.py` (dispatch
-  channel start stagger, `CXI_EP_STAGGER_NS`, traced and untraced) and `stagger_split.py` (first PUT by
-  channel band).
-  The afternoon's combine round adds `prepare_combine_1103.py` (kernel knobs `CXI_EP_COMBINE_FIRST_TAIL`
-  and `CXI_EP_COMBINE_SPLIT_BARRIER`), its packagers `package_combine_1103.py` / `package_combine_trace_1103.py`
-  / `package_combine2..4_1103.py` (rounds 1–4), and `combine_captures.py` (per-capture combine timeline from
-  the device traces: barrier end, first local token, first/last PUT, tail arrivals, kernel end, wire phase).
-- `link_rate_1102/`: the `cxi_write_bw` link-rate measurement (sbatch drivers for the three
-  jobs, a wrapper with connect retry and service-ID handling, node inventory, and
-  `collect_write_bw.py` which fetches a job's outputs and tabulates them).
+| Directory | Content |
+|---|---|
+| `runner/` | The controller and node scripts of the latest snapshot (`source-1103-ep8skew-v3`): `run.sbatch` (two nodes, 4 h), `controller.py`, `node.sh` (per-node clean DeepEP build from the snapshot archive, then `backend/tools/direct_node.sh`), `install.py` (one NCCL runtime prefix per transport variant: copies the tested NCCL build, replaces the `gin/cxi` headers with the snapshot's, prepends the variant's `#define`s to `cxi_primitives.cuh`), `preflight.sh` (login-node compile checks and host-side unit tests), `validate_gate.py` (verdicts), `monitor.py` (read-only collector), `burst_probe.cu` (queue-wrap / source-reuse probe), `package.py`, `launch.py`. |
+| `runner-trace/` | The same runner as used by the traced snapshots (`source-1103-combine-trace-v1`): trace-aware `node.sh`, `controller.py`, `preflight.sh`, `prepare_trace.py`, `trace_capture.py`, and the knob-aware `validate_trace.py` that qualifies trace gates built with `CXI_EP_SKIP_COMBINE_FLUSH` / `CXI_EP_LOCAL_SELF_SIGNAL`. |
+| `pipeline_v1/` | The 2026-10-30 campaign's packagers, preflights, launch and analysis scripts (transport ladder, delivery batching, native fence, credit cache, packed rows, traces). |
+| `pipeline_1101/` | The 2026-11-01 final campaign: snapshot packagers (`package_*_1101.py`), knob preparation (`prepare_packed_combine.py`, `prepare_first_batch.py`), the raw NIC alignment probe (`offset_probe.cu`), `summarize_arms.py`, `fit_size_sweep.py`, `trace_timeline.py`. |
+| `pipeline_1102/` | The 2026-11-02/03 rounds: lean signal path, double-buffered staging, cached credits, prewarm, ring diagnostics and ATS, start stagger, combine levers; `effective_rate.py` (headline and `--wall` metrics against the 22.5 GB/s bound), `rank_hist.py`, `launch_debug_1102.py` (25-minute debug-partition launcher), `prestage_requests.py`, and the trace analyses `wire_curve.py`, `receiver_duty.py`, `combine_prewire.py`, `put_split.py`, `stagger_split.py`, `combine_captures.py`. |
+| `pipeline_1103/` | The EP8 real-routing demo: `bank_routing.py` and the OpenSWE bank subset `bank_v4flash_openswe_ep8.npz` (same file as `backend/tests/`), `prepare_ep8bank_1103.py`, packagers for the bank, skew-ladder and padded-stride jobs, `bank_table.py`. |
+| `link_rate_1102/` | The `cxi_write_bw` NIC ceiling measurement (sbatch drivers, wrapper, `collect_write_bw.py`). |
 
-These scripts were written for the original working-tree layout (`tools/cxi_gin/experiments/...`
-next to `results/...`) and the campaign root on Clariden scratch. Run them from the `debug` branch,
-which keeps that layout, or adjust the path constants at the top of each script.
+## Running it
+
+The packagers and launchers were written for the author's working tree (`tools/cxi_gin/experiments/...`
+next to `results/...`, the campaign root `/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030` on
+Clariden and the tested NCCL release there). Run them from the `debug` branch, which keeps that
+layout, or adjust the constants at the top of each script (`ROOT`, `NEW`, `REMOTE`, `CAMPAIGN`,
+`TESTED`). A gate's request is a JSON file; the environment it carries is exactly what
+`backend/tools/direct_node.sh` reads (see [docs/usage.md](../docs/usage.md) for the variables), so a
+gate can also be reproduced by hand without the controller.
+
+Analysis of a finished job (results mirrored to `job-<id>/results/results/<gate>/`):
+
+```bash
+python3 harness/pipeline_1102/effective_rate.py job-3835100/results/results 'leanb-repeat' --ref leanb --wall
+python3 harness/pipeline_1101/summarize_arms.py job-3830101/results/results '^85[456]\d-' --ref cand
+```

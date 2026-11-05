@@ -15,4 +15,5 @@ are derived from them.
 | [11_03_EP8_Microbenchmark.md](11_03_EP8_Microbenchmark.md) | EP8 demo with real routing: V4 Flash with bank-consistent OpenSWE per-expert counts (forwards 300/301, layers 3/20/37, Vanilla / greedy r=0 / random placements) over the direct-CXI path; real routing costs +5 % dispatch and +9 % combine over the synthetic reference with the same NIC bytes, the cost follows destination-row imbalance not NIC rows, placements at r=0 move little, no alignment penalty because nearly every row is remote; the skew ladder shows dispatch NIC-bound up to 4× receiver skew and combine following the hottest rank's rows (+33 % at 4×), a stress corner at receive capacity, the padded row stride hanging in its first dispatch; position for an EP8 serving campaign. |
 
 Paths cited inside the logs (`tools/cxi_gin/...`, `results/...`) refer to the original working-tree
-layout, which is preserved on the `debug` branch of this repository.
+layout, which is preserved on the `debug` branch of this repository. The logs are complete through
+2026-11-03; the code on `main` is the state of the snapshots described in the two 11_03 logs.

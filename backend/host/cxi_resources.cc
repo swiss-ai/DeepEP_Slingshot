@@ -34,6 +34,17 @@ void expect(cxi_eq* eq, unsigned kind) {
   if(code!=C_RC_OK || type!=kind)throw std::runtime_error("CXI event type="+std::to_string(type)+" code="+std::to_string(code));
 }
 void* page_alloc(size_t bytes) {void* p=nullptr;CK(posix_memalign(&p,65536,bytes));memset(p,0,bytes);return p;}
+// CXI_RING_ACCESS=ats: the device addresses the libcxi command ring through its host virtual address
+// (GPU translation through the host page tables, GH200 ATS) instead of a cudaHostRegister mapping.
+const char* ring_access_name(){const char* s=getenv("CXI_RING_ACCESS");return (s && !strcmp(s,"ats"))?"ats":"register";}
+// /proc/self/maps line backing an address (diagnostic only).
+std::string vma_line(const void* p) {
+  std::string out="?";FILE* f=fopen("/proc/self/maps","r");if(!f)return out;
+  char line[512];unsigned long long a=(unsigned long long)(uintptr_t)p;
+  while(fgets(line,sizeof line,f)){unsigned long long lo=0,hi=0;
+    if(sscanf(line,"%llx-%llx",&lo,&hi)==2 && a>=lo && a<hi){size_t n=strlen(line);while(n && (line[n-1]=='\n'||line[n-1]==' '))line[--n]=0;out=line;break;}}
+  fclose(f);return out;
+}
 void sync_memops(void* pointer) {
   void* lib=dlopen("libcuda.so.1",RTLD_NOW);if(!lib)throw std::runtime_error("libcuda missing");
   auto fn=reinterpret_cast<CUresult(*)(const void*,CUpointer_attribute,CUdeviceptr)>(dlsym(lib,"cuPointerSetAttribute"));
@@ -68,15 +79,19 @@ struct CxiResources {
   std::vector<CxiChannel*> idle_channels;
   uint64_t created_channels=0,reused_channels=0;
   int errors=0;
+  unsigned map_count=0,map_fallbacks=0;int ats_capable=-1; // diagnostic 2026-11-03
   void* map(void* p,size_t bytes,bool io) {
     auto it=mappings.find(p);
     if(it!=mappings.end()){if(bytes>it->second.bytes)throw std::runtime_error("overlapping CUDA map");it->second.refs++;return it->second.gpu;}
     unsigned flags=cudaHostRegisterMapped|(io?cudaHostRegisterIoMemory:0);
-    auto rc=cudaHostRegister(p,bytes,flags);
-    if(rc){cudaGetLastError();rc=cudaHostRegister(p,bytes,cudaHostRegisterMapped|(io?0:cudaHostRegisterIoMemory));}
+    auto rc=cudaHostRegister(p,bytes,flags);int first_rc=rc;bool fallback=false;
+    if(rc){cudaGetLastError();fallback=true;rc=cudaHostRegister(p,bytes,cudaHostRegisterMapped|(io?0:cudaHostRegisterIoMemory));}
     CK(rc);void* gp=nullptr;
     rc=cudaHostGetDevicePointer(&gp,p,0);
     if(rc){cudaHostUnregister(p);CK(rc);}
+    map_count++;if(fallback)map_fallbacks++;
+    if(map_count<=8)fprintf(stderr,"CXI_MAP gpu=%d p=%p bytes=%zu requested=%s registered=%s first_rc=%d(%s) device_ptr=%p vma=[%s]\n",
+      gpu,p,bytes,io?"IoMemory":"Mapped",(io!=fallback)?"IoMemory":"Mapped",first_rc,cudaGetErrorString((cudaError_t)first_rc),gp,vma_line(p).c_str());
     mappings.emplace(p,Map{gp,bytes,1});return gp;
   }
   int unmap(void* p) {
@@ -107,6 +122,14 @@ CxiResources* cxi_resources_open(int gpu,int nic_index) {
     CK(cudaSetDevice(gpu));auto dev=token("SLINGSHOT_DEVICES",nic_index);
     unsigned svc=std::stoul(token("SLINGSHOT_SVC_IDS",nic_index));r->svc=svc;r->vni=std::stoul(token("SLINGSHOT_VNIS",0));
     if(dev.rfind("cxi",0)!=0 || !svc)throw std::runtime_error("invalid allocated CXI service");
+    {int pma=0,hpt=0,dma=0,hreg=0;
+     cudaDeviceGetAttribute(&pma,cudaDevAttrPageableMemoryAccess,gpu);
+     cudaDeviceGetAttribute(&hpt,cudaDevAttrPageableMemoryAccessUsesHostPageTables,gpu);
+     cudaDeviceGetAttribute(&dma,cudaDevAttrDirectManagedMemAccessFromHost,gpu);
+     cudaDeviceGetAttribute(&hreg,cudaDevAttrHostRegisterSupported,gpu);
+     r->ats_capable=hpt;
+     fprintf(stderr,"CXI_GPU_ADDRESSING gpu=%d pageable_memory_access=%d uses_host_page_tables=%d direct_managed_from_host=%d host_register_supported=%d ring_access=%s\n",
+       gpu,pma,hpt,dma,hreg,ring_access_name());}
     CK(cxil_open_device(std::stoul(dev.substr(3)),&r->dev));
     cxi_svc_desc limits{};cxi_rsrc_use use{};
     int limit_rc=cxil_get_svc(r->dev,svc,&limits),use_rc=cxil_get_svc_rsrc_use(r->dev,svc,&use);
@@ -188,7 +211,7 @@ CxiChannel* cxi_channel_open(CxiResources* r,unsigned depth) {
     cxi_cq_alloc_opts qo{};qo.count=std::max(depth,64u);qo.flags=CXI_CQ_IS_TX;qo.lcid=r->cp->lcid;qo.policy=CXI_CQ_UPDATE_ALWAYS;
     CK(cxil_alloc_cmdq(r->lni,r->eq,&qo,&q->tx));
     q->wb=page_alloc(65536);q->diag=page_alloc(65536);
-    auto& d=q->descriptor;d.abi_version=CXI_GIN_ABI_VERSION;
+    auto& d=q->descriptor;d.abi_version=CXI_GIN_ABI_VERSION;d.lean_state=1; // fence due, no cached CSTATE
     d.ct_writeback=(uint64_t*)r->map(q->wb,65536,false);q->wbmap=true;
     d.diagnostic=(uint64_t*)r->map(q->diag,65536,false);q->diagmap=true;
     CK(cxil_alloc_ct(r->lni,(c_ct_writeback*)q->wb,&q->ct));
@@ -200,13 +223,19 @@ CxiChannel* cxi_channel_open(CxiResources* r,unsigned depth) {
     d.tx_doorbell=(uint64_t*)(db+((uintptr_t)q->tx->wp_addr-(uintptr_t)q->dbpage));
     db=(char*)r->map(q->ctdbpage,4096,true);q->ctdbmap=true;
     d.ct_doorbell=(uint64_t*)(db+((uintptr_t)q->trig->wp_addr-(uintptr_t)q->ctdbpage));
-    d.tx_queue=(uint64_t*)r->map(q->tx->cmds32,q->tx->size*64,false);q->txmap=true;
-    d.ct_queue=(uint64_t*)r->map(q->trig->cmds32,q->trig->size*64,false);q->ctmap=true;
+    const bool ats=!strcmp(ring_access_name(),"ats") && r->ats_capable==1;
+    if(ats){d.tx_queue=(uint64_t*)q->tx->cmds32;d.ct_queue=(uint64_t*)q->trig->cmds32;}
+    else {
+      if(!strcmp(ring_access_name(),"ats") && r->created_channels==0)
+        fprintf(stderr,"CXI_RING_ACCESS=ats requested but uses_host_page_tables=%d; using cudaHostRegister\n",r->ats_capable);
+      d.tx_queue=(uint64_t*)r->map(q->tx->cmds32,q->tx->size*64,false);q->txmap=true;
+      d.ct_queue=(uint64_t*)r->map(q->trig->cmds32,q->trig->size*64,false);q->ctmap=true;
+    }
     d.tx_wp32=q->tx->wp32;d.tx_size32=q->tx->size32;d.ct_wp32=q->trig->wp32;d.ct_size32=q->trig->size32;
     d.ct_id=q->ct->ctn;d.eq_id=r->eq->eqn;
     if(getenv("CXI_QUEUE_INVENTORY"))fprintf(stderr,
-      "CXI_QUEUE gpu=%d requested=%u tx_size32=%u tx_wp32=%u ct_size32=%u ct_id=%u eq_id=%u\n",
-      r->gpu,depth,d.tx_size32,d.tx_wp32,d.ct_size32,d.ct_id,d.eq_id);
+      "CXI_QUEUE gpu=%d requested=%u tx_size32=%u tx_wp32=%u ct_size32=%u ct_id=%u eq_id=%u ring=%s\n",
+      r->gpu,depth,d.tx_size32,d.tx_wp32,d.ct_size32,d.ct_id,d.eq_id,ats?"ats":"register");
     r->channels++;r->created_channels++;q->counted=true;return q;
   } catch(...) {cxi_resources_report(r,"channel-allocation-failed");cxi_channel_close(q);throw;}
 }
@@ -323,16 +352,16 @@ int cxi_channel_recycle(CxiChannel* q,const CxiGpuContext* state) {
   q->descriptor.signals=nullptr;q->descriptor.counters=nullptr;
   q->descriptor.signal_window=nullptr;q->descriptor.signal_offset=0;
   q->descriptor.pending_local_addr=0;q->descriptor.pending_remote_offset=0;
-  q->descriptor.pending_lac=0;q->descriptor.pending_peer=0;
+  q->descriptor.pending_lac=0;q->descriptor.pending_peer=0;q->descriptor.lean_state=1;
   q->descriptor.nsignals=0;q->descriptor.ncounters=0;
   q->pooled=true;q->r->idle_channels.push_back(q);return 0;
 }
 void cxi_resources_report(CxiResources* r,const char* phase) {
   if(!r || !r->dev)return;
   cxi_rsrc_use use{};int rc=cxil_get_svc_rsrc_use(r->dev,r->svc,&use);
-  fprintf(stderr,"CXI pool phase=%s gpu=%d created=%llu reused=%llu allocated=%u idle=%zu ct_in_use=%d usage_rc=%d\n",
+  fprintf(stderr,"CXI pool phase=%s gpu=%d created=%llu reused=%llu allocated=%u idle=%zu ct_in_use=%d usage_rc=%d cuda_maps=%u iomem_fallbacks=%u\n",
     phase,r->gpu,(unsigned long long)r->created_channels,(unsigned long long)r->reused_channels,
-    r->channels,r->idle_channels.size(),rc?-1:(int)use.in_use[CXI_RSRC_TYPE_CT],rc);
+    r->channels,r->idle_channels.size(),rc?-1:(int)use.in_use[CXI_RSRC_TYPE_CT],rc,r->map_count,r->map_fallbacks);
 }
 int cxi_memory_close(CxiMemory* m) {
   if(!m)return 0;auto* r=m->r;int before=r->errors;

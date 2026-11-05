@@ -13,6 +13,7 @@ import torch
 import torch.distributed as dist
 from common import bind_cpu, equal, record, reference_dispatch
 from routing import routes, ROUTING_CHOICES
+import bank_routing
 from source_metadata import source_metadata
 
 MODELS = {'v4flash': (4096,256,6), 'qwen3': (4096,128,8), 'minimax': (3072,256,8)}
@@ -139,12 +140,21 @@ def run_case(args,model,n,dtype,routing,seed,out):
         # rank zero; the other seven ranks receive zero payload rows.
         assert k <= e // ep
         idx=torch.arange(k,device='cuda',dtype=torch.int64)[None,:].expand(n,-1).contiguous()
+    elif routing.startswith('bank_'):
+        # Bank-consistent routing: exact per-expert counts of a real OpenSWE 4K unit (this rank's unit of
+        # the forward), distinct experts per token, placement applied as a permutation of expert ids.
+        bank_f,bank_l,bank_placement=bank_routing.parse_bank_name(routing); bank=bank_routing.load_bank(Path(__file__).parent)
+        assert n==4096 and (e,k)==(256,6), 'bank routing is defined for 4096-token units of V4 Flash (256 experts, top-6)'
+        bank_fi=list(bank['test_forwards']).index(bank_f); bank_counts=bank['test_counts'][bank_fi,bank_l,rank].astype(np.int64)
+        bank_perm={'vanilla':np.arange(e),'greedy':bank['greedy_perm'][bank_l],'random':bank['random_perm']}[bank_placement]
+        bank_ids=np.append(bank_perm,-1)[bank_routing.bank_routes(bank_counts,n,k,seed*1000+rank)]
+        idx=torch.tensor(bank_ids,dtype=torch.int64,device='cuda')
     else:
         locality=routing if routing in ('local','remote') else 'mixed'
         skew=float(routing[4:]) if routing.startswith('skew') else 1.
         ids,_=routes(n,ep,e,k,skew,seed,locality)
         idx=torch.tensor(ids[rank*n:(rank+1)*n],dtype=torch.int64,device='cuda')
-    w=torch.rand(n,k,device='cuda'); w=w/w.sum(1,keepdim=True)
+    w=torch.rand(n,k,device='cuda'); w=torch.where(idx<0,torch.zeros_like(w),w); w=w/w.sum(1,keepdim=True)
     drop_every=int(os.environ.get('CXI_EP_DROP_EVERY','0'))
     assert drop_every >= 0
     if drop_every:
@@ -159,6 +169,13 @@ def run_case(args,model,n,dtype,routing,seed,out):
         requested_sms=args.sms,nvl_chunk=args.nvl_chunk,rdma_chunk=args.rdma_chunk,
         flush_l2=False,alignment=128,quantization_timed=False,expert_gemm=False,
         gin_type=os.getenv('NCCL_GIN_TYPE'), allocated_contexts=int(os.getenv('CXI_EP_CONTEXTS','129')))
+    ids_np=idx.cpu().numpy()
+    rows=bank_routing.route_matrix(ids_np,ep).tolist(); nic=bank_routing.nic_rows(ids_np,ep,rank)
+    gathered=[None]*ep; dist.all_gather_object(gathered,(rows,nic))
+    case['traffic']=bank_routing.traffic_stats([g[0] for g in gathered],[g[1] for g in gathered])
+    if routing.startswith('bank_'):
+        case['bank']=dict(forward=bank_f,layer=bank_l,placement=bank_placement,unit=8*bank_f+rank,
+            tokens_with_fewer_experts=int((idx<0).any(1).sum().item()),**case['traffic'])
     diagnostic_watch.mark('case_start', model=model, tokens=n, dtype=dtype, routing=routing, seed=seed, operation=None)
     print('CASE_START',json.dumps(case),flush=True)
     ref=reference_dispatch(raw,idx,w,e)
@@ -207,6 +224,12 @@ def run_case(args,model,n,dtype,routing,seed,out):
         equal(a[:count][order],z,'cached payload/scales')
     diagnostic_watch.mark('correctness_cached_validated')
     case['merged_final_tail']=bool(int(os.environ.get('CXI_EP_MERGE_FINAL_TAIL','0')))
+    case['combine_double_tma']=int(os.environ.get('CXI_EP_COMBINE_DOUBLE_TMA','0'))
+    case['skip_combine_flush']=int(os.environ.get('CXI_EP_SKIP_COMBINE_FLUSH','0'))
+    case['local_self_signal']=int(os.environ.get('CXI_EP_LOCAL_SELF_SIGNAL','0'))
+    case['combine_first_tail']=int(os.environ.get('CXI_EP_COMBINE_FIRST_TAIL','0'))
+    case['combine_split_barrier']=int(os.environ.get('CXI_EP_COMBINE_SPLIT_BARRIER','0'))
+    case['variant']=os.environ.get('CXI_VARIANT','')
     case['combine_first_batch']=int(os.environ.get('CXI_EP_COMBINE_FIRST_BATCH',os.environ.get('CXI_EP_COMBINE_BATCH','16')))
     case['first_interval']=int(os.environ.get('CXI_EP_FIRST_INTERVAL',os.environ.get('CXI_EP_UPDATE_INTERVAL','3')))
     case['packed_combine']=bool(int(os.environ.get('CXI_EP_PACK_COMBINE','0')))
@@ -311,7 +334,7 @@ if __name__=='__main__':
     p.add_argument('--tokens',nargs='+',type=int,default=[4096])
     p.add_argument('--seeds',nargs='+',type=int,default=[1,2,3])
     p.add_argument('--dtypes',nargs='+',choices=['fp8','bf16'],default=['fp8','bf16'])
-    p.add_argument('--routing',nargs='+',choices=ROUTING_CHOICES,default=['uniform','mixed'])
+    p.add_argument('--routing',nargs='+',type=bank_routing.routing_name,default=['uniform','mixed'])
     p.add_argument('--sms',type=int,default=64)
     p.add_argument('--nvl-chunk',type=int,default=8)
     p.add_argument('--rdma-chunk',type=int,default=16)

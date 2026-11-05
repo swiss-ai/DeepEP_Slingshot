@@ -6,7 +6,12 @@
   paths static-assert two scale-out ranks; the delivery-marker epoch logic flushes the whole
   context on every peer or window change, so more nodes would be correct but slow.
 - DeepEP v2 at `bd1e1669`, NCCL v2.32.3-1 at `12df1a11`, the pinned Clariden container, the
-  installed libcxi and node image. Qualified on one node pair, one driver and firmware state.
+  installed libcxi and node image (SHS 13.1.0). Timing reproduced on six node pairs; one driver and
+  firmware state.
+- The release candidate (`lean-b` variant, `CXI_EP_SKIP_COMBINE_FLUSH=1`, `CXI_EP_LOCAL_SELF_SIGNAL=1`)
+  passed its 45-gate matrix on V4 Flash (FP8 and BF16, five routings, dropped tokens, sustained 16K).
+  Qwen3 and MiniMax geometries and the six SGLang gates were qualified on the 2026-11-01 candidate
+  (same transport, knobs off) and have not been re-run with the two kernel knobs.
 - SGLang normal mode through the adapter in [backend/sglang/deepep_v2_cxi.py](../backend/sglang/deepep_v2_cxi.py):
   synchronous, one live dispatch at a time, group size 8 with a (2, 4) domain, token capacity fixed
   at buffer creation (default 4096 per rank), BF16 combine input, EPLB recorder disabled, FP8 or

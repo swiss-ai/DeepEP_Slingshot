@@ -1,5 +1,16 @@
 # Design
 
+**Code on this branch.** `backend/` is the backend of the latest hardware snapshot
+(`source-1103-ep8skew-v3`, 2026-11-03): the 2026-11-01 qualified transport plus the lean signal path
+(as compile-time variant defines, selected through `backend/variants.json`), ring-mapping diagnostics
+and the `CXI_RING_ACCESS=ats` host knob, and the EP8 benchmark's real-routing support. The DeepEP side
+is `patches/deepep-bd1e1669-cxi-full.patch`: the qualified changes plus every later knob
+(`CXI_EP_SKIP_COMBINE_FLUSH`, `CXI_EP_LOCAL_SELF_SIGNAL`, `CXI_EP_COMBINE_DOUBLE_TMA`,
+`CXI_EP_COMBINE_FIRST_TAIL`, `CXI_EP_COMBINE_SPLIT_BARRIER`), all default off and injected at JIT
+time by `backend/tests/nvcc_wrapper.py`. The release candidate is this code with the `lean-b` variant
+and the knob values in `scripts/release_env.sh`. Experiments that did not help (cached credits,
+prewarm, start stagger, padded row stride) stay out of the code and are kept as patches or logs.
+
 ## Transport: private NCCL GIN backend, type 6
 
 The backend lives in [`backend/`](../backend/). NCCL's GIN (GPU-initiated networking) device API
@@ -78,9 +89,13 @@ Seven files against `bd1e1669`, +208/-26
   tail with `CXI_EP_COMBINE_FIRST_BATCH=2` is exact and 16 µs faster at 4K; a one-row first batch hits the
   alignment cliff (a combine row is 8256 bytes) and must not be used.
 
-The knobs are compile-time defines injected at JIT time by
+The `CXI_EP_*` knobs are compile-time defines injected at JIT time by
 [backend/tests/nvcc_wrapper.py](../backend/tests/nvcc_wrapper.py) and are not part of DeepEP's
-JIT cache key.
+JIT cache key. The transport variants (`CXI_LEAN_*`, `CXI_BATCH_DELIVERY`, `CXI_HW_SIGNAL_FENCE`,
+`CXI_ZERO_DELIVERY_MARKER`, `CXI_CT_THRESHOLD_FLUSH`, `CXI_TX_BATCH_LIMIT`) are defines prepended to
+the `cxi_primitives.cuh` installed with NCCL, one runtime prefix per variant
+([backend/variants.json](../backend/variants.json), `scripts/apply_patches.sh --variant`,
+`scripts/make_variant_runtime.py`); the host plugin is variant-independent.
 
 ## Why the packed paths matter on this NIC
 

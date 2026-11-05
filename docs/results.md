@@ -1,9 +1,55 @@
 # Results
 
 All numbers: EP8 on two Clariden GH200 nodes, 64 SMs, 129 contexts, exact correctness verified
-against an independent NCCL all-to-all before timing, medians of repeats. Raw per-gate medians are
-in [`evidence/gates-3830101/<gate>/direct/ep/repeatability.json`](../evidence/gates-3830101/);
-verdicts and environments in each gate's `FINISHED.json`.
+against an independent NCCL all-to-all before timing, medians of repeats. Per-gate records (verdict,
+environment, per-case medians) are under [`evidence/gates-<job>/`](../evidence/README.md); the
+complete journals are on the `debug` branch.
+
+Two metrics appear below. The **harness headline** is the median over iterations of the
+per-iteration maximum across the eight ranks (`median_rank_max_us`); the **wall time per iteration**
+is the slowest rank's host wall time of the timed loop divided by the iteration count
+(`max_host_us_per_iteration`), which is the throughput a serving loop sees. They agree when the
+ranks' kernel ends are aligned; the release candidate's skip-flush knob decouples the ends, so its
+headline reads 1–4 % above its wall time (see the signal-path section). Where not stated otherwise,
+2026-11-01 figures are headlines and later figures are wall times.
+
+## Current position (2026-11-05)
+
+V4 Flash (hidden 4096, 256 experts, top-k 6), FP8 dispatch, BF16 combine, mixed routing. Wall time
+per iteration, medians over the nine `lean-b` repeat gates of the release matrix (job 3835100,
+nid007560/007561) and the six `cand` repeat gates of the same job; bound = payload serialisation at
+22.5 GB/s per rail per direction.
+
+| tokens/rank | operation | 2026-11-01 candidate | release candidate (lean-b + kernel knobs) | effective | bound | release / bound |
+|---:|---|---:|---:|---:|---:|---:|
+| 4096 | dispatch | 0.944 ms | **0.932 ms** | 19.0 GB/s | 0.786 ms | 1.19 |
+| 4096 | combine | 1.801 ms | **1.758 ms** | 19.2 GB/s | 1.503 ms | 1.17 |
+| 4096 | dispatch + combine cycle | 2.744 ms | **2.690 ms** | | | |
+| 16384 | dispatch | 3.423 ms | **3.411 ms** | 20.8 GB/s | 3.146 ms | 1.08 |
+| 16384 | combine | 6.929 ms | **6.877 ms** | 19.7 GB/s | 6.013 ms | 1.14 |
+
+Spread across the nine repeats: 0.931–0.940 ms (4K dispatch), 1.754–1.760 (4K combine),
+3.406–3.425 (16K dispatch), 6.847–6.885 (16K combine). The same configuration reproduces within
+±3 µs at 4K on four further node pairs (jobs 3837809, 3843956, 3844086, 3844569).
+
+What the release candidate is: the 2026-11-01 packed dispatch/combine knobs (`CXI_EP_PACK_ROWS=1`,
+`CXI_EP_UPDATE_INTERVAL=16`, `CXI_EP_FIRST_INTERVAL=4`, `CXI_EP_FORWARD_CHUNK=3`,
+`CXI_EP_MERGE_FINAL_TAIL=1`, `CXI_EP_PACK_COMBINE=1`, `CXI_EP_COMBINE_BATCH=16`,
+`CXI_EP_COMBINE_FIRST_BATCH=4`) plus `CXI_EP_SKIP_COMBINE_FLUSH=1`, `CXI_EP_LOCAL_SELF_SIGNAL=1` and
+the `lean-b` transport variant; [`scripts/release_env.sh`](../scripts/release_env.sh). Its 45-gate
+matrix is V4 Flash only (irregular stress at 32/257 tokens on five routings, 4K FP8 and BF16
+correctness, dropped tokens, sustained 16K, nine timing repeats, for the `kern`, `lean-a`, `lean-b`
+and `dbuf` arms). The other geometries and the SGLang gates were qualified on the 2026-11-01
+candidate (98 gates, job 3830101) and have not been re-run with the two kernel knobs.
+
+Beyond the release candidate, measured but not release-qualified: the early scale-up tail with a
+two-row first combine batch (`CXI_EP_COMBINE_FIRST_TAIL=1`, `CXI_EP_COMBINE_FIRST_BATCH=2`), exact
+and 1.741 ms at 4K combine (−16 µs) on three node pairs, 16K unchanged within −3 to −22 µs.
+
+Where the remaining 19 % (4K dispatch) and 17 % (4K combine) over the bound go, and why every
+zero-code lever is closed, is in the sections "Where the remaining time goes", "Command-ring memory
+and the convoy" and "Combine pre-wire levers" below; the real-routing surcharge is in "EP8 with real
+routing".
 
 ## Progress over the campaign
 
@@ -193,7 +239,7 @@ repeats); BF16 rows are from correctness gates with fewer iterations.
 | Model (hidden, experts, top-k) | dispatch dtype | 4K dispatch | 4K combine | 16K dispatch | 16K combine |
 |---|---|---:|---:|---:|---:|
 | V4 Flash (4096, 256, 6) | FP8 | 0.949 ms | 1.812 ms | 3.439 ms | 6.946 ms |
-| V4 Flash, lean-b + kernel knobs (release matrix 3835100, wall per iteration) | FP8 | 0.932 ms | 1.758 ms | 3.411 ms | 6.877 ms |
+| V4 Flash, lean-b + kernel knobs (release candidate; release matrix 3835100, wall per iteration, [evidence/gates-3835100](../evidence/gates-3835100/)) | FP8 | 0.932 ms | 1.758 ms | 3.411 ms | 6.877 ms |
 | V4 Flash | BF16 | 1.737 ms | 1.822 ms | 6.475 ms | 6.943 ms |
 | Qwen3 (4096, 128, 8) | FP8 | 0.953 ms | 1.811 ms | 3.458 ms | 6.948 ms |
 | MiniMax (3072, 256, 8) | FP8 | 0.765 ms | 1.399 ms | 2.655 ms | 5.294 ms |

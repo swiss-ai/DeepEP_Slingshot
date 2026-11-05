@@ -25,8 +25,25 @@ static_assert(CXI_TX_BATCH_LIMIT >= 1 && CXI_TX_BATCH_LIMIT <= 64, "bounded TX p
 #ifndef CXI_ZERO_DELIVERY_MARKER
 #define CXI_ZERO_DELIVERY_MARKER 0
 #endif
+#ifndef CXI_LEAN_FENCE
+#define CXI_LEAN_FENCE 0
+#endif
+#ifndef CXI_LEAN_CSTATE
+#define CXI_LEAN_CSTATE 0
+#endif
+#ifndef CXI_LEAN_FOLD_MARKER
+#define CXI_LEAN_FOLD_MARKER 0
+#endif
+static_assert(!CXI_LEAN_FOLD_MARKER || CXI_BATCH_DELIVERY, "the marker fold replaces the batched-delivery marker");
 namespace cxi_gin {
 constexpr uint64_t default_timeout=10000000000ULL;
+// CxiGpuContext::lean_state bits (host initialises the field to lean_fence_due).
+constexpr uint32_t lean_fence_due=1u;         // a fenced-before-signal transfer was posted since the last CQ fence
+constexpr uint32_t lean_last_is_put=2u;       // newest ring entry is the pending payload PUT and is unpublished
+constexpr uint32_t lean_cstate_mask=0x1FF00u; // bits 8..12 index_ext, 13..15 write_lac, 16 valid
+__device__ __forceinline__ uint32_t lean_cstate_key(unsigned index_ext,unsigned write_lac) {
+  return (1u<<16)|((index_ext&31u)<<8)|((write_lac&7u)<<13);
+}
 __device__ __forceinline__ uint64_t load64(const uint64_t* p) {
   uint64_t v;asm volatile("ld.acquire.sys.global.u64 %0, [%1];":"=l"(v):"l"(p):"memory");return v;
 }
@@ -54,6 +71,7 @@ __device__ __forceinline__ void release(CxiGpuContext& c){__threadfence();atomic
 // descriptor writes before releasing the lock. Preserve that guarantee even when
 // another producer becomes the publisher; this variant only amortizes doorbells.
 __device__ __forceinline__ void publish_locked(CxiGpuContext& c) {
+  c.lean_state&=~lean_last_is_put; // a doorbelled entry can no longer be rewritten
   if(!c.tx_unpublished)return;
   __threadfence_system();
   store64(c.tx_doorbell,c.tx_wp32/2);
@@ -67,6 +85,7 @@ __device__ __forceinline__ void publish_locked(CxiGpuContext& c) {
 __device__ __forceinline__ bool emit(CxiGpuContext& c,const uint64_t* command,bool transfer,
                                    uint32_t* abort=nullptr,uint64_t timeout=default_timeout,bool aggregate=false) {
   uint64_t start=clock64();
+  c.lean_state&=~lean_last_is_put; // any new command supersedes the pending PUT as newest entry
   while(true) {
     uint32_t status=load32((uint32_t*)c.tx_queue);
     if(status>>16)return fail(c,3,status);
@@ -92,7 +111,7 @@ __device__ __forceinline__ bool flush_locked(CxiGpuContext& c,uint32_t* abort=nu
   if(!delivery_flush_locked(c,abort,timeout))return false;
 #endif
   publish_locked(c);
-  if(c.completed==c.posted)return true;
+  if(c.completed==c.posted){c.lean_state&=~lean_fence_due;return true;}
   uint64_t start=clock64();
   do {
     uint64_t command[8]{};auto* get=(c_ct_cmd*)command;
@@ -121,6 +140,7 @@ __device__ __forceinline__ bool flush_locked(CxiGpuContext& c,uint32_t* abort=nu
     }while((status&65535)!=next/2);
     if(c.completed>c.posted)return fail(c,9,c.completed,c.posted);
   }while(c.completed<c.posted);
+  c.lean_state&=~lean_fence_due; // everything posted is delivered; no fence needed before the next signal
   __threadfence_system();return true;
 }
 __device__ __forceinline__ bool region(CxiGpuContext& c,const CxiWindow* w,int peer,uint64_t off,uint64_t size) {
@@ -135,6 +155,20 @@ __device__ __forceinline__ bool region(CxiGpuContext& c,const CxiWindow* w,int p
 __device__ __forceinline__ bool delivery_flush_locked(CxiGpuContext& c,uint32_t* abort,uint64_t timeout) {
   const auto* w=c.pending_dst;
   if(!w)return true;
+#if CXI_LEAN_FOLD_MARKER
+  if(c.lean_state&lean_last_is_put) {
+    // Close the epoch on the pending PUT itself: it is the newest ring entry and not yet
+    // doorbelled, so its descriptor can still be rewritten. Delivery semantics equal the
+    // zero-byte marker (flush bit, CT_ACK); the CT still counts one event for this command and
+    // c.posted is unchanged, so flush accounting is identical.
+    unsigned slot=c.tx_wp32==8?c.tx_size32-2:c.tx_wp32-2;
+    auto* cmd=(c_full_dma_cmd*)(c.tx_queue+slot*4);
+    cmd->event_ct_send=0;cmd->event_ct_ack=1;cmd->flush=1;
+    __threadfence_system();
+    c.lean_state&=~lean_last_is_put;c.pending_dst=nullptr;
+    return true;
+  }
+#endif
   int peer=c.pending_peer;
   if(!region(c,w,peer,c.pending_remote_offset,1))return false;
   uint64_t words[8]{};auto* cmd=(c_full_dma_cmd*)words;
@@ -146,7 +180,7 @@ __device__ __forceinline__ bool delivery_flush_locked(CxiGpuContext& c,uint32_t*
   cmd->remote_offset=c.pending_remote_offset;cmd->local_addr=c.pending_local_addr;
   cmd->request_len=CXI_ZERO_DELIVERY_MARKER?0:1;
   if(!emit(c,words,true,abort,timeout,true))return false;
-  c.pending_dst=nullptr;
+  c.pending_dst=nullptr;c.lean_state|=lean_fence_due;
   return true;
 }
 __device__ __forceinline__ bool put_locked(CxiGpuContext& c,const CxiWindow* dst,uint64_t dstoff,
@@ -174,19 +208,35 @@ __device__ __forceinline__ bool put_locked(CxiGpuContext& c,const CxiWindow* dst
     c.pending_dst=const_cast<CxiWindow*>(dst);c.pending_peer=unsigned(peer);
     c.pending_lac=src->local_lac;c.pending_local_addr=src->local_iova+srcoff+n-1;
     c.pending_remote_offset=dstoff+n-1;
+#if CXI_LEAN_FOLD_MARKER
+    // The PUT just written is the newest ring entry; it stays rewritable until published.
+    if(c.tx_unpublished)c.lean_state|=lean_last_is_put;
 #endif
+#endif
+    c.lean_state|=lean_fence_due;
     dstoff+=n;srcoff+=n;bytes-=n;
   }
   if(!aggregate)publish_locked(c); // includes zero-byte nonaggregated operations
   return true;
 }
 __device__ __forceinline__ bool state_locked(CxiGpuContext& c,const CxiWindow* dst,int peer,uint32_t* abort=nullptr) {
+#if CXI_LEAN_CSTATE
+  // CSTATE is command-queue state consumed by later IDC commands; DMA commands carry their own
+  // fields and leave it alone. Re-emit only when the (index_ext, write_lac) pair changes.
+  const uint32_t key=lean_cstate_key(dst->peer[peer].index_ext,dst->local_lac);
+  if((c.lean_state&lean_cstate_mask)==key)return true;
+#endif
   uint64_t words[8]{};auto* st=(c_cstate_cmd*)words;
   st->command.cmd_type=C_CMD_TYPE_IDC;st->command.cmd_size=C_CMD_SIZE_32B;st->command.opcode=C_CMD_CSTATE;
   st->length=sizeof(c_cstate_cmd);st->restricted=1;st->flush=1;
   st->event_send_disable=1;st->event_success_disable=1;st->event_ct_ack=1;
   st->index_ext=dst->peer[peer].index_ext;st->ct=c.ct_id;st->eq=c.eq_id;
-  st->write_lac=dst->local_lac;return emit(c,words,false,abort);
+  st->write_lac=dst->local_lac;
+  if(!emit(c,words,false,abort))return false;
+#if CXI_LEAN_CSTATE
+  c.lean_state=(c.lean_state&~lean_cstate_mask)|key;
+#endif
+  return true;
 }
 // Keep payload visibility before notification, but let the NIC enforce the
 // dependency. No GPU CT writeback wait here; explicit flush/counters still wait.
@@ -195,8 +245,15 @@ __device__ __forceinline__ bool signal_fence_locked(CxiGpuContext& c,uint32_t* a
 #if CXI_BATCH_DELIVERY
   if(!delivery_flush_locked(c,abort,default_timeout))return false;
 #endif
+#if CXI_LEAN_FENCE
+  // Nothing fence-worthy since the last fence or completed flush: that earlier fence already
+  // orders this signal after every prior transfer on the context.
+  if(!(c.lean_state&lean_fence_due))return true;
+#endif
   uint64_t words[8];cxi_build_fence_command(words);
-  return emit(c,words,false,abort,default_timeout,true);
+  if(!emit(c,words,false,abort,default_timeout,true))return false;
+  c.lean_state&=~lean_fence_due;
+  return true;
 }
 __device__ __forceinline__ bool add_locked(CxiGpuContext& c,const CxiWindow* dst,uint64_t off,uint64_t amount,int peer,uint32_t* abort=nullptr) {
   if(!region(c,dst,peer,off,8) || (off&7))return fail(c,12,off);
@@ -217,7 +274,8 @@ __device__ __forceinline__ bool value_locked(CxiGpuContext& c,const CxiWindow* d
   uint64_t words[8]{};auto* hdr=(c_idc_hdr*)words;
   hdr->command.cmd_type=C_CMD_TYPE_IDC;hdr->command.cmd_size=C_CMD_SIZE_32B;hdr->command.opcode=C_CMD_PUT;
   hdr->length=16+bytes;*(uint32_t*)&hdr->dfa=dst->peer[peer].dfa;hdr->remote_offset=off;words[2]=value;
-  __threadfence_system();return emit(c,words,true,abort);
+  __threadfence_system();if(!emit(c,words,true,abort))return false;
+  c.lean_state|=lean_fence_due;return true;
 }
 __device__ __forceinline__ bool flush(CxiGpuContext& c,uint32_t* abort=nullptr,uint64_t timeout=default_timeout) {
   if(!acquire(c,abort,timeout))return false;bool ok=flush_locked(c,abort,timeout);release(c);return ok;
