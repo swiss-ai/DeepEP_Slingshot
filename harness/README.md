@@ -13,6 +13,7 @@ only on an explicit `RESUME.json`. It produced every number in [docs/results.md]
 | `pipeline_1101/` | The 2026-11-01 final campaign: snapshot packagers (`package_*_1101.py`), knob preparation (`prepare_packed_combine.py`, `prepare_first_batch.py`), the raw NIC alignment probe (`offset_probe.cu`), `summarize_arms.py`, `fit_size_sweep.py`, `trace_timeline.py`. |
 | `pipeline_1102/` | The 2026-11-02/03 rounds: lean signal path, double-buffered staging, cached credits, prewarm, ring diagnostics and ATS, start stagger, combine levers; `effective_rate.py` (headline and `--wall` metrics against the 22.5 GB/s bound), `rank_hist.py`, `launch_debug_1102.py` (25-minute debug-partition launcher), `prestage_requests.py`, and the trace analyses `wire_curve.py`, `receiver_duty.py`, `combine_prewire.py`, `put_split.py`, `stagger_split.py`, `combine_captures.py`. |
 | `pipeline_1103/` | The EP8 real-routing demo: `bank_routing.py` and the OpenSWE bank subset `bank_v4flash_openswe_ep8.npz` (same file as `backend/tests/`), `prepare_ep8bank_1103.py`, packagers for the bank, skew-ladder and padded-stride jobs, `bank_table.py`. |
+| `pipeline_1105/` | The UCCL-EP comparison job (3865330): packager adding a `uccl` gate kind and `uccl_ep` validator, launcher, comparison table, and the four snapshot files as they ran ([README](pipeline_1105/README.md)). |
 | `link_rate_1102/` | The `cxi_write_bw` NIC ceiling measurement (sbatch drivers, wrapper, `collect_write_bw.py`). |
 
 ## Running it

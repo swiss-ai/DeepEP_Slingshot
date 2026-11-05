@@ -42,6 +42,9 @@ correctness, dropped tokens, sustained 16K, nine timing repeats, for the `kern`,
 and `dbuf` arms). The other geometries and the SGLang gates were qualified on the 2026-11-01
 candidate (98 gates, job 3830101) and have not been re-run with the two kernel knobs.
 
+Against the transport CSCS users run today (UCCL-EP's CPU proxy over libfabric/CXI), the direct GIN is 1.6–1.9×
+faster on dispatch and 1.1–1.4× on combine with the same benchmark in the same allocation (next section).
+
 Beyond the release candidate, measured but not release-qualified: the early scale-up tail with a
 two-row first combine batch (`CXI_EP_COMBINE_FIRST_TAIL=1`, `CXI_EP_COMBINE_FIRST_BATCH=2`), exact
 and 1.741 ms at 4K combine (−16 µs) on three node pairs, 16K unchanged within −3 to −22 µs.
@@ -50,6 +53,34 @@ Where the remaining 19 % (4K dispatch) and 17 % (4K combine) over the bound go, 
 zero-code lever is closed, is in the sections "Where the remaining time goes", "Command-ring memory
 and the convoy" and "Combine pre-wire levers" below; the real-routing surcharge is in "EP8 with real
 routing".
+
+## UCCL-EP CPU proxy vs direct GIN, same benchmark (2026-11-05, job 3865330)
+
+CSCS users run DeepEP-style expert parallelism over UCCL-EP's CPU proxy on Alps. This job ran that transport (Swiss
+AI reference build `swiss-ai/uccl@54ef064`, native CPU proxy over libfabric/CXI, upstream's 24 SMs and chunk
+settings) and our direct GIN (release candidate) through the **same benchmark, inputs and metric in one allocation**
+(nid007536/007542): 4096 tokens per rank, FP8 dispatch / BF16 combine, uniform and mixed routing, three seeds, exact
+correctness before timing, NIC octet windows. Wall time per iteration of the slowest rank, medians over cases
+(six for V4 Flash, three for the others); records in [evidence/gates-3865330](../evidence/gates-3865330/), scripts
+in [harness/pipeline_1105](../harness/pipeline_1105/), full write-up in
+[history/11_05_UCCL_Comparison.md](history/11_05_UCCL_Comparison.md).
+
+| model | routing | dispatch direct / UCCL | combine direct / UCCL | cycle direct / UCCL | NIC GB/s per NIC, direct / UCCL (dispatch, combine) |
+|---|---|---:|---:|---:|---:|
+| V4 Flash | mixed | 0.933 / 1.552 ms (1.66×) | 1.762 / 2.241 (1.27×) | 2.695 / 3.529 (1.31×) | 20.1 / 12.0, 20.3 / 16.1 |
+| V4 Flash | uniform | 0.964 / 1.565 (1.62×) | 1.876 / 2.220 (1.18×) | 2.840 / 3.512 (1.24×) | 19.2 / 10.4, 18.7 / 14.6 |
+| Qwen3 | mixed | 0.936 / 1.572 (1.68×) | 1.756 / 2.240 (1.28×) | 2.695 / 3.563 (1.32×) | 20.2 / 11.8, 20.3 / 15.9 |
+| Qwen3 | uniform | 0.994 / 1.575 (1.58×) | 1.920 / 2.176 (1.13×) | 2.913 / 3.588 (1.23×) | 18.9 / 11.6, 18.5 / 14.9 |
+| MiniMax | mixed | 0.748 / 1.423 (1.90×) | 1.347 / 1.892 (1.40×) | 2.089 / 3.039 (1.46×) | 19.4 / 9.3, 20.1 / 13.8 |
+| MiniMax | uniform | 0.788 / 1.332 (1.69×) | 1.463 / 1.835 (1.25×) | 2.246 / 3.048 (1.36×) | 18.3 / 9.4, 18.3 / 13.8 |
+
+UCCL's fresh dispatch costs 1.5–1.6 ms whatever the geometry or routing (the proxy, not the bytes, sets it; the
+2026-10-29 matched trace point of 1.53 ms is reproduced), ours follows the bytes. UCCL's combine has a long
+per-iteration tail (p95 3.8–4.6 ms), so its harness headline (1.97 ms) understates its wall time. Host CPU: 5.0
+core-equivalents per rank process for UCCL against 3.0 for ours. Caveats: UCCL's chunk settings come from its own
+tuning sweep on another pair (flat optimum), its 24 SMs leave more SMs to compute than our 64 (not measured by a
+communication-only benchmark), and it implements the DeepEP v1 normal-mode API with CPU proxy threads whereas ours
+is the DeepEP v2 hybrid path with GPU-issued commands.
 
 ## Progress over the campaign
 

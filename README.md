@@ -40,6 +40,10 @@ Other results, each detailed in [docs/results.md](docs/results.md):
 - **Real routing** (OpenSWE per-expert counts, 72 cases exact): +5 % dispatch and +9 % combine over
   synthetic mixed routing at equal NIC bytes; combine follows the hottest destination's rows beyond
   about 1.3× the mean (+33 % at 4× receiver skew), dispatch stays NIC-bound.
+- **Against UCCL-EP's CPU proxy** (the transport CSCS users run today; Swiss AI build at upstream's tuning), same
+  benchmark, inputs and metric in one allocation (job 3865330): the direct GIN is 1.6–1.9× faster on fresh
+  dispatch and 1.1–1.4× on combine across the three geometries and both routings, at 18–20 GB/s per NIC against
+  UCCL's 9–16. UCCL's dispatch costs 1.5–1.6 ms regardless of bytes.
 - **Experimental**: the early scale-up tail with a two-row first batch
   (`CXI_EP_COMBINE_FIRST_TAIL=1`, `CXI_EP_COMBINE_FIRST_BATCH=2`) is exact and 16 µs faster at 4K
   combine on three node pairs; it has no release matrix yet. A one-row first batch is 4× slower
@@ -60,7 +64,7 @@ Other results, each detailed in [docs/results.md](docs/results.md):
 | [patches/](patches/) | NCCL `12df1a11` integration patch, the DeepEP `bd1e1669` patches (full, release and qualified profiles, trace hooks) and the dated incremental patches; [patches/README.md](patches/README.md) gives the lineage. |
 | [scripts/](scripts/) | `apply_patches.sh` (patch NCCL and DeepEP, install the headers, bake a transport variant), `build_plugin.sh`, `make_variant_runtime.py`, `release_env.sh`. |
 | [docs/](docs/) | [usage.md](docs/usage.md) (build and run), [design.md](docs/design.md), [results.md](docs/results.md), [limitations.md](docs/limitations.md), and the dated engineering logs under [docs/history/](docs/history/). |
-| [harness/](harness/) | Qualification harness: the Slurm controller and node scripts ([harness/runner/](harness/runner/)), snapshot packagers, gate definitions and analysis scripts. |
+| [harness/](harness/) | Qualification harness: the Slurm controller and node scripts ([harness/runner/](harness/runner/)), snapshot packagers, gate definitions and analysis scripts; [pipeline_1105/](harness/pipeline_1105/) is the UCCL comparison job. |
 | [site/clariden/](site/clariden/) | The container environment file and runtime scripts the harness uses on Clariden. |
 | [evidence/](evidence/) | Snapshot manifests with per-file hashes, curated verdicts and medians of every gate quoted in the results, the NIC link-rate measurement and the raw alignment probe ([evidence/README.md](evidence/README.md)). |
 
