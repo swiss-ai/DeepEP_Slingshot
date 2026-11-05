@@ -1,0 +1,30 @@
+JobId=3865330 JobName=deepep-cxi-pipeline
+   UserId=zyu(30628) GroupId=sm94(33189) MCS_label=N/A
+   Priority=530349 Nice=0 Account=infra01 QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:09 TimeLimit=00:40:00 TimeMin=N/A
+   SubmitTime=15:23:50 EligibleTime=15:23:50
+   AccrueTime=15:23:50
+   StartTime=15:42:57 EndTime=16:22:57 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=15:42:57 Scheduler=Backfill
+   Partition=debug AllocNode:Sid=172.28.38.18:46495
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=nid[007536,007542]
+   BatchHost=nid007536
+   NumNodes=2 NumCPUs=576 NumTasks=2 CPUs/Task=288 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=576,mem=900G,node=2,billing=2,gres/gpu=8
+   AllocTRES=cpu=576,mem=900G,node=2,billing=2,gres/gpu=8
+   Socks/Node=* NtasksPerN:B:S:C=1:0:*:* CoreSpec=*
+   MinCPUsNode=288 MinMemoryNode=450G MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) LicensesAlloc=(null) Network=(null)
+   Command=/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1105-ucclcmp-v1/runner/run.sbatch
+   WorkDir=/users/zyu
+   StdErr=/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/job-3865330.log
+   StdIn=/dev/null
+   StdOut=/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/job-3865330.log
+   TresPerNode=gres/gpu:4
+   TresPerTask=cpu=288
+   
+

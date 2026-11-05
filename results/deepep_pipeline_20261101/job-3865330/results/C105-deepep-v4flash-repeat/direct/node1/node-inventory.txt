@@ -1,0 +1,24 @@
+2026-11-05T14:49:59Z
+nid007542
+6.4.0-150600.23.125-64kb
+name, uuid, driver_version, pci.bus_id
+NVIDIA GH200 120GB, GPU-4b37bba3-e06a-fea5-6ebd-489833996256, 595.91.07, 00000009:01:00.0
+NVIDIA GH200 120GB, GPU-ad3f06af-a540-6799-d0fc-fdec5dba88ec, 595.91.07, 00000019:01:00.0
+NVIDIA GH200 120GB, GPU-0347aab6-31bf-17b7-e578-9a00a9ffa9c2, 595.91.07, 00000029:01:00.0
+NVIDIA GH200 120GB, GPU-0d58f465-dbad-d642-9b26-973837cc26fc, 595.91.07, 00000039:01:00.0
+
+/host_usr/lib64/pkgconfig/libcxi.pc
+# SPDX-License-Identifier: GPL-2.0-only or BSD-2-Clause
+# Copyright 2018 Hewlett Packard Enterprise Development LP
+
+prefix=/usr
+exec_prefix=/usr
+libdir=/usr/lib64
+includedir=/usr/include
+
+Name: libcxi
+Description: User space CXI interface library
+Version: 1.7.0
+Cflags: -I${includedir}
+Libs: -L${libdir} -lcxi
+529a818a781fd13cec480b65edf00fc8dd267a1f75226fc662c7cc8367b5e4f9  /host_usr/lib64/libcxi.so

@@ -1,0 +1,74 @@
+[
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "combine",
+    "repeat_median_us": 1973.0560183525085,
+    "repeat_cv": 0.0033587590732937524
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "cycle",
+    "repeat_median_us": 3457.4559926986694,
+    "repeat_cv": 0.0016022905663001957
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 1284.9119901657104,
+    "repeat_cv": 0.003155307336596507
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "mixed",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 1509.5839500427246,
+    "repeat_cv": 0.0037735455140391395
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "combine",
+    "repeat_median_us": 1997.1200227737427,
+    "repeat_cv": 0.002907620119211981
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "cycle",
+    "repeat_median_us": 3499.727964401245,
+    "repeat_cv": 0.0018509370978641616
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "dispatch_cached",
+    "repeat_median_us": 1305.2800297737122,
+    "repeat_cv": 0.003906726202772688
+  },
+  {
+    "model": "qwen3",
+    "tokens_per_gpu": 4096,
+    "dispatch_dtype": "fp8",
+    "routing": "uniform",
+    "operation": "dispatch_fresh",
+    "repeat_median_us": 1534.720003604889,
+    "repeat_cv": 0.0014589243249872835
+  }
+]

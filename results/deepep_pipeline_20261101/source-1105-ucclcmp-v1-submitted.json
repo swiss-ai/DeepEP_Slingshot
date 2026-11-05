@@ -1,0 +1,12 @@
+{
+  "job": 3865330,
+  "utc": "2026-11-05T14:23:50.312618+00:00",
+  "campaign": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030",
+  "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1105-ucclcmp-v1",
+  "local_snapshot": "/home/yu/CSCS/Load_Balance_Cross_Node/results/deepep_pipeline_20261101/source-1105-ucclcmp-v1",
+  "state": "SUBMITTED",
+  "time": "00:40:00",
+  "partition": "debug",
+  "preflight": "skipped: compiled sources identical to source-1103-ep8skew-v3 (its preflight passed); differing files: backend/tests/ep_benchmark.py, runner/node.sh, runner/uccl_node.sh, runner/validate_gate.py",
+  "monitor_pid": 3899889
+}

@@ -1,0 +1,16 @@
+2026-11-05T14:48:28Z
+nid007542
+6.4.0-150600.23.125-64kb
+name, uuid, driver_version, pci.bus_id
+NVIDIA GH200 120GB, GPU-4b37bba3-e06a-fea5-6ebd-489833996256, 595.91.07, 00000009:01:00.0
+NVIDIA GH200 120GB, GPU-ad3f06af-a540-6799-d0fc-fdec5dba88ec, 595.91.07, 00000019:01:00.0
+NVIDIA GH200 120GB, GPU-0347aab6-31bf-17b7-e578-9a00a9ffa9c2, 595.91.07, 00000029:01:00.0
+NVIDIA GH200 120GB, GPU-0d58f465-dbad-d642-9b26-973837cc26fc, 595.91.07, 00000039:01:00.0
+dcce642bedc055ab8cf5a9a4297eb297f236e23b12980f19f33aeaeb857d874c  /iopsstor/scratch/cscs/zyu/uccl-ep8-live-20261028/builds/apertus-54ef064-v1/python/uccl/ep.abi3.so
+529a818a781fd13cec480b65edf00fc8dd267a1f75226fc662c7cc8367b5e4f9  /host_usr/lib64/libcxi.so
+34486a0fb47a424733de942fc625c983e8b311c187f81f82ed12ddc6c762db75  /iopsstor/scratch/cscs/zyu/deepep-v2-20261022/lf-install/lib/libfabric.so
+34486a0fb47a424733de942fc625c983e8b311c187f81f82ed12ddc6c762db75  /iopsstor/scratch/cscs/zyu/deepep-v2-20261022/lf-install/lib/libfabric.so.1
+34486a0fb47a424733de942fc625c983e8b311c187f81f82ed12ddc6c762db75  /iopsstor/scratch/cscs/zyu/deepep-v2-20261022/lf-install/lib/libfabric.so.1.33.0
+/usr/local/lib/python3.12/dist-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+torch 2.11.0+cu130 python 3.12.3 (main, Mar 23 2026, 19:04:32) [GCC 13.3.0]

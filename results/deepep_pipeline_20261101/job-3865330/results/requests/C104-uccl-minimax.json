@@ -1,0 +1,22 @@
+{
+  "name": "C104-uccl-minimax",
+  "snapshot": "/iopsstor/scratch/cscs/zyu/deepep-pipeline-20261030/sources/source-1105-ucclcmp-v1",
+  "node_script": "runner/node.sh",
+  "qualification": "uccl_ep",
+  "timeout_seconds": 360,
+  "environment": {
+    "CXI_TEST_KIND": "uccl",
+    "CXI_TRANSPORT": "uccl",
+    "CXI_EP_MODELS": "minimax",
+    "CXI_EP_TOKENS": "4096",
+    "CXI_EP_DTYPES": "fp8",
+    "CXI_EP_ROUTING": "uniform mixed",
+    "CXI_EP_SEEDS": "1 2 3",
+    "CXI_EP_WARMUP": "20",
+    "CXI_EP_ITERS": "100",
+    "CXI_EP_NIC_ITERS": "600",
+    "CXI_TEST_TIMEOUT": "300",
+    "CXI_DEVICE_TRACE": "0"
+  },
+  "requires": []
+}

@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "ep": 8,
+  "correctness_records": 48,
+  "operation_records": 192,
+  "cuda_event_samples": 19200,
+  "nic_windows": 16
+}
